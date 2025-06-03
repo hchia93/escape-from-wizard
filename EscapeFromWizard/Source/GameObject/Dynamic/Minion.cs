@@ -26,8 +26,6 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
 
         public Minion()
         {
-
-
             m_pathList = new List<Tuple<Vector2, Vector2, int>>();
             m_pathListiterator = 0;
 
@@ -36,7 +34,7 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
 
             //Timers
             m_updateTimer = 1.0f;
-            SetEnumState(EState.STOP);
+            SetBehavior(EBehaviorState.STOP);
 
         }
 
@@ -129,7 +127,7 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
             /* 
              *  Move Minion to Desire Location With A*. 
              */
-            Vector2 Start = GetTilePositionVector();
+            Vector2 Start = GetTargetPosition();
             Vector2 Destination;
             Destination.X = i_Column;
             Destination.Y = i_Row;
@@ -218,7 +216,7 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
                 OpenList.Remove(OpenList[mindex]);
 
                 //Pick Next Node that is Movable, ReCompute f_cost, Add Into OpenList
-                foreach (EDirection direction in Enum.GetValues(typeof(EDirection)))
+                foreach (EDirection direction in System.Enum.GetValues(typeof(EDirection)))
                 {
                     if (_IsAdjacentTileMovable(CurrentPos, direction))
                     {
@@ -269,21 +267,21 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
 
         override protected void _Decision(Vector2 i_playerPosVector)
         {
-            switch (GetEnumState())
+            switch (GetBehavior())
             {
-                case EState.WONDER:
+                case EBehaviorState.WONDER:
                     _Wonder(); //This function is not overrided. It used the super class version
                     return;
-                case EState.CHASE:
+                case EBehaviorState.CHASE:
                     _Chase(i_playerPosVector); //This function is not overrided. It used the super class version
                     return;
-                case EState.LINEOFSIGHT:
+                case EBehaviorState.HAS_LINE_OF_SIGHT:
                     _LineOfSight(i_playerPosVector);
                     return;
-                case EState.STOP:
+                case EBehaviorState.STOP:
                     _ClearPathList();
                     return;
-                case EState.PATROL:
+                case EBehaviorState.PATROL:
                     _Patrol();
                     return;
             }
@@ -294,8 +292,8 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
             //Setup References
             int playerPosX = (int)i_playerPosVector.X;
             int playerPosY = (int)i_playerPosVector.Y;
-            int minionX = (int)GetTilePositionVector().X;
-            int minionY = (int)GetTilePositionVector().Y;
+            int minionX = (int)GetTargetPosition().X;
+            int minionY = (int)GetTargetPosition().Y;
             m_moveDelayTimer += gameTime.ElapsedGameTime.TotalSeconds;
             m_updateTimer += gameTime.ElapsedGameTime.TotalSeconds;
 
@@ -305,15 +303,15 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
                 SetPlayerWasHitFlag(true);
 
             //Timer Scope: Increased to make it slower to calculate next move.
-            if (m_updateTimer > 1.50f && GetEnumState() != EState.PATROL)
+            if (m_updateTimer > 1.50f && GetBehavior() != EBehaviorState.PATROL)
             {
-                SetEnumState(EState.PATROL);
+                SetBehavior(EBehaviorState.PATROL);
                 
                 if (GetPlayerHideFlag() == true)
-                    SetEnumState(EState.WONDER);
+                    SetBehavior(EBehaviorState.WONDER);
 
                 if (GetPlayerExitFlag() == true )
-                    SetEnumState(EState.STOP);
+                    SetBehavior(EBehaviorState.STOP);
 
                 //WP COMMENTED THE LINE BELOW : 28/9 TO FIX BUG (2)
                 //if (_PlayerInLineOfSight(i_playerPosVector))
@@ -328,14 +326,14 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
                 if (m_moveDelayTimer >= 0.165f)
                 {
                     Vector2 updatePosition = m_pathList[m_pathListiterator].Item1;
-                    SetTilePosition((int)updatePosition.X, (int)updatePosition.Y);
+                    SetTargetPosition((int)updatePosition.X, (int)updatePosition.Y);
                     m_pathListiterator++;
                     m_moveDelayTimer = 0.0f;
                 }
 
                 if (m_pathListiterator == m_pathList.Count - 1)
                 {
-                    SetEnumState(EState.STOP);
+                    SetBehavior(EBehaviorState.STOP);
                 }
 
             }

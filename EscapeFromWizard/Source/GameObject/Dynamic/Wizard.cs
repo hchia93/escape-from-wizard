@@ -8,28 +8,24 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
     public class Wizard : Enemy
     {
         //Pathing variables
-        private List<Tuple<Vector2,Vector2,int>> m_pathList;
-        private double m_moveDelayTimer;
-        private double m_updateTimer;
-        private double m_wonderCountDownTimer;
-        private double m_chaseCountDownTimer;
-        private int m_pathListiterator;
+        private List<Tuple<Vector2,Vector2,int>> m_PathList;
+        private double m_MoveDelayTimer;
+        private double m_UpdateTimer;
+        private int m_PathListIterator;
         private Random random_stream;
 
         private Vector2 m_DestinationVector;
 
         public Wizard() 
         {
-            SetEnumState(EState.WONDER);
-            m_pathList = new List<Tuple<Vector2,Vector2,int>>();
-            m_pathListiterator = 0;
+            SetBehavior(EBehaviorState.WONDER);
+            m_PathList = new List<Tuple<Vector2,Vector2,int>>();
+            m_PathListIterator = 0;
 
             random_stream = new Random();
 
             //Timers
-            m_updateTimer = 1.0f;
-            m_wonderCountDownTimer = 7.0f;
-            m_chaseCountDownTimer = 7.0f;
+            m_UpdateTimer = 1.0f;
             m_DestinationVector = new Vector2();
         }
 
@@ -40,7 +36,7 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
         /* Move Wizard to Desire Location With A* */
         private void _MoveToTargetTile(int i_Column, int i_Row)
         {
-            Vector2 Start = GetTilePositionVector();
+            Vector2 Start = GetTargetPosition();
             m_DestinationVector.X = i_Column;
             m_DestinationVector.Y = i_Row;
             _A_STAR_ALGORITHM(Start, m_DestinationVector);
@@ -50,28 +46,28 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
         private void _GetMoveablePathFromList()
         {
             List<Tuple<Vector2, Vector2, int>> processedPathList = new List<Tuple<Vector2, Vector2, int>>();
-            Vector2 currentTilePos = m_pathList[m_pathList.Count - 1].Item1;
-            Vector2 parentTilePos = m_pathList[m_pathList.Count - 1].Item2;
-            processedPathList.Add(m_pathList[m_pathList.Count - 1]); //Always add this Tile. 
+            Vector2 currentTilePos = m_PathList[m_PathList.Count - 1].Item1;
+            Vector2 parentTilePos = m_PathList[m_PathList.Count - 1].Item2;
+            processedPathList.Add(m_PathList[m_PathList.Count - 1]); //Always add this Tile. 
 
-            for (int i = m_pathList.Count - 1; i > 0; --i)
-                if (parentTilePos == m_pathList[i - 1].Item1)
+            for (int i = m_PathList.Count - 1; i > 0; --i)
+                if (parentTilePos == m_PathList[i - 1].Item1)
                 {
-                    processedPathList.Add(m_pathList[i - 1]);
-                    currentTilePos = m_pathList[i - 1].Item1;
-                    parentTilePos = m_pathList[i - 1].Item2;
+                    processedPathList.Add(m_PathList[i - 1]);
+                    currentTilePos = m_PathList[i - 1].Item1;
+                    parentTilePos = m_PathList[i - 1].Item2;
                 }
                  
             _ClearPathList();
-            m_pathList.AddRange(processedPathList);
-            m_pathList.Reverse();
+            m_PathList.AddRange(processedPathList);
+            m_PathList.Reverse();
         }
 
         private void _ClearPathList()
         {
-            m_pathList.TrimExcess();
-            m_pathList.Clear();
-            m_pathListiterator = 0;
+            m_PathList.TrimExcess();
+            m_PathList.Clear();
+            m_PathListIterator = 0;
         }
 
         private bool _A_STAR_ALGORITHM(Vector2 i_StartPosition, Vector2 i_EndPosition)
@@ -83,7 +79,10 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
 
             //Reject Noob Request that request wrong location.
             if (!_IsDestinationValid(i_EndPosition))
+            {
                 return false;
+            }
+             
 
             //Node Pos, Parent Pos, f_cost
             List<Tuple<Vector2,Vector2, int>> OpenList = new List<Tuple<Vector2,Vector2,int>>();
@@ -124,7 +123,7 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
                 OpenList.Remove(OpenList[mindex]);
                 
                 //Pick Next Node that is Movable, ReCompute f_cost, Add Into OpenList
-                foreach (EDirection direction in Enum.GetValues(typeof(EDirection)))
+                foreach (EDirection direction in System.Enum.GetValues(typeof(EDirection)))
                 {
                     if (_IsAdjacentTileMovable(CurrentPos, direction))
                     {
@@ -142,17 +141,14 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
                         {
                             CloseList.Add(new Tuple<Vector2, Vector2, int>(i_EndPosition, CurrentPos, 0));
                             CloseList.Add(new Tuple<Vector2, Vector2, int>(i_EndPosition, i_EndPosition, 0));
-                            m_pathList.AddRange(CloseList);
+                            m_PathList.AddRange(CloseList);
                             return true;
                         }
                     }
                 }
             }
 
-            if (OpenList.Count == 0)
-                return false;
-            else
-                return true;
+            return !(OpenList.Count == 0);
         }
 
         //=======================================================
@@ -169,8 +165,7 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
                 m_DestinationVector.Y = random_stream.Next(0, 25);
             }
             _MoveToTargetTile((int)m_DestinationVector.X, (int)m_DestinationVector.Y);
-            m_updateTimer = 0.0f;
-            m_chaseCountDownTimer = 7.0f;
+            m_UpdateTimer = 0.0f;
         }
 
 
@@ -180,8 +175,7 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
             int playerPosX = (int)i_playerPosVector.X;
             int playerPosY = (int)i_playerPosVector.Y;
             _MoveToTargetTile(playerPosX, playerPosY);
-            m_updateTimer = 0.0f;
-            m_wonderCountDownTimer = 7.0f;
+            m_UpdateTimer = 0.0f;
         }
 
 
@@ -192,25 +186,25 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
             int playerPosX = (int)i_playerPosVector.X;
             int playerPosY = (int)i_playerPosVector.Y;
             _MoveToTargetTile(playerPosX, playerPosY);
-            m_updateTimer = 0.0f;
+            m_UpdateTimer = 0.0f;
 
         }
 
 
         override protected void _Decision(Vector2 i_playerPosVector)
         {
-           switch(GetEnumState())
+           switch(GetBehavior())
            {
-               case EState.WONDER:
+               case EBehaviorState.WONDER:
                    _Wonder();
                    return;
-               case EState.CHASE:
+               case EBehaviorState.CHASE:
                    _Chase(i_playerPosVector);
                    return;
-               case EState.LINEOFSIGHT:
+               case EBehaviorState.HAS_LINE_OF_SIGHT:
                    _LineOfSight(i_playerPosVector);
                    return;
-               case EState.STOP:
+               case EBehaviorState.STOP:
                    _ClearPathList();
                    return;
            }
@@ -221,48 +215,44 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
             //Setup References
             int playerPosX = (int)i_playerPosVector.X;
             int playerPosY = (int)i_playerPosVector.Y;
-            int wizardX = (int)GetTilePositionVector().X;
-            int wizardY = (int)GetTilePositionVector().Y;
-            m_moveDelayTimer += gameTime.ElapsedGameTime.TotalSeconds;
-            m_updateTimer += gameTime.ElapsedGameTime.TotalSeconds;
-            m_wonderCountDownTimer -= gameTime.ElapsedGameTime.TotalSeconds;
-            m_chaseCountDownTimer -= gameTime.ElapsedGameTime.TotalSeconds;
+            int wizardX = (int)GetTargetPosition().X;
+            int wizardY = (int)GetTargetPosition().Y;
+            m_MoveDelayTimer += gameTime.ElapsedGameTime.TotalSeconds;
+            m_UpdateTimer += gameTime.ElapsedGameTime.TotalSeconds;
 
             if (wizardX == playerPosX && wizardY == playerPosY)
                 SetPlayerWasHitFlag(true);
 
-            if (_PlayerInLineOfSight(i_playerPosVector))
-                SetEnumState(EState.LINEOFSIGHT);
+            if (IsPlayerInLineOfSight(i_playerPosVector))
+                SetBehavior(EBehaviorState.HAS_LINE_OF_SIGHT);
 
             if (GetPlayerHideFlag() == false && GetPlayerExitFlag() == false )
-                //if(m_wonderCountDownTimer <= 0.0f) //若CountDown结束，追模式
-                SetEnumState(EState.CHASE);
+                SetBehavior(EBehaviorState.CHASE);
 
             //Update per 2.5f
-            if (m_updateTimer > 1.50f /*&& GetEnumState() != EState.CHASE*/)
+            if (m_UpdateTimer > 1.50f /*&& GetEnumState() != EState.CHASE*/)
             {
                 if (GetPlayerHideFlag() == true )
-                    //if(m_chaseCountDownTimer <= 0.0f)
-                        SetEnumState(EState.WONDER); 
+                        SetBehavior(EBehaviorState.WONDER); 
                 
                 if (GetPlayerExitFlag() == true)
-                    SetEnumState(EState.STOP); 
+                    SetBehavior(EBehaviorState.STOP); 
 
                 _Decision(i_playerPosVector);
             }
-            if (m_pathList.Count != 0 && m_pathListiterator < m_pathList.Count && !GetPlayerWasHitFlag())
+            if (m_PathList.Count != 0 && m_PathListIterator < m_PathList.Count && !GetPlayerWasHitFlag())
             {
                 //Movement Update Speed
-                if (m_moveDelayTimer >= 0.165f)
+                if (m_MoveDelayTimer >= 0.165f)
                 {
-                    Vector2 updatePosition = m_pathList[m_pathListiterator].Item1;
-                    SetTilePosition((int)updatePosition.X, (int)updatePosition.Y);
-                    m_pathListiterator++;
-                    m_moveDelayTimer = 0.0f;
+                    Vector2 updatePosition = m_PathList[m_PathListIterator].Item1;
+                    SetTargetPosition((int)updatePosition.X, (int)updatePosition.Y);
+                    m_PathListIterator++;
+                    m_MoveDelayTimer = 0.0f;
                 }
 
-                if(m_pathListiterator == m_pathList.Count -1)
-                    SetEnumState(EState.STOP);
+                if(m_PathListIterator == m_PathList.Count -1)
+                    SetBehavior(EBehaviorState.STOP);
             }
         } 
     }

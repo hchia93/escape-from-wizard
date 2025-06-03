@@ -1,75 +1,68 @@
-﻿using Microsoft.Xna.Framework;
+﻿using EscapeFromWizard.Source.GameObject.Dynamic;
+using EscapeFromWizard.Source.Interface;
+using Microsoft.Xna.Framework;
 
 namespace EscapeFromWizard.Source.GameObject.Static
 {
-    public class Key
+    public class Key : ICollectibles
     {
-        int m_keyTilePositionX;
-        int m_keyTilePositionY;
-        KeyLockColor keyColour;
-        bool keyLootFlag;
+        Vector2 m_Position;
+        Color m_Color;
+        bool isLooted;
 
         public Key()
         {
-            keyLootFlag = false;
+            isLooted = false;
         }
 
-        public Key(int i_TileColumn, int i_TileRow)
+        public void SetPosition(int column, int row)
         {
-            keyLootFlag = false;
-            m_keyTilePositionX = i_TileColumn;
-            m_keyTilePositionY = i_TileRow;
+            m_Position = new Vector2(column, row);
         }
 
-        public void SetKeyTilePosition(int i_TileColumn, int i_TileRow)
+        public Vector2 GetPosition()
         {
-            m_keyTilePositionX = i_TileColumn;
-            m_keyTilePositionY = i_TileRow;
+            return m_Position;
         }
 
-        public int GetKeyTilePositionX()
+        public void SetColor(Color color)
         {
-            return m_keyTilePositionX;
+            m_Color = color;
         }
 
-        public int GetKeyTilePositionY()
+        public Color GetColor()
         {
-            return m_keyTilePositionY;
+            return m_Color;
         }
 
-        public void SetKeyColour(KeyLockColor i_keyColour)
+        public bool IsLooted()
         {
-            keyColour = i_keyColour;
+            return isLooted;
         }
 
-        public int GetKeyColourIndex()
+        public void SetLooted(bool value)
         {
-            return (int)keyColour;
+            this.isLooted = value;
         }
 
-        public bool isLooted()
+        public bool IsOverlapped(Vector2 playerPosition)
         {
-            return keyLootFlag;
-        }
-
-        public void SetLooted(bool i_keyLootFlag)
-        {
-            keyLootFlag = i_keyLootFlag;
-        }
-
-        public bool CheckPlayerPos(Vector2 i_playerPosVector)
-        {
-            /* 
-             Return True if Key Position matched Player Position, else return false;
-             */
-            if (m_keyTilePositionX == (int)i_playerPosVector.X && m_keyTilePositionY == (int)i_playerPosVector.Y)
-                if (!keyLootFlag)
+            /// Todo: check precision
+            if (m_Position == playerPosition)
+            {
+                /// function has side effect
+                if (!isLooted)
                 {
-                    keyLootFlag = true;
+                    isLooted = true;
                     return true;
                 }
-                    
+            }
             return false;
+        }
+
+        public void OnCollect(Player player)
+        {
+            // do something issit
         }
     }
 }

@@ -57,15 +57,25 @@
         WEIGHT = 45,
     }
 
-    public enum SpellItemType
+    public enum SpellItems
     {
         STAR = 9,
         HP_POTION = 21,
-        QUEST_ITEM = 22,
+        QUEST_POTION = 22,
         UNLOOTED_QUEST_ITEM = 24,
     }
 
-    public enum KeyLockColor
+    public enum LootItemType
+    {
+        STAR,
+        QUEST_POTION,
+        RED_KEY,
+        YELLOW_KEY,
+        BLUE_KEY,
+        GREEN_KEY,
+    }
+
+    public enum Color
     {
         RED = 0,
         YELLOW = 1,
@@ -107,7 +117,8 @@
 
     }
 
-    public class EnumMapData{
+    public class QuestionableEnum
+    {
         int[] keyIndex = new int[] { 17, 18, 15, 21, 22, 23, 20, 16 };
         
         public int GetKeyIndex(int i)

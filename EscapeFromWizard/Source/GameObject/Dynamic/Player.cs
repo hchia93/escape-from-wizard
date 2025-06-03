@@ -1,6 +1,8 @@
-﻿using Microsoft.Xna.Framework;
+﻿using EscapeFromWizard.Map;
 using EscapeFromWizard.Source.GameObject.Static;
-using EscapeFromWizard.Map;
+using EscapeFromWizard.Source.Interface;
+using Microsoft.Xna.Framework;
+using System.Collections.Generic;
 
 namespace EscapeFromWizard.Source.GameObject.Dynamic
 {
@@ -13,12 +15,25 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
         STILL
     };
 
+    public class PlayerInventory : IReset
+    {
+        private int m_Stars;
+        private int m_QuestItems;
+        private List<Key> m_Keys;
+
+        public void Reset()
+        {
+            m_Stars = 0;
+            m_QuestItems = 0;
+            m_Keys.Clear();
+        }
+    }
+
     public class Player
     {
-        private PlayerDirection direction;
-        private int m_playerTilePositionX;
-        private int m_playerTilePositionY;
-        private Vector2 m_playerPreviousPosition;
+        private PlayerDirection m_Direction;
+        private Vector2 m_Position;
+        private Vector2 m_PositionLastFrame;
         private Vector2 m_playerPreviousPositionForHideout;
         private Vector2 m_playerPreviousPositionForExit;
        
@@ -27,8 +42,8 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
         private double m_hidingTimer;
 
         //Player State
-        private bool m_onHideTile;
-        private bool m_onExitTile;
+        private bool m_IsHiding;
+        private bool m_IsOnExit;
         private bool m_pickUpSomething;
         private bool m_hpIncreased;
 
@@ -38,28 +53,30 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
         private int m_HP;
         private const int maxHP = 8;
 
+        PlayerInventory m_Inventory;
+
         private int m_questItemOnHand;
         private int m_maxQuestItem = 3;
 
-        private int m_starOnHand;
+        private int m_CollectedStar;
         private int m_maxStar = 15;
 
         public Player()
         {
-            m_onHideTile = true;
-            m_onExitTile = false;
-            direction = PlayerDirection.STILL;
+            m_IsHiding = true;
+            m_IsOnExit = false;
+            m_Direction = PlayerDirection.STILL;
             m_movingDelayTimer = 0.0f;
             m_standingDelayTimer = 0.0f;
             m_hidingTimer = 0.0f;
             m_HP = maxHP;
             m_questItemOnHand = 0;
-            m_starOnHand = 0;
+            m_CollectedStar = 0;
         }
-
-        //----------------------------------------------------------------------
-        // Initialize
-        //----------------------------------------------------------------------
+        void Reset()
+        {
+            m_Direction = PlayerDirection.STILL;
+        }
 
         public void SetMapReference(MapData i_MapData)
         {
@@ -71,43 +88,47 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
             doorLock = i_doorLock;
         }
 
-
-        //----------------------------------------------------------------------
-        // Positioning Functions
-        //----------------------------------------------------------------------
-
-        public void SetTilePosition(int column, int row)
+        public void SetPosition(int column, int row)
         {
-            m_playerTilePositionX = column;
-            m_playerTilePositionY = row;
+            m_Position = new Vector2(column, row);
         }
 
-        public Vector2 GetTilePositionVector()
+        public Vector2 GetPosition()
         {
-            return new Vector2(m_playerTilePositionX, m_playerTilePositionY);
+            return m_Position;
         }
 
         public PlayerDirection GetMovingDirection()
         {
-            return direction;
+            return m_Direction;
         }
 
-        public void ComputeMovingDirection(Vector2 i_Vector)
+        public void ProcessMovement(Vector2 movement)
         {
-            if (i_Vector.X == 0 && i_Vector.Y == 0)
-                direction = PlayerDirection.STILL;
+            if (movement.X == 0 && movement.Y == 0)
+            {
+                m_Direction = PlayerDirection.STILL;
+            }
 
-            if (i_Vector.X > 0)
-                direction = PlayerDirection.RIGHT;
+            if (movement.X > 0)
+            {
+                m_Direction = PlayerDirection.RIGHT;
+            }
 
-            if (i_Vector.X < 0)
-                direction = PlayerDirection.LEFT;
+            if (movement.X < 0)
+            {
+                m_Direction = PlayerDirection.LEFT;
+            }
 
-            if (i_Vector.Y > 0)
-                direction = PlayerDirection.DOWN;
+            if (movement.Y > 0)
+            {
+                m_Direction = PlayerDirection.DOWN;
+            }
 
-            if (i_Vector.Y < 0)
-                direction = PlayerDirection.UP;
+            if (movement.Y < 0)
+            {
+                m_Direction = PlayerDirection.UP;
+            }
         }
 
 
@@ -117,22 +138,22 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
 
         public bool IsHiding()
         {
-            return m_onHideTile;
+            return m_IsHiding;
         }
 
         public bool IsOnExit()
         {
-            return m_onExitTile;
+            return m_IsOnExit;
         }
 
-        public void SetOnExit(bool i_onExitTile)
+        public void SetOnExit(bool value)
         {
-            m_onExitTile = i_onExitTile;
+            m_IsOnExit = value;
         }
 
         public void ResetPositionIfQuestUncompleted()
         {
-            SetTilePosition((int)m_playerPreviousPositionForExit.X, (int)m_playerPreviousPositionForExit.Y);
+            SetPosition((int)m_playerPreviousPositionForExit.X, (int)m_playerPreviousPositionForExit.Y);
         }
 
         public bool IsLootedSomething()
@@ -143,39 +164,34 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
         public bool IsStanding()
         {
             //if player didn't move at all.
-            if (m_playerTilePositionX == m_playerPreviousPosition.X && m_playerTilePositionY == m_playerPreviousPosition.Y)
-                return true;
-            else 
-                return false;
+            return m_Position == m_PositionLastFrame;
         }
 
-        public void SetPickUpFlag(bool i_bool)
+        public void SetPickUpFlag(bool value)
         {
-            m_pickUpSomething = i_bool;
+            m_pickUpSomething = value;
         }
 
         //----------------------------------------------------------------------
         // HP Functions
         //----------------------------------------------------------------------
 
-        public void DecreaseHP(int i_decrement)
+        public void TakeDamage(int value)
         {
-            if(m_HP > 0)
-                m_HP = m_HP - i_decrement;
-        }
-
-        public void IncreaseHP(int i_increment)
-        {
-            for (int i = 0; i < i_increment; i++)
+            m_HP -= value;
+            if (m_HP <= 0)
             {
-                if (m_HP < maxHP)
-                    m_HP = m_HP + 1;
+                m_HP = 0;
             }
         }
 
-        public void RestoreHP()
+        public void Heal(int value)
         {
-            m_HP = maxHP;
+            m_HP += value;
+            if ( m_HP >= maxHP)
+            {
+                m_HP = maxHP;
+            }
         }
 
         public int GetHP()
@@ -192,12 +208,6 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
         {
             return m_hpIncreased;
         }
-
-        public void SetIsHPIncreased(bool i_hpIncreased)
-        {
-            m_hpIncreased = i_hpIncreased;
-        }
-
 
         //----------------------------------------------------------------------
         // Checking Num Of Quest Item And Star On Hand Functions
@@ -220,12 +230,12 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
 
         public void LootStar()
         {
-            m_starOnHand += 1;
+            m_CollectedStar += 1;
         }
 
         public int GetCurrentNumOfStar()
         {
-            return m_starOnHand;
+            return m_CollectedStar;
         }
 
         public int GetMaxNumOfStar()
@@ -239,33 +249,33 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
         
         private void _CheckCurrentTile(GameTime gameTime)
         {
-            int _totalRow = m_referenceMapData.GetMapTileHeight();
-            int _totalCol = m_referenceMapData.GetMapTileWidth();
-            int tileID_CurrentTIle = m_referenceMapData.GetMapTileData(m_referenceMapData.ConvertToMapIdex(m_playerTilePositionY, m_playerTilePositionX, _totalRow, _totalCol));
+            int maxRow = m_referenceMapData.GetMapTileHeight();
+            int maxColumn = m_referenceMapData.GetMapTileWidth();
+            int tileID_CurrentTIle = m_referenceMapData.GetMapTileData(m_referenceMapData.ConvertToMapIdex((int)m_Position.Y, (int)m_Position.X, maxRow, maxColumn));
 
             if (tileID_CurrentTIle == (int)TileType.PATH)
             {
-                m_onHideTile = false;
+                m_IsHiding = false;
                 m_hidingTimer = 0.0f;
             }
 
             if (tileID_CurrentTIle == (int)TileType.EXIT_SIGN)
             {
-                m_onExitTile = true;
+                m_IsOnExit = true;
             }
 
             if (tileID_CurrentTIle == (int)TileType.HIDE_TILE)
             {
-                m_hidingTimer += (gameTime.ElapsedGameTime.TotalSeconds*7);
+                m_hidingTimer += (gameTime.ElapsedGameTime.TotalSeconds * 7);
                 if (m_hidingTimer <= 5.0f)
                 {
-                    m_onHideTile = true;
+                    m_IsHiding = true;
                 }
                 else
                 {
                     m_hidingTimer = 0.0f;
-                    m_onHideTile = false;
-                    SetTilePosition((int)m_playerPreviousPositionForHideout.X, (int)m_playerPreviousPositionForHideout.Y);
+                    m_IsHiding = false;
+                    SetPosition((int)m_playerPreviousPositionForHideout.X, (int)m_playerPreviousPositionForHideout.Y);
 
                 }
             }
@@ -282,23 +292,23 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
             int _nextTileX = 0;
             int _nextTileY = 0;
 
-            switch (direction)
+            switch (m_Direction)
             {
                 case PlayerDirection.UP:
-                    _nextTileY = m_playerTilePositionY - 1;
-                    _nextTileX = m_playerTilePositionX;
+                    _nextTileY = (int) m_Position.Y - 1;
+                    _nextTileX = (int) m_Position.X;
                     break;
                 case PlayerDirection.DOWN:
-                    _nextTileY = m_playerTilePositionY + 1;
-                    _nextTileX = m_playerTilePositionX;
+                    _nextTileY = (int) m_Position.Y + 1;
+                    _nextTileX = (int) m_Position.X;
                     break;
                 case PlayerDirection.LEFT:
-                    _nextTileY = m_playerTilePositionY;
-                    _nextTileX = m_playerTilePositionX - 1;
+                    _nextTileY = (int) m_Position.Y;
+                    _nextTileX = (int) m_Position.X - 1;
                     break;
                 case PlayerDirection.RIGHT:
-                    _nextTileY = m_playerTilePositionY;
-                    _nextTileX = m_playerTilePositionX + 1;
+                    _nextTileY = (int) m_Position.Y;
+                    _nextTileX = (int) m_Position.X + 1;
                     break;
             }
 
@@ -312,15 +322,13 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
                     return true;
                 }
                 else if (_NextTileTileID == (int)TileType.HIDE_TILE)
-                    {
-                        m_playerPreviousPositionForHideout.X = m_playerTilePositionX;
-                        m_playerPreviousPositionForHideout.Y = m_playerTilePositionY;
+                {
+                    m_playerPreviousPositionForHideout = m_Position;
                     return true;
-                    }
+                }
                 else if (_NextTileTileID == (int)TileType.EXIT_SIGN)
                 {
-                    m_playerPreviousPositionForExit.X = m_playerTilePositionX;
-                    m_playerPreviousPositionForExit.Y = m_playerTilePositionY;
+                    m_playerPreviousPositionForExit = m_Position;
                     return true;
                 }
                 else
@@ -338,31 +346,30 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
             //Set Previous Tile Value with Delay
             if(m_standingDelayTimer >= 0.1f)
             {
-                m_playerPreviousPosition.X = m_playerTilePositionX;
-                m_playerPreviousPosition.Y = m_playerTilePositionY;
+                m_PositionLastFrame = m_Position;
                 m_standingDelayTimer = 0.0f;
             }
 
             //Action with Delay
             if (m_movingDelayTimer >= 0.1f) 
             {
-                switch (direction)
+                switch (m_Direction)
                 {
                     case PlayerDirection.RIGHT:
                         if (_IsMoveToNextTilePossible())
-                            m_playerTilePositionX += 1;
+                            m_Position.X += 1;
                         break;
                     case PlayerDirection.LEFT:
                         if (_IsMoveToNextTilePossible())
-                            m_playerTilePositionX -= 1;
+                            m_Position.X -= 1;
                         break;
                     case PlayerDirection.DOWN:
                         if (_IsMoveToNextTilePossible())
-                            m_playerTilePositionY += 1;
+                            m_Position.Y += 1;
                         break;
                     case PlayerDirection.UP:
                         if (_IsMoveToNextTilePossible())
-                            m_playerTilePositionY -= 1;
+                            m_Position.Y -= 1;
                         break;
                 }
                 //ResetTimer
@@ -380,8 +387,7 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
             for (int i = 0; i < doorLock.Length; i++)
             {
                 //if there is a lock beside player
-                if(doorLock[i].GetLockTilePositionX() == playerNextPosX
-                    && doorLock[i].GetLockTilePositionY() == playerNextPosY)
+                if (doorLock[i].GetPosition() == new Vector2(playerNextPosX, playerNextPosY))
                 {
                     //if the lock is unlocked
                     if (doorLock[i].IsUnlocked())

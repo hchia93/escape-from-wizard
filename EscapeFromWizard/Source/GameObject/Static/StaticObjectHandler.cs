@@ -16,15 +16,15 @@ namespace EscapeFromWizard.Source.GameObject.Static
         private static int numOfStars = 15;
 
         //Instance of each item type
-        private Key[] key = new Key[numOfKeyAndLock];
-        private Lock[] doorLock = new Lock[numOfKeyAndLock];
-        private SpellItem[] spellItem = new SpellItem[numOfTotalItems];
-        private SpellItem[] stars = new SpellItem[numOfStars];
+        private Key[] m_Keys = new Key[numOfKeyAndLock];
+        private Lock[] m_Locks = new Lock[numOfKeyAndLock];
+        private SpellItem[] m_SpellItems = new SpellItem[numOfTotalItems];
+        private SpellItem[] m_Stars = new SpellItem[numOfStars];
 
         //MapData
-        private MapData m_referenceMapData;
-        private int _totalRow;
-        private int _totalCol;
+        private MapData m_MapData;
+        private int levelRow;
+        private int levelColumn;
         private List<Vector2> staticObjectPositions = new List<Vector2>();
         private List<Vector2> walkablePositions = new List<Vector2>();
 
@@ -35,37 +35,37 @@ namespace EscapeFromWizard.Source.GameObject.Static
             InitializeSpellItem();
         }
 
-        public StaticObjectHandler(MapData i_MapData)
+        public StaticObjectHandler(MapData mapData)
         {
-            m_referenceMapData = i_MapData;
-            walkablePositions = m_referenceMapData.GetWalkablePaths();
-            _totalRow = m_referenceMapData.GetMapTileHeight();
-            _totalCol = m_referenceMapData.GetMapTileWidth();
+            this.m_MapData = mapData;
+            walkablePositions = this.m_MapData.GetWalkablePaths();
+            levelRow = this.m_MapData.GetMapTileHeight();
+            levelColumn = this.m_MapData.GetMapTileWidth();
 
             InitializeKey();
             InitializeLock();
             InitializeSpellItem();
         }
 
-        public void SetMapReference(MapData i_MapData)
+        public void SetMapReference(MapData mapData)
         {
-            m_referenceMapData = i_MapData;
-            walkablePositions = m_referenceMapData.GetWalkablePaths();
-            _totalRow = m_referenceMapData.GetMapTileHeight();
-            _totalCol = m_referenceMapData.GetMapTileWidth();
+            this.m_MapData = mapData;
+            walkablePositions = this.m_MapData.GetWalkablePaths();
+            levelRow = this.m_MapData.GetMapTileHeight();
+            levelColumn = this.m_MapData.GetMapTileWidth();
         }
 
         private void InitializeKey()
         {
-            KeyLockColor[] keyLockColors = { KeyLockColor.RED, KeyLockColor.YELLOW, KeyLockColor.GREEN, KeyLockColor.BLUE };
-            Vector2[] keyTilePositions = { new Vector2(5,3), new Vector2(23,1), new Vector2(23,23), new Vector2(1,23) };
+            Color[] keyLockColors = { Color.RED, Color.YELLOW, Color.GREEN, Color.BLUE };
+            Vector2[] keyTilePositions = { new Vector2(5, 3), new Vector2(23, 1), new Vector2(23, 23), new Vector2(1, 23) };
 
             for (int i = 0; i < numOfKeyAndLock; i++)
             {
-                key[i] = new Key();
-                key[i].SetKeyTilePosition((int)keyTilePositions[i].X, (int)keyTilePositions[i].Y);
-                key[i].SetKeyColour(keyLockColors[i]);
-                
+                m_Keys[i] = new Key();
+                m_Keys[i].SetPosition((int)keyTilePositions[i].X, (int)keyTilePositions[i].Y);
+                m_Keys[i].SetColor(keyLockColors[i]);
+
                 //add keyTilePositions into the position list
                 staticObjectPositions.Add(keyTilePositions[i]);
             }
@@ -73,19 +73,19 @@ namespace EscapeFromWizard.Source.GameObject.Static
 
         private void InitializeSpellItem()
         {
-            SpellItemType[] spellItemTypes = { SpellItemType.HP_POTION, SpellItemType.HP_POTION, 
-                                                 SpellItemType.QUEST_ITEM, SpellItemType.QUEST_ITEM, SpellItemType.QUEST_ITEM };
-            Vector2[] itemTilePositions = { new Vector2(23, 11), new Vector2(21, 13), new Vector2(1, 19), new Vector2(9, 11), new Vector2(23,13) };
+            SpellItems[] spellItemTypes = { SpellItems.HP_POTION, SpellItems.HP_POTION,
+                                                 SpellItems.QUEST_POTION, SpellItems.QUEST_POTION, SpellItems.QUEST_POTION };
+            Vector2[] itemTilePositions = { new Vector2(23, 11), new Vector2(21, 13), new Vector2(1, 19), new Vector2(9, 11), new Vector2(23, 13) };
 
             for (int i = 0; i < numOfTotalItems; i++)
             {
-                spellItem[i] = new SpellItem();
+                m_SpellItems[i] = new SpellItem();
             }
 
             for (int i = 0; i < numOfSpellItem; i++)
             {
-                spellItem[i].SetItemTilePosition((int)itemTilePositions[i].X, (int)itemTilePositions[i].Y);
-                spellItem[i].SetItemType(spellItemTypes[i]);
+                m_SpellItems[i].SetPosition((int)itemTilePositions[i].X, (int)itemTilePositions[i].Y);
+                m_SpellItems[i].SetItemType(spellItemTypes[i]);
 
                 //add itemTilePositions into the position list
                 staticObjectPositions.Add(itemTilePositions[i]);
@@ -101,9 +101,9 @@ namespace EscapeFromWizard.Source.GameObject.Static
 
                 int x = (int)rndPos.X;
                 int y = (int)rndPos.Y;
-               
-                spellItem[numOfSpellItem + i].SetItemTilePosition(x, y);
-                spellItem[numOfSpellItem + i].SetItemType(SpellItemType.STAR);
+
+                m_SpellItems[numOfSpellItem + i].SetPosition(x, y);
+                m_SpellItems[numOfSpellItem + i].SetItemType(SpellItems.STAR);
             }
         }
 
@@ -111,49 +111,53 @@ namespace EscapeFromWizard.Source.GameObject.Static
         private void InitializeLock()
         {
             Vector2[] lockTilePositions = { new Vector2(8, 23), new Vector2(14, 6), new Vector2(15, 12), new Vector2(10, 14) };
-            KeyLockColor[] keyLockColors = { KeyLockColor.RED, KeyLockColor.YELLOW, KeyLockColor.GREEN, KeyLockColor.BLUE };
-            
+            Color[] keyLockColors = { Color.RED, Color.YELLOW, Color.GREEN, Color.BLUE };
+
             for (int i = 0; i < numOfKeyAndLock; i++)
             {
-                doorLock[i] = new Lock();
-                doorLock[i].SetLockTilePosition((int)lockTilePositions[i].X,(int)lockTilePositions[i].Y);
-                doorLock[i].SetLockColour(keyLockColors[i]);
+                m_Locks[i] = new Lock();
+                m_Locks[i].SetPosition((int)lockTilePositions[i].X, (int)lockTilePositions[i].Y);
+                m_Locks[i].SetColor(keyLockColors[i]);
 
                 //add lockTilePositions into the position list
                 staticObjectPositions.Add(lockTilePositions[i]);
             }
         }
 
-        public void CheckLooted(GameTime gameTime,Player player)
+        public void CheckLooted(GameTime gameTime, Player player)
         {
-            for (int i = 0; i < key.Length; i++)
+            foreach (var colorKey in m_Keys)
             {
-                if (key[i].CheckPlayerPos(player.GetTilePositionVector()))
+                if (colorKey.IsOverlapped(player.GetPosition()))
+                {
                     player.SetPickUpFlag(true);
+                }
 
-
-                for (int j = 0; j < doorLock.Length; j++)
-                    if (key[i].GetKeyColourIndex() == doorLock[j].GetLockColourIndex())
-                        doorLock[j].CheckIfDoorLockIsUnlocked(key[i].isLooted());
+                foreach (var colorLock in m_Locks)
+                {
+                    if (colorKey.GetColor() == colorLock.GetColor())
+                    {
+                        colorLock.CheckIfDoorLockIsUnlocked(colorKey.IsLooted());
+                    }
+                }
 
             }
 
-            for (int i = 0; i < spellItem.Length; i++)
+            for (int i = 0; i < m_SpellItems.Length; i++)
             {
-                if (spellItem[i].CheckPlayerPos(player.GetTilePositionVector()))
+                if (m_SpellItems[i].CheckPlayerPos(player.GetPosition()))
                 {
                     player.SetPickUpFlag(true);
 
-                    if (spellItem[i].GetItemType() == SpellItemType.HP_POTION)
+                    if (m_SpellItems[i].GetItemType() == SpellItems.HP_POTION)
                     {
-                        player.IncreaseHP(3);
-                        player.SetIsHPIncreased(true);
+                        player.Heal(1);
                     }
-                    else if (spellItem[i].GetItemType() == SpellItemType.QUEST_ITEM)
+                    else if (m_SpellItems[i].GetItemType() == SpellItems.QUEST_POTION)
                     {
                         player.LootQuestItem();
                     }
-                    else if (spellItem[i].GetItemType() == SpellItemType.STAR)
+                    else if (m_SpellItems[i].GetItemType() == SpellItems.STAR)
                     {
                         player.LootStar();
                     }
@@ -165,17 +169,17 @@ namespace EscapeFromWizard.Source.GameObject.Static
 
         public Key[] GetKeys()
         {
-            return key;
+            return m_Keys;
         }
 
         public Lock[] GetLocks()
         {
-            return doorLock;
+            return m_Locks;
         }
 
         public SpellItem[] GetSpellItems()
         {
-            return spellItem;
+            return m_SpellItems;
         }
     }
 }

@@ -1,76 +1,64 @@
-﻿namespace EscapeFromWizard.Source.GameObject.Static
+﻿using Microsoft.Xna.Framework;
+
+namespace EscapeFromWizard.Source.GameObject.Static
 {
     public class Lock
     {
-        private int m_lockTilePositionX;
-        private int m_lockTilePositionY;
-        private KeyLockColor m_lockColour;
-        private bool unlockedFlag;
-        private bool destroyedFlag;
+        Vector2 m_Position;
+        private Color m_Color;
+        private bool m_IsUnlocked;
+        private bool m_IsDestroyed;
 
         public Lock()
         {
-            unlockedFlag = false;
-            destroyedFlag = false;
+            m_IsUnlocked = false;
+            m_IsDestroyed = false;
         }
 
-        public Lock(int i_TileColumn, int i_TileRow)
+        public void SetPosition(int column, int row)
         {
-            unlockedFlag = false;
-            m_lockTilePositionX = i_TileColumn;
-            m_lockTilePositionY = i_TileRow;
+            m_Position = new Vector2(column, row);
         }
 
-        public void SetLockTilePosition(int i_TileColumn, int i_TileRow)
+        public Vector2 GetPosition()
         {
-            m_lockTilePositionX = i_TileColumn;
-            m_lockTilePositionY = i_TileRow;
+            return m_Position;
         }
 
-        public int GetLockTilePositionX()
+        public void SetColor(Color color)
         {
-            return m_lockTilePositionX;
+           m_Color = color;
         }
 
-        public int GetLockTilePositionY()
+        public Color GetColor()
         {
-            return m_lockTilePositionY;
+            return m_Color;
         }
 
-        public void SetLockColour(KeyLockColor i_lockColour)
+        public bool IsUnlocked()
         {
-            m_lockColour = i_lockColour;
-        }
-
-        public int GetLockColourIndex()
-        {
-            return (int)m_lockColour;
-        }
-
-        public bool IsUnlocked(){
-            return unlockedFlag;
+            return m_IsUnlocked;
         }
 
         public void SetUnlocked()
         {
-            unlockedFlag = true;
+            m_IsUnlocked = true;
         }
 
-        public void CheckIfDoorLockIsUnlocked(bool i_keyLootFlag){
-            unlockedFlag = i_keyLootFlag;
+        public void CheckIfDoorLockIsUnlocked(bool i_keyLootFlag)
+        {
+            m_IsUnlocked = i_keyLootFlag;
         }
 
         //When destroyedFlag is true, the lock will not be drawn in main loop
-        public void SetDestroyed(bool i_lockDestroyed)
+        public void SetDestroyed(bool isDestroyed)
         {
-            destroyedFlag = i_lockDestroyed;
+            m_IsDestroyed = isDestroyed;
         }
 
         public bool IsDestroyed()
         {
-            return destroyedFlag;
+            return m_IsDestroyed;
         }
-
-        
     }
 }

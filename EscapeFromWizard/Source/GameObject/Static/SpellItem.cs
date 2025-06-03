@@ -4,62 +4,62 @@ namespace EscapeFromWizard.Source.GameObject.Static
 {
     public class SpellItem
     {
-        int m_itemTilePositionX;
-        int m_itemTilePositionY;
-        SpellItemType m_type;
-        bool itemLootFlag;
+        int m_PositionX;
+        int m_PositionY;
+        SpellItems m_Type;
+        bool m_IsItemLooted;
 
         public SpellItem()
         {
-            itemLootFlag = false;
+            m_IsItemLooted = false;
         }
 
-        public SpellItem(int i_TileColumn, int i_TileRow)
+        public SpellItem(int column, int row)
         {
-            itemLootFlag = false;
-            m_itemTilePositionX = i_TileColumn;
-            m_itemTilePositionY = i_TileRow;
+            m_IsItemLooted = false;
+            m_PositionX = column;
+            m_PositionY = row;
         }
 
-        public void SetItemTilePosition(int i_TileColumn, int i_TileRow)
+        public void SetPosition(int column, int row)
         {
-            m_itemTilePositionX = i_TileColumn;
-            m_itemTilePositionY = i_TileRow;
+            m_PositionX = column;
+            m_PositionY = row;
         }
 
         public int GetItemTilePositionX()
         {
-            return m_itemTilePositionX;
+            return m_PositionX;
         }
 
         public int GetItemTilePositionY()
         {
-            return m_itemTilePositionY;
+            return m_PositionY;
         }
 
         public int GetItemTypeIndex()
         {
-            return (int)m_type;
+            return (int)m_Type;
         }
 
-        public SpellItemType GetItemType()
+        public SpellItems GetItemType()
         {
-            return m_type;
+            return m_Type;
         }
 
-        public void SetItemType(SpellItemType i_itemType)
+        public void SetItemType(SpellItems i_itemType)
         {
-            m_type = i_itemType;
+            m_Type = i_itemType;
         }
 
         public bool isLooted()
         {
-            return itemLootFlag;
+            return m_IsItemLooted;
         }
 
         public void SetLooted(bool i_itemLootFlag)
         {
-            itemLootFlag = i_itemLootFlag;
+            m_IsItemLooted = i_itemLootFlag;
         }
 
         public bool CheckPlayerPos(Vector2 i_playerPosVector)
@@ -67,10 +67,10 @@ namespace EscapeFromWizard.Source.GameObject.Static
             /* 
              Return True if item Position matched Player Position, else return false;
              */
-            if (m_itemTilePositionX == (int)i_playerPosVector.X && m_itemTilePositionY == (int)i_playerPosVector.Y)
-                if (!itemLootFlag)
+            if (m_PositionX == (int)i_playerPosVector.X && m_PositionY == (int)i_playerPosVector.Y)
+                if (!m_IsItemLooted)
                 {
-                    itemLootFlag = true;
+                    m_IsItemLooted = true;
                     return true;
                 }
                     
