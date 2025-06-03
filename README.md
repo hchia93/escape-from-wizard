@@ -1,10 +1,10 @@
 # Escape From Wizard
-Escape from Wizard is a C# project I've made during University Course ` Game Algorithm Design and Analysis` using ![Microsoft XNA 4.0](https://en.wikipedia.org/wiki/Microsoft_XNA_Game_Studio#:~:text=Microsoft%20XNA%20Game%20Studio%20is,on%20the%20Microsoft%20XNA%20platform.) framework. It is featureing A* algorithm implementation for the path searching.
+Escape from Wizard is a C# project I've made during University Course `Game Algorithm Design and Analysis` using [Microsoft XNA 4.0](https://en.wikipedia.org/wiki/Microsoft_XNA_Game_Studio#:~:text=Microsoft%20XNA%20Game%20Studio%20is,on%20the%20Microsoft%20XNA%20platform.) framework. It is featuring A* algorithm implementation for the path searching.
 
-It was initially using Microsoft XNA framework which tied to VS2015. It is now upgraded to VS2022 with ![MonoGame](https://monogame.net/) and now it is runnable.
+It was initially using Microsoft XNA framework which tied to VS2015. It is now upgraded to VS2022 with [MonoGame](https://monogame.net/) and now it is runnable.
 
 <center>
-    <img src="escape-from-wizard.png" width="250">
+    <img src="escape-from-wizard.png" width="600">
 </center>
 
 ## Setting Up
@@ -12,29 +12,26 @@ Unfortunately, this is not the kind of project can be download and run directly.
 
 Please go thru the following setup documentation:
 
-![Setting up your OS for development](https://docs.monogame.net/articles/getting_started/1_setting_up_your_os_for_development_windows.html?tabs=android)
+[Setting up your OS for development](https://docs.monogame.net/articles/getting_started/1_setting_up_your_os_for_development_windows.html?tabs=android)
 
-![Setting up Visual Studio on Windows](https://docs.monogame.net/articles/getting_started/2_choosing_your_ide_visual_studio.html)
+[Setting up Visual Studio on Windows](https://docs.monogame.net/articles/getting_started/2_choosing_your_ide_visual_studio.html)
 
 ## Compiling Content 
 After upgrade from Microsoft XNA 4.0, the old method of loading resources is no longer working. Hence, you must link the resources using MGCB and build them on your machine. 
 
 Refer to: 
-![Generating XNB files](https://www.trccompsci.online/mediawiki/index.php/Generating_and_using_XNB_files)
+[Generating XNB files](https://www.trccompsci.online/mediawiki/index.php/Generating_and_using_XNB_files)
 
-<center>
 <div class="row">
-    <div class="column"></div>
-        <img src="open-with-mgcb.png" width="250">
-        <img src="build-with-mgcb.png" width="250">
-    <div class="column"></div>
-        
+    <div class="column">
+        <img src="open-with-mgcb.png" width="400">
+        <img src="build-with-mgcb.png" width="600">
+    </div>
 </div>
-</center>
 
 Once `\bin` and `\obj` should be generated in `...\EscapeFromWizard\Content`
 
-<img src="generated-dir-mgcb.png" width="100">
+<img src="generated-dir-mgcb.png" width="200">
 
 The project is now good to go.
 
@@ -58,3 +55,6 @@ Collect `Color Key` to unlock `Color Door`.
 `F1` for debug index.
 
 Reach `Exit Sign` to win the game.
+
+## Authors
+Author : [@hchia93](https://www.github.com/hchia93)
