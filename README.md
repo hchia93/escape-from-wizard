@@ -4,7 +4,7 @@ Escape from Wizard is a C# project I've made during University Course `Game Algo
 It was initially using Microsoft XNA framework which tied to VS2015. It is now upgraded to VS2022 with [MonoGame](https://monogame.net/) and now it is runnable.
 
 <center>
-    <img src="escape-from-wizard.png" width="250">
+    <img src="escape-from-wizard.png" width="600">
 </center>
 
 ## Setting Up
