@@ -1,4 +1,4 @@
-﻿namespace DungeonRE.StaticObject
+﻿namespace EscapeFromWizard.Source.GameObject.Static
 {
     public class Lock
     {

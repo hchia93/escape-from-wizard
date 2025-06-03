@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Microsoft.Xna.Framework;
 
-namespace DungeonRE
+namespace EscapeFromWizard.Source.GameObject.Dynamic
 {
     public class Minion : Enemy
     {
@@ -48,14 +47,14 @@ namespace DungeonRE
 
         public void SetPatrolStartPos(int i_StartPosX, int i_StartPosY, int i_coverageX, int i_coverageY)
         {
-            PatrolStartPos = new Vector2((int)i_StartPosX, (int)i_StartPosY);
+            PatrolStartPos = new Vector2(i_StartPosX, i_StartPosY);
             coverageX = i_coverageX;
             coverageY = i_coverageY;
         }
 
         public void SetPatrolStartPos(int[] i_PatrolData)
         {
-            PatrolStartPos = new Vector2((int)i_PatrolData[0], (int)i_PatrolData[1]);
+            PatrolStartPos = new Vector2(i_PatrolData[0], i_PatrolData[1]);
             coverageX = i_PatrolData[2];
             coverageY = i_PatrolData[3];
 

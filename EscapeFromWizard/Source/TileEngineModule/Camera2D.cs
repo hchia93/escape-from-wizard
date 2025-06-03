@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using DungeonRE;
+﻿using EscapeFromWizard.Source.GameObject.Dynamic;
 using Microsoft.Xna.Framework;
 
 namespace TileEngine
@@ -17,7 +13,7 @@ namespace TileEngine
 
         }
 
-        public void UpdateMovement(DungeonRE.PlayerDirection i_playerDirection, Vector2 i_playerPos, Vector2 i_screenCenter)
+        public void UpdateMovement(PlayerDirection i_playerDirection, Vector2 i_playerPos, Vector2 i_screenCenter)
         {
             m_position = i_playerPos*32 - i_screenCenter;
             //Clamping is not a must any more since it will follow character.

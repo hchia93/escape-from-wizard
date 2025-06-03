@@ -1,9 +1,11 @@
-﻿using Microsoft.Xna.Framework;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Xna.Framework;
+using EscapeFromWizard.Map;
+using EscapeFromWizard.Source.GameObject.Dynamic;
 
-namespace DungeonRE.StaticObject
+namespace EscapeFromWizard.Source.GameObject.Static
 {
     public class StaticObjectHandler
     {
@@ -91,7 +93,7 @@ namespace DungeonRE.StaticObject
 
             //Randomly generate locations for stars
             Random rnd = new Random();
-            walkablePositions = walkablePositions.Except<Vector2>(staticObjectPositions).ToList<Vector2>();
+            walkablePositions = walkablePositions.Except(staticObjectPositions).ToList();
             for (int i = 0; i < numOfStars; i++)
             {
                 //Random pick a vector2 position from the walkable paths list

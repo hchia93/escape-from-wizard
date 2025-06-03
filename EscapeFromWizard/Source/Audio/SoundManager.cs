@@ -1,7 +1,7 @@
 ﻿using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Content;
 
-namespace DungeonRE.Audio
+namespace EscapeFromWizard.Source.Audio
 {
     public class SoundManager
     {

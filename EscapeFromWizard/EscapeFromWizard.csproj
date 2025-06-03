@@ -10,105 +10,17 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Icon.ico</ApplicationIcon>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="Content\Audio\**" />
+    <Compile Remove="Content\Image\**" />
+    <EmbeddedResource Remove="Content\Audio\**" />
+    <EmbeddedResource Remove="Content\Image\**" />
+    <None Remove="Content\Audio\**" />
+    <None Remove="Content\Image\**" />
+  </ItemGroup>
 <ItemGroup>
-    <None Remove="Content\Audio\ButtonSFX.wav" />
-    <None Remove="Content\Image\32PixelTiles\32Pixel_SpriteSheet_Tiles.png" />
-    <None Remove="Content\Image\32PixelTiles\box.png" />
-    <None Remove="Content\Image\32PixelTiles\boxAlt.png" />
-    <None Remove="Content\Image\32PixelTiles\boxCoin.png" />
-    <None Remove="Content\Image\32PixelTiles\boxItem.png" />
-    <None Remove="Content\Image\32PixelTiles\boxWarning.png" />
-    <None Remove="Content\Image\32PixelTiles\brickWall.png" />
-    <None Remove="Content\Image\32PixelTiles\castle.png" />
-    <None Remove="Content\Image\32PixelTiles\castleCenter_rounded.png" />
-    <None Remove="Content\Image\32PixelTiles\castleCliffLeft.png" />
-    <None Remove="Content\Image\32PixelTiles\castleCliffRight.png" />
-    <None Remove="Content\Image\32PixelTiles\dirt.png" />
-    <None Remove="Content\Image\32PixelTiles\dirtCenter_rounded.png" />
-    <None Remove="Content\Image\32PixelTiles\dirtCliffLeft.png" />
-    <None Remove="Content\Image\32PixelTiles\dirtCliffRight.png" />
-    <None Remove="Content\Image\32PixelTiles\fence.png" />
-    <None Remove="Content\Image\32PixelTiles\metal.png" />
-    <None Remove="Content\Image\32PixelTiles\metalCenterSticker.png" />
-    <None Remove="Content\Image\32PixelTiles\metalCenterWarning.png" />
-    <None Remove="Content\Image\32PixelTiles\rpgTile010.png" />
-    <None Remove="Content\Image\32PixelTiles\rpgTile011.png" />
-    <None Remove="Content\Image\32PixelTiles\rpgTile012.png" />
-    <None Remove="Content\Image\32PixelTiles\rpgTile013.png" />
-    <None Remove="Content\Image\32PixelTiles\rpgTile014.png" />
-    <None Remove="Content\Image\32PixelTiles\rpgTile028.png" />
-    <None Remove="Content\Image\32PixelTiles\rpgTile029.png" />
-    <None Remove="Content\Image\32PixelTiles\rpgTile030.png" />
-    <None Remove="Content\Image\32PixelTiles\rpgTile031.png" />
-    <None Remove="Content\Image\32PixelTiles\rpgTile032.png" />
-    <None Remove="Content\Image\32PixelTiles\rpgTile040.png" />
-    <None Remove="Content\Image\32PixelTiles\rpgTile044.png" />
-    <None Remove="Content\Image\32PixelTiles\rpgTile045.png" />
-    <None Remove="Content\Image\32PixelTiles\rpgTile046.png" />
-    <None Remove="Content\Image\32PixelTiles\rpgTile169.png" />
-    <None Remove="Content\Image\32PixelTiles\sand.png" />
-    <None Remove="Content\Image\32PixelTiles\sandCenter_rounded.png" />
-    <None Remove="Content\Image\32PixelTiles\sandCliffLeft.png" />
-    <None Remove="Content\Image\32PixelTiles\sandCliffRight.png" />
-    <None Remove="Content\Image\32PixelTiles\signExit.png" />
-    <None Remove="Content\Image\32PixelTiles\signLeft.png" />
-    <None Remove="Content\Image\32PixelTiles\signRight.png" />
-    <None Remove="Content\Image\32PixelTiles\snow.png" />
-    <None Remove="Content\Image\32PixelTiles\snowCenter_rounded.png" />
-    <None Remove="Content\Image\32PixelTiles\snowCliffLeft.png" />
-    <None Remove="Content\Image\32PixelTiles\snowCliffRight.png" />
-    <None Remove="Content\Image\32PixelTiles\weight.png" />
     <None Remove="Icon.ico" />
     <None Remove="Icon.bmp" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Content\Audio\ButtonSFX.wav" />
-    <Content Include="Content\Image\32PixelTiles\32Pixel_SpriteSheet_Tiles.png" />
-    <Content Include="Content\Image\32PixelTiles\box.png" />
-    <Content Include="Content\Image\32PixelTiles\boxAlt.png" />
-    <Content Include="Content\Image\32PixelTiles\boxCoin.png" />
-    <Content Include="Content\Image\32PixelTiles\boxItem.png" />
-    <Content Include="Content\Image\32PixelTiles\boxWarning.png" />
-    <Content Include="Content\Image\32PixelTiles\brickWall.png" />
-    <Content Include="Content\Image\32PixelTiles\castle.png" />
-    <Content Include="Content\Image\32PixelTiles\castleCenter_rounded.png" />
-    <Content Include="Content\Image\32PixelTiles\castleCliffLeft.png" />
-    <Content Include="Content\Image\32PixelTiles\castleCliffRight.png" />
-    <Content Include="Content\Image\32PixelTiles\dirt.png" />
-    <Content Include="Content\Image\32PixelTiles\dirtCenter_rounded.png" />
-    <Content Include="Content\Image\32PixelTiles\dirtCliffLeft.png" />
-    <Content Include="Content\Image\32PixelTiles\dirtCliffRight.png" />
-    <Content Include="Content\Image\32PixelTiles\fence.png" />
-    <Content Include="Content\Image\32PixelTiles\metal.png" />
-    <Content Include="Content\Image\32PixelTiles\metalCenterSticker.png" />
-    <Content Include="Content\Image\32PixelTiles\metalCenterWarning.png" />
-    <Content Include="Content\Image\32PixelTiles\rpgTile010.png" />
-    <Content Include="Content\Image\32PixelTiles\rpgTile011.png" />
-    <Content Include="Content\Image\32PixelTiles\rpgTile012.png" />
-    <Content Include="Content\Image\32PixelTiles\rpgTile013.png" />
-    <Content Include="Content\Image\32PixelTiles\rpgTile014.png" />
-    <Content Include="Content\Image\32PixelTiles\rpgTile028.png" />
-    <Content Include="Content\Image\32PixelTiles\rpgTile029.png" />
-    <Content Include="Content\Image\32PixelTiles\rpgTile030.png" />
-    <Content Include="Content\Image\32PixelTiles\rpgTile031.png" />
-    <Content Include="Content\Image\32PixelTiles\rpgTile032.png" />
-    <Content Include="Content\Image\32PixelTiles\rpgTile040.png" />
-    <Content Include="Content\Image\32PixelTiles\rpgTile044.png" />
-    <Content Include="Content\Image\32PixelTiles\rpgTile045.png" />
-    <Content Include="Content\Image\32PixelTiles\rpgTile046.png" />
-    <Content Include="Content\Image\32PixelTiles\rpgTile169.png" />
-    <Content Include="Content\Image\32PixelTiles\sand.png" />
-    <Content Include="Content\Image\32PixelTiles\sandCenter_rounded.png" />
-    <Content Include="Content\Image\32PixelTiles\sandCliffLeft.png" />
-    <Content Include="Content\Image\32PixelTiles\sandCliffRight.png" />
-    <Content Include="Content\Image\32PixelTiles\signExit.png" />
-    <Content Include="Content\Image\32PixelTiles\signLeft.png" />
-    <Content Include="Content\Image\32PixelTiles\signRight.png" />
-    <Content Include="Content\Image\32PixelTiles\snow.png" />
-    <Content Include="Content\Image\32PixelTiles\snowCenter_rounded.png" />
-    <Content Include="Content\Image\32PixelTiles\snowCliffLeft.png" />
-    <Content Include="Content\Image\32PixelTiles\snowCliffRight.png" />
-    <Content Include="Content\Image\32PixelTiles\weight.png" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="Icon.ico" />

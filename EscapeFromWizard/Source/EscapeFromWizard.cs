@@ -1,12 +1,14 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using DungeonRE.Audio;
-using DungeonRE.StaticObject;
 using TileEngine;
 using System;
+using EscapeFromWizard.Map;
+using EscapeFromWizard.Source.GameObject.Dynamic;
+using EscapeFromWizard.Source.GameObject.Static;
+using EscapeFromWizard.Source.Audio;
 
-namespace DungeonRE
+namespace EscapeFromWizard
 {
     public enum CurrentScreen
     {
@@ -21,7 +23,7 @@ namespace DungeonRE
         public float HorizontalRight;
     };
 
-    public class DungeonRE : Game
+    public class EscapeFromWizard : Game
     {
         public GraphicsDeviceManager graphics;
         public SpriteBatch mapSpriteBatch;
@@ -107,7 +109,7 @@ namespace DungeonRE
         //Sound
         public SoundManager soundManager;
 
-        public DungeonRE()
+        public EscapeFromWizard()
         {
             graphics = new GraphicsDeviceManager(this);
             graphics.PreferredBackBufferWidth = pixelWidthPerTile * squaresAcross;

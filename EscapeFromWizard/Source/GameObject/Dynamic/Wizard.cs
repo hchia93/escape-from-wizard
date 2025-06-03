@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Microsoft.Xna.Framework;
 
-
-namespace DungeonRE
+namespace EscapeFromWizard.Source.GameObject.Dynamic
 {
     public class Wizard : Enemy
     {
@@ -22,24 +20,22 @@ namespace DungeonRE
 
         public Wizard() 
         {
-
             SetEnumState(EState.WONDER);
             m_pathList = new List<Tuple<Vector2,Vector2,int>>();
             m_pathListiterator = 0;
 
             random_stream = new Random();
+
             //Timers
             m_updateTimer = 1.0f;
             m_wonderCountDownTimer = 7.0f;
             m_chaseCountDownTimer = 7.0f;
             m_DestinationVector = new Vector2();
-
         }
 
         //----------------------------------------------------------------------
         // State Functions
         //----------------------------------------------------------------------
-
 
         /* Move Wizard to Desire Location With A* */
         private void _MoveToTargetTile(int i_Column, int i_Row)

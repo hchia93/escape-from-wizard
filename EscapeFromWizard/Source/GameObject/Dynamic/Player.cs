@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Microsoft.Xna.Framework;
-using DungeonRE.StaticObject;
+﻿using Microsoft.Xna.Framework;
+using EscapeFromWizard.Source.GameObject.Static;
+using EscapeFromWizard.Map;
 
-namespace DungeonRE
+namespace EscapeFromWizard.Source.GameObject.Dynamic
 {
     public enum PlayerDirection
     {
@@ -18,7 +15,7 @@ namespace DungeonRE
 
     public class Player
     {
-        private PlayerDirection m_direction;
+        private PlayerDirection direction;
         private int m_playerTilePositionX;
         private int m_playerTilePositionY;
         private Vector2 m_playerPreviousPosition;
@@ -51,7 +48,7 @@ namespace DungeonRE
         {
             m_onHideTile = true;
             m_onExitTile = false;
-            m_direction = PlayerDirection.STILL;
+            direction = PlayerDirection.STILL;
             m_movingDelayTimer = 0.0f;
             m_standingDelayTimer = 0.0f;
             m_hidingTimer = 0.0f;
@@ -79,10 +76,10 @@ namespace DungeonRE
         // Positioning Functions
         //----------------------------------------------------------------------
 
-        public void SetTilePosition(int i_TileColumn, int i_TileRow)
+        public void SetTilePosition(int column, int row)
         {
-            m_playerTilePositionX = i_TileColumn;
-            m_playerTilePositionY = i_TileRow;
+            m_playerTilePositionX = column;
+            m_playerTilePositionY = row;
         }
 
         public Vector2 GetTilePositionVector()
@@ -92,25 +89,25 @@ namespace DungeonRE
 
         public PlayerDirection GetMovingDirection()
         {
-            return m_direction;
+            return direction;
         }
 
         public void ComputeMovingDirection(Vector2 i_Vector)
         {
             if (i_Vector.X == 0 && i_Vector.Y == 0)
-                m_direction = PlayerDirection.STILL;
+                direction = PlayerDirection.STILL;
 
             if (i_Vector.X > 0)
-                m_direction = PlayerDirection.RIGHT;
+                direction = PlayerDirection.RIGHT;
 
             if (i_Vector.X < 0)
-                m_direction = PlayerDirection.LEFT;
+                direction = PlayerDirection.LEFT;
 
             if (i_Vector.Y > 0)
-                m_direction = PlayerDirection.DOWN;
+                direction = PlayerDirection.DOWN;
 
             if (i_Vector.Y < 0)
-                m_direction = PlayerDirection.UP;
+                direction = PlayerDirection.UP;
         }
 
 
@@ -285,7 +282,7 @@ namespace DungeonRE
             int _nextTileX = 0;
             int _nextTileY = 0;
 
-            switch (m_direction)
+            switch (direction)
             {
                 case PlayerDirection.UP:
                     _nextTileY = m_playerTilePositionY - 1;
@@ -349,7 +346,7 @@ namespace DungeonRE
             //Action with Delay
             if (m_movingDelayTimer >= 0.1f) 
             {
-                switch (m_direction)
+                switch (direction)
                 {
                     case PlayerDirection.RIGHT:
                         if (_IsMoveToNextTilePossible())

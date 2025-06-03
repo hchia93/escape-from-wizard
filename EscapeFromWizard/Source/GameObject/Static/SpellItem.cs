@@ -1,6 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 
-namespace DungeonRE.StaticObject
+namespace EscapeFromWizard.Source.GameObject.Static
 {
     public class SpellItem
     {
