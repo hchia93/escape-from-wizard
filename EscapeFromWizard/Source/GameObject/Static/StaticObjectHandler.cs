@@ -22,7 +22,7 @@ namespace EscapeFromWizard.Source.GameObject.Static
         private SpellItem[] m_Stars = new SpellItem[numOfStars];
 
         //MapData
-        private MapData m_MapData;
+        private Level m_MapData;
         private int levelRow;
         private int levelColumn;
         private List<Vector2> staticObjectPositions = new List<Vector2>();
@@ -35,7 +35,7 @@ namespace EscapeFromWizard.Source.GameObject.Static
             InitializeSpellItem();
         }
 
-        public StaticObjectHandler(MapData mapData)
+        public StaticObjectHandler(Level mapData)
         {
             this.m_MapData = mapData;
             walkablePositions = this.m_MapData.GetWalkablePaths();
@@ -47,7 +47,7 @@ namespace EscapeFromWizard.Source.GameObject.Static
             InitializeSpellItem();
         }
 
-        public void SetMapReference(MapData mapData)
+        public void SetMapReference(Level mapData)
         {
             this.m_MapData = mapData;
             walkablePositions = this.m_MapData.GetWalkablePaths();

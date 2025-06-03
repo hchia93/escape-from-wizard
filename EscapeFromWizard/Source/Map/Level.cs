@@ -3,9 +3,9 @@ using Microsoft.Xna.Framework;
 
 namespace EscapeFromWizard.Map
 {
-    public class MapData
+    public class Level
     {
-        public int[] levelData;
+        public int[] m_Data;
 
         public int GetMapTileWidth()
         {
@@ -17,16 +17,17 @@ namespace EscapeFromWizard.Map
             return 25;
         }
 
-        public int GetMapTileData(int i_index)
+        public int GetMapTileData(int index)
         {
-            return levelData[i_index];
+            return m_Data[index];
         }
 
-        public int ConvertToMapIdex(int i_Row, int i_Col, int i_TotalRow, int i_TotalCol)
+        public int ConvertToMapIdex(int row, int column, int totalRow, int totalColumn)
         {
-            return i_Row * i_TotalRow + i_Col;
+            return row * 25 + column;
         }
 
+        // Computationally expensive to regenerate all
         public List<Vector2> GetWalkablePaths()
         {
             List<Vector2> walkablePositions = new List<Vector2>();
@@ -36,7 +37,7 @@ namespace EscapeFromWizard.Map
                 for (int j = 0; j < GetMapTileHeight(); j++)
                 {
                     // if index is not a path (floor), store it in positions list
-                    if (levelData[i * 25 + j] == (int) TileType.PATH)
+                    if (m_Data[i * 25 + j] == (int) TileType.PATH)
                     {
                         walkablePositions.Add(new Vector2(j, i));
                     }
@@ -46,9 +47,9 @@ namespace EscapeFromWizard.Map
             return walkablePositions;
         }
 
-        public void InitializeMapData()
+        public void Initialize()
         {
-            levelData = new int[25 * 25] 
+            m_Data = new int[25 * 25] 
             {
                 01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,
                 01,10,01,05,00,00,00,00,00,01,21,21,15,21,21,01,00,00,00,00,00,00,00,00,01,

@@ -34,12 +34,12 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
         private PlayerDirection m_Direction;
         private Vector2 m_Position;
         private Vector2 m_PositionLastFrame;
-        private Vector2 m_playerPreviousPositionForHideout;
-        private Vector2 m_playerPreviousPositionForExit;
+        private Vector2 m_PositionBeforeHideout;
+        private Vector2 m_PositionBeforeExit;
        
-        private double m_movingDelayTimer;
-        private double m_standingDelayTimer;
-        private double m_hidingTimer;
+        private double m_MoveDelayTimer;
+        private double m_StandDelayTimer;
+        private double m_HideDelayTimer;
 
         //Player State
         private bool m_IsHiding;
@@ -47,11 +47,11 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
         private bool m_pickUpSomething;
         private bool m_hpIncreased;
 
-        private MapData m_referenceMapData;
+        private Level m_referenceMapData;
         private Lock[] doorLock;
 
         private int m_HP;
-        private const int maxHP = 8;
+        private const int m_MaxHP = 8;
 
         PlayerInventory m_Inventory;
 
@@ -66,10 +66,10 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
             m_IsHiding = true;
             m_IsOnExit = false;
             m_Direction = PlayerDirection.STILL;
-            m_movingDelayTimer = 0.0f;
-            m_standingDelayTimer = 0.0f;
-            m_hidingTimer = 0.0f;
-            m_HP = maxHP;
+            m_MoveDelayTimer = 0.0f;
+            m_StandDelayTimer = 0.0f;
+            m_HideDelayTimer = 0.0f;
+            m_HP = m_MaxHP;
             m_questItemOnHand = 0;
             m_CollectedStar = 0;
         }
@@ -78,9 +78,9 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
             m_Direction = PlayerDirection.STILL;
         }
 
-        public void SetMapReference(MapData i_MapData)
+        public void SetMapReference(Level level)
         {
-            m_referenceMapData = i_MapData;
+            m_referenceMapData = level;
         }
 
         public void SetUpLockInformation(Lock[] i_doorLock)
@@ -131,11 +131,6 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
             }
         }
 
-
-        //----------------------------------------------------------------------
-        // State Flag Functions
-        //----------------------------------------------------------------------
-
         public bool IsHiding()
         {
             return m_IsHiding;
@@ -151,9 +146,9 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
             m_IsOnExit = value;
         }
 
-        public void ResetPositionIfQuestUncompleted()
+        public void RevertPositionOnIncompleteQuest()
         {
-            SetPosition((int)m_playerPreviousPositionForExit.X, (int)m_playerPreviousPositionForExit.Y);
+            SetPosition((int)m_PositionBeforeExit.X, (int)m_PositionBeforeExit.Y);
         }
 
         public bool IsLootedSomething()
@@ -188,9 +183,9 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
         public void Heal(int value)
         {
             m_HP += value;
-            if ( m_HP >= maxHP)
+            if ( m_HP >= m_MaxHP)
             {
-                m_HP = maxHP;
+                m_HP = m_MaxHP;
             }
         }
 
@@ -201,12 +196,7 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
 
         public int GetMaxHP()
         {
-            return maxHP;
-        }
-
-        public bool IsHPIncreased()
-        {
-            return m_hpIncreased;
+            return m_MaxHP;
         }
 
         //----------------------------------------------------------------------
@@ -256,7 +246,7 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
             if (tileID_CurrentTIle == (int)TileType.PATH)
             {
                 m_IsHiding = false;
-                m_hidingTimer = 0.0f;
+                m_HideDelayTimer = 0.0f;
             }
 
             if (tileID_CurrentTIle == (int)TileType.EXIT_SIGN)
@@ -266,16 +256,16 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
 
             if (tileID_CurrentTIle == (int)TileType.HIDE_TILE)
             {
-                m_hidingTimer += (gameTime.ElapsedGameTime.TotalSeconds * 7);
-                if (m_hidingTimer <= 5.0f)
+                m_HideDelayTimer += (gameTime.ElapsedGameTime.TotalSeconds * 7);
+                if (m_HideDelayTimer <= 5.0f)
                 {
                     m_IsHiding = true;
                 }
                 else
                 {
-                    m_hidingTimer = 0.0f;
+                    m_HideDelayTimer = 0.0f;
                     m_IsHiding = false;
-                    SetPosition((int)m_playerPreviousPositionForHideout.X, (int)m_playerPreviousPositionForHideout.Y);
+                    SetPosition((int)m_PositionBeforeHideout.X, (int)m_PositionBeforeHideout.Y);
 
                 }
             }
@@ -323,12 +313,12 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
                 }
                 else if (_NextTileTileID == (int)TileType.HIDE_TILE)
                 {
-                    m_playerPreviousPositionForHideout = m_Position;
+                    m_PositionBeforeHideout = m_Position;
                     return true;
                 }
                 else if (_NextTileTileID == (int)TileType.EXIT_SIGN)
                 {
-                    m_playerPreviousPositionForExit = m_Position;
+                    m_PositionBeforeExit = m_Position;
                     return true;
                 }
                 else
@@ -340,18 +330,18 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
 
         public void UpdateMovement(GameTime gameTime)
         {
-            m_movingDelayTimer += gameTime.ElapsedGameTime.TotalSeconds;
-            m_standingDelayTimer += gameTime.ElapsedGameTime.TotalSeconds;
+            m_MoveDelayTimer += gameTime.ElapsedGameTime.TotalSeconds;
+            m_StandDelayTimer += gameTime.ElapsedGameTime.TotalSeconds;
            
             //Set Previous Tile Value with Delay
-            if(m_standingDelayTimer >= 0.1f)
+            if(m_StandDelayTimer >= 0.1f)
             {
                 m_PositionLastFrame = m_Position;
-                m_standingDelayTimer = 0.0f;
+                m_StandDelayTimer = 0.0f;
             }
 
             //Action with Delay
-            if (m_movingDelayTimer >= 0.1f) 
+            if (m_MoveDelayTimer >= 0.1f) 
             {
                 switch (m_Direction)
                 {
@@ -373,7 +363,7 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
                         break;
                 }
                 //ResetTimer
-                m_movingDelayTimer = 0;
+                m_MoveDelayTimer = 0;
                 _CheckCurrentTile(gameTime);
             }
         }

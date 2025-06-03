@@ -1,12 +1,12 @@
-﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
-using TileEngine;
-using System;
-using EscapeFromWizard.Map;
+﻿using EscapeFromWizard.Map;
+using EscapeFromWizard.Source.Audio;
 using EscapeFromWizard.Source.GameObject.Dynamic;
 using EscapeFromWizard.Source.GameObject.Static;
-using EscapeFromWizard.Source.Audio;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
+using System;
+using TileEngine;
 
 namespace EscapeFromWizard
 {
@@ -76,7 +76,7 @@ namespace EscapeFromWizard
 
         //GameMap & GameView & Instances
         public Camera2D cameraView;
-        public MapData m_MapData; 
+        public Level m_MapData; 
         public QuestionableEnum enumMapData;
 
         //Game Objects
@@ -111,7 +111,7 @@ namespace EscapeFromWizard
         public double hitDetectionTimer = 5.0f;
 
 
-        public SoundManager soundManager;
+        public SoundManager m_SoundManager;
 
         public EscapeFromWizard()
         {
@@ -132,8 +132,8 @@ namespace EscapeFromWizard
 
             //Map Related
             enumMapData = new QuestionableEnum();
-            m_MapData = new MapData();
-            m_MapData.InitializeMapData();
+            m_MapData = new Level();
+            m_MapData.Initialize();
             demoMapTileWidth = m_MapData.GetMapTileWidth();
             demoMapTileHeight = m_MapData.GetMapTileHeight();
 
@@ -181,7 +181,7 @@ namespace EscapeFromWizard
             secondsPlaying = 0.0f;
 
             //Sound
-            soundManager = new SoundManager(this.Content);
+            m_SoundManager = new SoundManager(this.Content);
             playGameBGMOnlyOnce = true;
             playGameOverOnlyOnce = true;
             playButtonOnlyOnce = true;
@@ -333,14 +333,14 @@ namespace EscapeFromWizard
 
                 if (playGameBGMOnlyOnce)
                 {
-                    soundManager.PlayBGM();
+                    m_SoundManager.PlayBGM();
                     playGameBGMOnlyOnce = false;
                 }
 
                 //Delay Playing Interval, 0.2 secons
                 if (!player.IsStanding() && footStepTimer > 0.2f)
                 {
-                    soundManager.PlayFootstepSound();
+                    m_SoundManager.PlayFootstepSound();
                     footStepTimer = 0.0f;
                     playButtonOnlyOnce = true;
                 }
@@ -349,7 +349,7 @@ namespace EscapeFromWizard
                 {
                     if (doorLock[i].IsDestroyed() && playUnlockDoorOnlyOnce[i])
                     {
-                        soundManager.PlayUnlockDoorSound();
+                        m_SoundManager.PlayUnlockDoorSound();
                         playUnlockDoorOnlyOnce[i] = false;
                     }
                 }
@@ -357,19 +357,14 @@ namespace EscapeFromWizard
                 //Play Just Step on Hiding Tile
                 if (player.IsHiding() == true && playButtonOnlyOnce)
                 {
-                    soundManager.PlayHidingSound();
+                    m_SoundManager.PlayHidingSound();
                     playButtonOnlyOnce = false;
                 }
 
                 if (player.IsLootedSomething())
                 {
-                    soundManager.PlayPickUpSound();
+                    m_SoundManager.PlayPickUpSound();
                     player.SetPickUpFlag(false);
-                }
-
-                if (player.IsHPIncreased())
-                {
-                    soundManager.PlayRecoverHPSound();
                 }
 
                 //If Player On Exit
@@ -388,7 +383,7 @@ namespace EscapeFromWizard
                             if (minions[i].GetPlayerWasHitFlag() == true)
                             {
                                 player.TakeDamage(minionHitDamage);
-                                soundManager.PlayHitByMinionSound();
+                                m_SoundManager.PlayHitByMinionSound();
                                 minions[i].SetPlayerWasHitFlag(false);
                             }
                         }
@@ -396,7 +391,7 @@ namespace EscapeFromWizard
                         if (wizard.GetPlayerWasHitFlag() == true)
                         {
                             player.TakeDamage(3);
-                            soundManager.PlayHitByWizardSound();
+                            m_SoundManager.PlayHitByWizardSound();
                             wizard.SetPlayerWasHitFlag(false);
                         }
                     }
@@ -420,7 +415,7 @@ namespace EscapeFromWizard
             {
                 if (inputKey.IsKeyDown(Keys.Enter) || mouseState.LeftButton == ButtonState.Pressed)
                 {
-                    soundManager.StopGameOverSound();
+                    m_SoundManager.StopGameOverSound();
                     Initialize();
                     currentScreen = CurrentScreen.GAME_SCREEN;
                 }
@@ -454,10 +449,15 @@ namespace EscapeFromWizard
                 _DrawGameTime();
 
                 if (showGrid)
-                    _ShowGrid();
+                {
+                    ShowLevelGrid();
+                }
 
                 if (showTileRowCol)
-                    _ShowRowAndColumn();
+                {
+                    ShowRowColumnIndex();
+                }
+                    
 
                 if (showErrorMsg)
                     _DrawQuestNotCompletedError();
@@ -481,14 +481,14 @@ namespace EscapeFromWizard
             {
                 _CalculateScore();
                 currentScreen = CurrentScreen.YOU_WON_SCREEN;
-                soundManager.StopBGM();
-                soundManager.PlayWinningSound();
+                m_SoundManager.StopBGM();
+                m_SoundManager.PlayWinningSound();
             }
             else
             {
                 showErrorMsg = true;
                 player.SetOnExit(false);
-                player.ResetPositionIfQuestUncompleted();
+                player.RevertPositionOnIncompleteQuest();
             }
 
         }
@@ -498,12 +498,14 @@ namespace EscapeFromWizard
             currentScreen = CurrentScreen.GAME_OVER_SCREEN;
             gameIsOver = true;
 
-            for (int i = 0; i < minions.Length; i++)
-                minions[i].SetBehavior(EBehaviorState.STOP);
-
-            if (playGameOverOnlyOnce == true)
+            foreach (var minion in minions)
             {
-                soundManager.PlayGameOverSound();
+                minion.SetBehavior(EBehaviorState.STOP);
+            }
+
+            if (playGameOverOnlyOnce)
+            {
+                m_SoundManager.PlayGameOverSound();
                 playGameOverOnlyOnce = false;
             }
         }
@@ -551,7 +553,7 @@ namespace EscapeFromWizard
             for (int row = 0; row < demoMapTileHeight; ++row)
                 for (int col = 0; col < demoMapTileWidth; ++col)
                 {
-                    int tileID = m_MapData.levelData[row * demoMapTileWidth + col];
+                    int tileID = m_MapData.m_Data[row * demoMapTileWidth + col];
                     mapSpriteBatch.Draw(tileTileSet.TileSetTexture,
                                         new Rectangle((col * pixelWidthPerTile), (row * pixelHeightPerTile),
                                         pixelWidthPerTile, pixelHeightPerTile),
@@ -799,7 +801,7 @@ namespace EscapeFromWizard
             mapSpriteBatch.End();
         }
 
-        private void _ShowGrid()
+        private void ShowLevelGrid()
         {
             for (int i = 0; i < doorLock.Length; i++)
             {
@@ -829,21 +831,21 @@ namespace EscapeFromWizard
             mapSpriteBatch.End();
         }
 
-        private void _ShowRowAndColumn()
+        private void ShowRowColumnIndex()
         {
             mapSpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, cameraView.TransformMatrix());
 
-            string _mapTileRowColInfoString;
-            Vector2 _spriteFontOriginPos = new Vector2(0, 0);
-            for (tileRow = 0; tileRow < demoMapTileHeight; tileRow++)
-                for (tileCol = 0; tileCol < demoMapTileWidth; tileCol++)
+            string infoString;
+            Vector2 originPosition = new Vector2(0, 0);
+            for (int i = 0; i < demoMapTileHeight; i++)
+            {
+                for (int j = 0; j < demoMapTileWidth; j++)
                 {
-                    _mapTileRowColInfoString = "(" + tileRow + "." + tileCol + ")";
-                    _spriteFontOriginPos = font_ArialBlack_14.MeasureString(_mapTileRowColInfoString) / 2;
-                    mapSpriteBatch.DrawString(font_ArialBlack_14, _mapTileRowColInfoString, new Vector2(tileRow * pixelHeightPerTile + 16, tileCol * pixelWidthPerTile + 16), Microsoft.Xna.Framework.Color.Blue, 0, _spriteFontOriginPos, 1.0f, SpriteEffects.None, 0.5f);
+                    infoString = i + "." + j;
+                    originPosition = font_ArialBlack_14.MeasureString(infoString) / 2;
+                    mapSpriteBatch.DrawString(font_ArialBlack_14, infoString, new Vector2(i * pixelHeightPerTile + 16, j * pixelWidthPerTile + 16), Microsoft.Xna.Framework.Color.Blue, 0, originPosition, 1.0f, SpriteEffects.None, 0.5f);
                 }
-
-
+            }
             mapSpriteBatch.End();
         }
 

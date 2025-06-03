@@ -28,7 +28,7 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
         private Vector2 m_TargetPosition;
 
         //External References
-        private MapData m_MapData;
+        private Level m_MapData;
         private bool refPlayerHideFlag;
         private bool refPlayerWasHitFlag;
         private bool refPlayerExitFlag;
@@ -54,7 +54,7 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
             m_TargetPosition = new Vector2(column, row);
         }
 
-        public void SetMapReference(MapData mapData)
+        public void SetMapReference(Level mapData)
         {
             m_MapData = mapData;
         }
@@ -89,7 +89,7 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
         }
 
 
-        public MapData GetMapReference()
+        public Level GetMapReference()
         {
             return m_MapData;
         }
