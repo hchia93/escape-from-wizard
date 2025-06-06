@@ -16,8 +16,8 @@ namespace EscapeFromWizard.Source.GameObject.Static
         private static int numOfStars = 15;
 
         //Instance of each item type
-        private Key[] m_Keys = new Key[numOfKeyAndLock];
-        private Lock[] m_Locks = new Lock[numOfKeyAndLock];
+        private Key[] m_Keys = new Key[GameSettings.NumOfKeys];
+        private Lock[] m_Locks = new Lock[GameSettings.NumOfLocks];
         private SpellItem[] m_SpellItems = new SpellItem[numOfTotalItems];
         private SpellItem[] m_Stars = new SpellItem[numOfStars];
 
@@ -60,7 +60,7 @@ namespace EscapeFromWizard.Source.GameObject.Static
             Color[] keyLockColors = { Color.RED, Color.YELLOW, Color.GREEN, Color.BLUE };
             Vector2[] keyTilePositions = { new Vector2(5, 3), new Vector2(23, 1), new Vector2(23, 23), new Vector2(1, 23) };
 
-            for (int i = 0; i < numOfKeyAndLock; i++)
+            for (int i = 0; i < GameSettings.NumOfKeys; i++)
             {
                 m_Keys[i] = new Key();
                 m_Keys[i].SetPosition((int)keyTilePositions[i].X, (int)keyTilePositions[i].Y);
@@ -112,7 +112,7 @@ namespace EscapeFromWizard.Source.GameObject.Static
             Vector2[] lockTilePositions = { new Vector2(8, 23), new Vector2(14, 6), new Vector2(15, 12), new Vector2(10, 14) };
             Color[] keyLockColors = { Color.RED, Color.YELLOW, Color.GREEN, Color.BLUE };
 
-            for (int i = 0; i < numOfKeyAndLock; i++)
+            for (int i = 0; i < GameSettings.NumOfLocks; i++)
             {
                 m_Locks[i] = new Lock();
                 m_Locks[i].SetPosition((int)lockTilePositions[i].X, (int)lockTilePositions[i].Y);

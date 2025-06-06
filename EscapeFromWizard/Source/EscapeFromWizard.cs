@@ -31,15 +31,7 @@ namespace EscapeFromWizard
         public GraphicsDeviceManager m_Graphics;
         public SpriteBatch m_MapSpriteBatch;
 
-        //Game Setting
-        public const int pixelHeightPerTile = 32;
-        public const int pixelWidthPerTile = 32;
-        public const int squaresAcross = 18; //How many rows on screen
-        public const int squaresDown = 18; //How many coloum on screen
-        public int m_TileRow = 0; //Iterator that draw Grid and Label on Screen
-        public int m_TileCol = 0; //Iterator that draw Grid and Label on Screen
-        public const int numOfKey = 4;
-        public const int numOfLock = 4;
+        // Game settings are now centralized in GameSettings class
 
         // Debug Mode
         public bool m_ShowGrid = false;
@@ -105,21 +97,20 @@ namespace EscapeFromWizard
         public int m_Score;
 
         //Minion Hit
-        private const int minionHitDamage = 1;
         public bool m_DecreaseHPOnlyOnce;
-        public double m_HitDetectionTimer = 5.0f;
+        public double m_HitDetectionTimer = GameSettings.HitDetectionTimerDefault;
 
         public SoundManager m_SoundManager;
 
         public EscapeFromWizard()
         {
             m_Graphics = new GraphicsDeviceManager(this);
-            m_Graphics.PreferredBackBufferWidth = pixelWidthPerTile * squaresAcross;
-            m_Graphics.PreferredBackBufferHeight = pixelHeightPerTile * squaresDown;
+            m_Graphics.PreferredBackBufferWidth = GameSettings.ScreenWidth;
+            m_Graphics.PreferredBackBufferHeight = GameSettings.ScreenHeight;
             m_Graphics.IsFullScreen = false;
             m_Graphics.ApplyChanges();
 
-            m_ScreenCenter = new Vector2(m_Graphics.PreferredBackBufferWidth / 2, m_Graphics.PreferredBackBufferHeight / 2);
+            m_ScreenCenter = GameSettings.ScreenCenter;
          
             m_CurrentScreen = ScreenType.HOME_SCREEN;
 
@@ -140,7 +131,8 @@ namespace EscapeFromWizard
 
             //Camera
             m_CameraView = new Camera2D();
-            m_CameraView.SetBoundary(0, 0, ((m_DemoMapTileWidth - squaresAcross) * pixelWidthPerTile), ((m_DemoMapTileHeight - squaresDown) * pixelHeightPerTile));
+            Vector2 cameraBoundary = GameSettings.CalculateCameraBoundary(m_DemoMapTileWidth, m_DemoMapTileHeight);
+            m_CameraView.SetBoundary(0, 0, (int)cameraBoundary.X, (int)cameraBoundary.Y);
 
             //Key And Locks
             m_StaticObjectHandler = new StaticObjectHandler(m_MapData);
@@ -160,21 +152,14 @@ namespace EscapeFromWizard
             m_Wizard.SetTargetPosition(12, 4);
 
             //Minions array
-            m_Minions = new Minion[5];
-            int[][] minionsInitialPatrolData = new int[5][] {
-                new int[] {4,1,5,6},
-                new int[] {4,15,5,6},
-                new int[] {16,1,10,10},
-                new int[] {20,15,4,5},
-                new int[] {11,8,7,7}
-            };
+            m_Minions = new Minion[GameSettings.NumOfMinions];
             for (int i = 0; i < m_Minions.Length; i++)
             {
                 m_Minions[i] = new Minion();
                 m_Minions[i].SetMinionId(i);
                 m_Minions[i].SetMapReference(m_MapData);
-                m_Minions[i].SetPatrolStartPos(minionsInitialPatrolData[i]);
-                m_Minions[i].SetTargetPosition(minionsInitialPatrolData[i][0], minionsInitialPatrolData[i][1]);
+                m_Minions[i].SetPatrolStartPos(GameSettings.MinionsInitialPatrolData[i]);
+                m_Minions[i].SetTargetPosition(GameSettings.MinionsInitialPatrolData[i][0], GameSettings.MinionsInitialPatrolData[i][1]);
             }
 
             m_GameIsOver = false;
@@ -187,7 +172,7 @@ namespace EscapeFromWizard
             m_PlayGameOverOnlyOnce = true;
             m_PlayButtonOnlyOnce = true;
             m_PlayPickUpOnlyOnce = true;
-            m_PlayUnlockDoorOnlyOnce = new bool[] { true, true, true, true };
+            m_PlayUnlockDoorOnlyOnce = new bool[GameSettings.NumOfLocks] { true, true, true, true };
             m_PlayerPickUpSomething = false;
             m_FootStepTimer = 0.0f;
         }
@@ -364,7 +349,7 @@ namespace EscapeFromWizard
                         {
                             if (m_Minions[i].GetPlayerWasHitFlag() == true)
                             {
-                                m_Player.TakeDamage(minionHitDamage);
+                                m_Player.TakeDamage(GameSettings.MinionHitDamage);
                                 m_SoundManager.PlayHitByMinionSound();
                                 m_Minions[i].SetPlayerWasHitFlag(false);
                             }
@@ -535,7 +520,8 @@ namespace EscapeFromWizard
                 for (int col = 0; col < m_DemoMapTileWidth; ++col)
                 {
                     int tileID = m_MapData.m_Data[row * m_DemoMapTileWidth + col];
-                    m_MapSpriteBatch.Draw(m_TileTileSet.TileSetTexture, new Rectangle((col * pixelWidthPerTile), (row * pixelHeightPerTile), pixelWidthPerTile, pixelHeightPerTile), m_TileTileSet.GetSourceRectangle(tileID), Microsoft.Xna.Framework.Color.White);
+                    Rectangle tileRect = GameSettings.CreateTileRectangle(col, row);
+                    m_MapSpriteBatch.Draw(m_TileTileSet.TileSetTexture, tileRect, m_TileTileSet.GetSourceRectangle(tileID), Microsoft.Xna.Framework.Color.White);
                 }
             }
             m_MapSpriteBatch.End();
@@ -550,9 +536,9 @@ namespace EscapeFromWizard
                 for (int col = 0; col < 3; ++col)
                 {
                     m_MapSpriteBatch.Draw(m_Background, new Vector2(x, y), Microsoft.Xna.Framework.Color.White);
-                    x += 8 * pixelWidthPerTile;
+                    x += 8 * GameSettings.PixelWidthPerTile;
                 }
-                y += 8 * pixelHeightPerTile;
+                y += 8 * GameSettings.PixelHeightPerTile;
                 x = 0;
             }
             m_MapSpriteBatch.End();
@@ -560,11 +546,10 @@ namespace EscapeFromWizard
 
         private void DrawPlayer()
         {
-            int screenOffsetX = (int)m_Player.GetPosition().X * pixelWidthPerTile;
-            int screenOffsetY = (int)m_Player.GetPosition().Y * pixelHeightPerTile;
             m_MapSpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, m_CameraView.TransformMatrix());
 
-            m_MapSpriteBatch.Draw(m_ObjectTileSet.TileSetTexture, new Rectangle(screenOffsetX, screenOffsetY, pixelWidthPerTile, pixelHeightPerTile), m_ObjectTileSet.GetSourceRectangle(4), Microsoft.Xna.Framework.Color.White);
+            Rectangle playerRect = GameSettings.CreateTileRectangle(m_Player.GetPosition());
+            m_MapSpriteBatch.Draw(m_ObjectTileSet.TileSetTexture, playerRect, m_ObjectTileSet.GetSourceRectangle(4), Microsoft.Xna.Framework.Color.White);
 
             m_MapSpriteBatch.End();
 
@@ -572,11 +557,10 @@ namespace EscapeFromWizard
 
         private void DrawWizard()
         {
-            int screenOffsetX = (int)m_Wizard.GetTargetPosition().X * pixelWidthPerTile;
-            int screenOffsetY = (int)m_Wizard.GetTargetPosition().Y * pixelHeightPerTile;
             m_MapSpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, m_CameraView.TransformMatrix());
 
-            m_MapSpriteBatch.Draw(m_ObjectTileSet.TileSetTexture, new Rectangle(screenOffsetX, screenOffsetY, pixelWidthPerTile, pixelHeightPerTile), m_ObjectTileSet.GetSourceRectangle(14), Microsoft.Xna.Framework.Color.White);
+            Rectangle wizardRect = GameSettings.CreateTileRectangle(m_Wizard.GetTargetPosition());
+            m_MapSpriteBatch.Draw(m_ObjectTileSet.TileSetTexture, wizardRect, m_ObjectTileSet.GetSourceRectangle(14), Microsoft.Xna.Framework.Color.White);
             m_MapSpriteBatch.End();
         }
 
@@ -584,11 +568,10 @@ namespace EscapeFromWizard
         {
             for (int i = 0; i < m_Minions.Length; i++)
             {
-                int screenOffsetX = (int)m_Minions[i].GetTargetPosition().X * pixelWidthPerTile;
-                int screenOffsetY = (int)m_Minions[i].GetTargetPosition().Y * pixelHeightPerTile;
                 m_MapSpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, m_CameraView.TransformMatrix());
 
-                m_MapSpriteBatch.Draw(m_ObjectTileSet.TileSetTexture, new Rectangle(screenOffsetX, screenOffsetY, pixelWidthPerTile, pixelHeightPerTile), m_ObjectTileSet.GetSourceRectangle(19), Microsoft.Xna.Framework.Color.White);
+                Rectangle minionRect = GameSettings.CreateTileRectangle(m_Minions[i].GetTargetPosition());
+                m_MapSpriteBatch.Draw(m_ObjectTileSet.TileSetTexture, minionRect, m_ObjectTileSet.GetSourceRectangle(19), Microsoft.Xna.Framework.Color.White);
                 m_MapSpriteBatch.End();
             }
         }
@@ -601,7 +584,8 @@ namespace EscapeFromWizard
             {
                 if (!m_SpellItem[i].isLooted())
                 {
-                    m_MapSpriteBatch.Draw(m_ObjectTileSet.TileSetTexture, new Rectangle((int)(m_SpellItem[i].GetItemTilePositionX() * pixelWidthPerTile), (int)(m_SpellItem[i].GetItemTilePositionY() * pixelHeightPerTile), pixelWidthPerTile, pixelHeightPerTile), m_ObjectTileSet.GetSourceRectangle(m_SpellItem[i].GetItemTypeIndex()), Microsoft.Xna.Framework.Color.White);
+                    Rectangle spellItemRect = GameSettings.CreateTileRectangle((int)m_SpellItem[i].GetItemTilePositionX(), (int)m_SpellItem[i].GetItemTilePositionY());
+                    m_MapSpriteBatch.Draw(m_ObjectTileSet.TileSetTexture, spellItemRect, m_ObjectTileSet.GetSourceRectangle(m_SpellItem[i].GetItemTypeIndex()), Microsoft.Xna.Framework.Color.White);
                 }
             }
 
@@ -616,7 +600,8 @@ namespace EscapeFromWizard
             {
                 if (!m_Key[i].IsLooted())
                 {
-                    m_MapSpriteBatch.Draw(m_ObjectTileSet.TileSetTexture, new Rectangle((int)(m_Key[i].GetPosition().X * pixelWidthPerTile), (int)(m_Key[i].GetPosition().Y * pixelHeightPerTile), pixelWidthPerTile, pixelHeightPerTile), m_ObjectTileSet.GetSourceRectangle((int)m_Key[i].GetColor()), Microsoft.Xna.Framework.Color.White);
+                    Rectangle keyRect = GameSettings.CreateTileRectangle(m_Key[i].GetPosition());
+                    m_MapSpriteBatch.Draw(m_ObjectTileSet.TileSetTexture, keyRect, m_ObjectTileSet.GetSourceRectangle((int)m_Key[i].GetColor()), Microsoft.Xna.Framework.Color.White);
                 }
             }
 
@@ -630,7 +615,8 @@ namespace EscapeFromWizard
             {
                 if (!m_DoorLock[i].IsDestroyed())
                 {
-                    m_MapSpriteBatch.Draw(m_ObjectTileSet.TileSetTexture, new Rectangle((int)(m_DoorLock[i].GetPosition().X * pixelWidthPerTile), (int)(m_DoorLock[i].GetPosition().Y * pixelHeightPerTile), pixelWidthPerTile, pixelHeightPerTile), m_ObjectTileSet.GetSourceRectangle((int)(m_DoorLock[i].GetColor()) + 15), Microsoft.Xna.Framework.Color.White);
+                    Rectangle lockRect = GameSettings.CreateTileRectangle(m_DoorLock[i].GetPosition());
+                    m_MapSpriteBatch.Draw(m_ObjectTileSet.TileSetTexture, lockRect, m_ObjectTileSet.GetSourceRectangle((int)(m_DoorLock[i].GetColor()) + 15), Microsoft.Xna.Framework.Color.White);
                 }
             }
 
@@ -646,11 +632,13 @@ namespace EscapeFromWizard
             {
                 if (m_Key[i].IsLooted())
                 {
-                    m_MapSpriteBatch.Draw(m_HudTileSet.TileSetTexture, new Rectangle((int)((squaresAcross - count) * pixelWidthPerTile), (int)((squaresDown - 1) * pixelHeightPerTile), pixelWidthPerTile, pixelHeightPerTile), m_HudTileSet.GetSourceRectangle(m_EnumMapData.GetKeyIndex(i)), Microsoft.Xna.Framework.Color.White);
+                    Rectangle keyHudRect = GameSettings.CreateTileRectangle(GameSettings.SquaresAcross - count, GameSettings.SquaresDown - 1);
+                    m_MapSpriteBatch.Draw(m_HudTileSet.TileSetTexture, keyHudRect, m_HudTileSet.GetSourceRectangle(m_EnumMapData.GetKeyIndex(i)), Microsoft.Xna.Framework.Color.White);
                 }
                 else
                 {
-                    m_MapSpriteBatch.Draw(m_HudTileSet.TileSetTexture, new Rectangle((int)((squaresAcross - count) * pixelWidthPerTile), (int)((squaresDown - 1) * pixelHeightPerTile), pixelWidthPerTile, pixelHeightPerTile), m_HudTileSet.GetSourceRectangle(m_EnumMapData.GetKeyIndex(i + 4)), Microsoft.Xna.Framework.Color.White);
+                    Rectangle keyHudEmptyRect = GameSettings.CreateTileRectangle(GameSettings.SquaresAcross - count, GameSettings.SquaresDown - 1);
+                    m_MapSpriteBatch.Draw(m_HudTileSet.TileSetTexture, keyHudEmptyRect, m_HudTileSet.GetSourceRectangle(m_EnumMapData.GetKeyIndex(i + 4)), Microsoft.Xna.Framework.Color.White);
                 }
                 count--;
             }
@@ -661,11 +649,13 @@ namespace EscapeFromWizard
 
                 if (i < m_Player.GetHP())
                 {
-                    m_MapSpriteBatch.Draw(m_HudTileSet.TileSetTexture, new Rectangle((int)(i * pixelWidthPerTile), (int)((squaresDown - 1) * pixelHeightPerTile), pixelWidthPerTile, pixelHeightPerTile), m_HudTileSet.GetSourceRectangle((int)HUDIcon.FULL_HEART), Microsoft.Xna.Framework.Color.White);
+                    Rectangle heartRect = GameSettings.CreateTileRectangle(i, GameSettings.SquaresDown - 1);
+                    m_MapSpriteBatch.Draw(m_HudTileSet.TileSetTexture, heartRect, m_HudTileSet.GetSourceRectangle((int)HUDIcon.FULL_HEART), Microsoft.Xna.Framework.Color.White);
                 }
                 else
                 {
-                    m_MapSpriteBatch.Draw(m_HudTileSet.TileSetTexture, new Rectangle((int)(i * pixelWidthPerTile), (int)((squaresDown - 1) * pixelHeightPerTile), pixelWidthPerTile, pixelHeightPerTile), m_HudTileSet.GetSourceRectangle((int)HUDIcon.EMPTY_HEART), Microsoft.Xna.Framework.Color.White);
+                    Rectangle emptyHeartRect = GameSettings.CreateTileRectangle(i, GameSettings.SquaresDown - 1);
+                    m_MapSpriteBatch.Draw(m_HudTileSet.TileSetTexture, emptyHeartRect, m_HudTileSet.GetSourceRectangle((int)HUDIcon.EMPTY_HEART), Microsoft.Xna.Framework.Color.White);
                 }
             }
 
@@ -674,11 +664,13 @@ namespace EscapeFromWizard
             {
                 if (i < m_Player.GetCurrentNumOfQuestItem())
                 {
-                    m_MapSpriteBatch.Draw(m_ObjectTileSet.TileSetTexture, new Rectangle((int)((squaresAcross - (m_Player.GetMaxNumOfQuestItem() - i)) * pixelWidthPerTile), (int)((squaresDown - 2) * pixelHeightPerTile), pixelWidthPerTile, pixelHeightPerTile), m_ObjectTileSet.GetSourceRectangle((int)SpellItems.QUEST_POTION), Microsoft.Xna.Framework.Color.White);
+                    Rectangle questItemRect = GameSettings.CreateTileRectangle(GameSettings.SquaresAcross - (m_Player.GetMaxNumOfQuestItem() - i), GameSettings.SquaresDown - 2);
+                    m_MapSpriteBatch.Draw(m_ObjectTileSet.TileSetTexture, questItemRect, m_ObjectTileSet.GetSourceRectangle((int)SpellItems.QUEST_POTION), Microsoft.Xna.Framework.Color.White);
                 }
                 else
                 {
-                    m_MapSpriteBatch.Draw(m_ObjectTileSet.TileSetTexture, new Rectangle((int)((squaresAcross - (m_Player.GetMaxNumOfQuestItem() - i)) * pixelWidthPerTile), (int)((squaresDown - 2) * pixelHeightPerTile), pixelWidthPerTile, pixelHeightPerTile), m_ObjectTileSet.GetSourceRectangle((int)SpellItems.UNLOOTED_QUEST_ITEM), Microsoft.Xna.Framework.Color.White);
+                    Rectangle emptyQuestItemRect = GameSettings.CreateTileRectangle(GameSettings.SquaresAcross - (m_Player.GetMaxNumOfQuestItem() - i), GameSettings.SquaresDown - 2);
+                    m_MapSpriteBatch.Draw(m_ObjectTileSet.TileSetTexture, emptyQuestItemRect, m_ObjectTileSet.GetSourceRectangle((int)SpellItems.UNLOOTED_QUEST_ITEM), Microsoft.Xna.Framework.Color.White);
                 }
             }
 
@@ -703,15 +695,15 @@ namespace EscapeFromWizard
             m_MapSpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, m_CameraView.TransformMatrix());
 
 
-            for (m_TileCol = 0; m_TileCol < m_DemoMapTileWidth; m_TileCol++)
+            for (int column = 0; column < m_DemoMapTileWidth; column++)
             {
-                Rectangle horizontal_thin_rec = new Rectangle((int)(0 + (m_TileCol * pixelWidthPerTile)), 0, 1, (pixelHeightPerTile * m_DemoMapTileWidth));
+                Rectangle horizontal_thin_rec = new Rectangle((int)(0 + (column * GameSettings.PixelWidthPerTile)), 0, 1, (GameSettings.PixelHeightPerTile * m_DemoMapTileWidth));
                 m_MapSpriteBatch.Draw(m_Texture1px, horizontal_thin_rec, Microsoft.Xna.Framework.Color.DarkGray);
             }
 
-            for (m_TileRow = 0; m_TileRow < m_DemoMapTileHeight; m_TileRow++)
+            for (int row = 0; row < m_DemoMapTileHeight; row++)
             {
-                Rectangle vertical_thin_rec = new Rectangle(0, (int)(0 + (m_TileRow * pixelHeightPerTile)), (pixelWidthPerTile * m_DemoMapTileHeight), 1);
+                Rectangle vertical_thin_rec = new Rectangle(0, (int)(0 + (row * GameSettings.PixelHeightPerTile)), (GameSettings.PixelWidthPerTile * m_DemoMapTileHeight), 1);
                 m_MapSpriteBatch.Draw(m_Texture1px, vertical_thin_rec, Microsoft.Xna.Framework.Color.DarkGray);
             }
             m_MapSpriteBatch.End();
@@ -729,7 +721,7 @@ namespace EscapeFromWizard
                 {
                     infoString = i + "." + j;
                     originPosition = m_FontArialBlack14.MeasureString(infoString) / 2;
-                    m_MapSpriteBatch.DrawString(m_FontArialBlack14, infoString, new Vector2(i * pixelHeightPerTile + 16, j * pixelWidthPerTile + 16), Microsoft.Xna.Framework.Color.Blue, 0, originPosition, 1.0f, SpriteEffects.None, 0.5f);
+                    m_MapSpriteBatch.DrawString(m_FontArialBlack14, infoString, new Vector2(i * GameSettings.PixelHeightPerTile + 16, j * GameSettings.PixelWidthPerTile + 16), Microsoft.Xna.Framework.Color.Blue, 0, originPosition, 1.0f, SpriteEffects.None, 0.5f);
                 }
             }
             m_MapSpriteBatch.End();
