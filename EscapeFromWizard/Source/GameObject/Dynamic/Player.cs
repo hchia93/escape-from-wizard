@@ -21,12 +21,91 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
         private int m_Stars;
         private int m_QuestItems;
         private List<Key> m_Keys;
+        private const int m_MaxQuestItems = 3;
+        private const int m_MaxStars = 15;
+
+        // Events for inventory changes
+        public event EventHandler<int> OnQuestItemChanged;
+        public event EventHandler<int> OnStarChanged;
+        public event EventHandler<Key> OnKeyCollected;
+
+        public PlayerInventory()
+        {
+            m_Stars = 0;
+            m_QuestItems = 0;
+            m_Keys = new List<Key>();
+        }
 
         public void Reset()
         {
             m_Stars = 0;
             m_QuestItems = 0;
             m_Keys.Clear();
+        }
+
+        public void AddQuestItem()
+        {
+            int oldQuestItems = m_QuestItems;
+            if (m_QuestItems < m_MaxQuestItems)
+            {
+                m_QuestItems++;
+                if (oldQuestItems != m_QuestItems)
+                {
+                    OnQuestItemChanged?.Invoke(this, m_QuestItems);
+                }
+            }
+        }
+
+        public void AddStar()
+        {
+            int oldStars = m_Stars;
+            if (m_Stars < m_MaxStars)
+            {
+                m_Stars++;
+                if (oldStars != m_Stars)
+                {
+                    OnStarChanged?.Invoke(this, m_Stars);
+                }
+            }
+        }
+
+        public void AddKey(Key key)
+        {
+            if (!m_Keys.Contains(key))
+            {
+                m_Keys.Add(key);
+                OnKeyCollected?.Invoke(this, key);
+            }
+        }
+
+        public bool HasKey(Key key)
+        {
+            return m_Keys.Contains(key);
+        }
+
+        public int GetCurrentQuestItems()
+        {
+            return m_QuestItems;
+        }
+
+        public int GetMaxQuestItems()
+        {
+            return m_MaxQuestItems;
+        }
+
+        public int GetCurrentStars()
+        {
+            return m_Stars;
+        }
+
+        public int GetMaxStars()
+        {
+            return m_MaxStars;
+        }
+
+        public List<Key> GetKeys()
+        {
+            return m_Keys;
         }
     }
 
@@ -46,7 +125,6 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
         private bool m_IsHiding;
         private bool m_IsOnExit;
         private bool m_PickUpSomething;
-        private bool m_HpIncreased;
 
         private Level m_ReferenceMapData;
         private Lock[] m_DoorLock;
@@ -54,19 +132,12 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
         private int m_HP;
         private const int m_MaxHP = 8;
 
-        PlayerInventory m_Inventory;
-
-        private int m_QuestItemOnHand;
-        private int m_MaxQuestItem = 3;
-
-        private int m_CollectedStar;
-        private int m_MaxStar = 15;
+        public PlayerInventory m_Inventory;
 
         // Sound callback functions
         public Action OnHitByMinion { get; set; }
         public Action OnHitByWizard { get; set; }
         public event EventHandler<int> OnHPChanged;
-        public event EventHandler<int> OnQuestItemChanged;
 
         public Player()
         {
@@ -77,8 +148,7 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
             m_StandDelayTimer = 0.0f;
             m_HideDelayTimer = 0.0f;
             m_HP = m_MaxHP;
-            m_QuestItemOnHand = 0;
-            m_CollectedStar = 0;
+            m_Inventory = new PlayerInventory();
         }
         void Reset()
         {
@@ -225,37 +295,42 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
         }
         public void LootQuestItem()
         {
-            int oldQuestItems = m_QuestItemOnHand;
-            m_QuestItemOnHand += 1;
-            if (oldQuestItems != m_QuestItemOnHand)
-            {
-                OnQuestItemChanged?.Invoke(this, m_QuestItemOnHand);
-            }
+            m_Inventory.AddQuestItem();
         }
 
         public int GetCurrentNumOfQuestItem()
         {
-            return m_QuestItemOnHand;
+            return m_Inventory.GetCurrentQuestItems();
         }
 
         public int GetMaxNumOfQuestItem()
         {
-            return m_MaxQuestItem;
+            return m_Inventory.GetMaxQuestItems();
         }
 
         public void LootStar()
         {
-            m_CollectedStar += 1;
+            m_Inventory.AddStar();
         }
 
         public int GetCurrentNumOfStar()
         {
-            return m_CollectedStar;
+            return m_Inventory.GetCurrentStars();
         }
 
         public int GetMaxNumOfStar()
         {
-            return m_MaxStar;
+            return m_Inventory.GetMaxStars();
+        }
+
+        public void CollectKey(Key key)
+        {
+            m_Inventory.AddKey(key);
+        }
+
+        public bool HasKey(Key key)
+        {
+            return m_Inventory.HasKey(key);
         }
 
         private void CheckCurrentTile(GameTime gameTime)

@@ -22,27 +22,29 @@ namespace EscapeFromWizard.ViewModel
         private int m_CurrentQuestItems;
         private int m_MaxQuestItems;
         private Player m_Player;
+        private PlayerInventory m_Inventory;
 
         public QuestItemViewModel(Player player)
         {
             m_Player = player;
-            m_CurrentQuestItems = player.GetCurrentNumOfQuestItem();
-            m_MaxQuestItems = player.GetMaxNumOfQuestItem();
+            m_Inventory = player.m_Inventory;
+            m_CurrentQuestItems = m_Inventory.GetCurrentQuestItems();
+            m_MaxQuestItems = m_Inventory.GetMaxQuestItems();
             
-            // Subscribe to player's quest item change event
-            m_Player.OnQuestItemChanged += OnPlayerQuestItemChanged;
+            // Subscribe to inventory's quest item change event
+            m_Inventory.OnQuestItemChanged += OnQuestItemChanged;
         }
 
         ~QuestItemViewModel()
         {
             // Unsubscribe from the event when the view model is destroyed
-            if (m_Player != null)
+            if (m_Inventory != null)
             {
-                m_Player.OnQuestItemChanged -= OnPlayerQuestItemChanged;
+                m_Inventory.OnQuestItemChanged -= OnQuestItemChanged;
             }
         }
 
-        private void OnPlayerQuestItemChanged(object sender, int newQuestItems)
+        private void OnQuestItemChanged(object sender, int newQuestItems)
         {
             m_CurrentQuestItems = newQuestItems;
         }

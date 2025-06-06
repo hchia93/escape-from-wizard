@@ -9,8 +9,6 @@ namespace EscapeFromWizard.Source.GameObject.Static
 {
     public class StaticObjectHandler
     {
-        //Number setting of each item type
-        private static int numOfKeyAndLock = 4;
         private static int numOfTotalItems = 20; //SpellItem + Stars
         private static int numOfSpellItem = 5;
         private static int numOfStars = 15;
