@@ -47,10 +47,10 @@ namespace EscapeFromWizard
         public Texture2D m_GameOverScreenOverlay;
         public Texture2D m_VictoryScreenOverlay;
         public Texture2D m_QuestIncompleteMessage;
-        public Tile m_TileCollection;
-        public Tile m_ObjectCollection;
-        public Tile m_HUDCollection;
-        public Tile m_OtherTileCollection;
+        public SpriteSheet m_TileSpriteSheet;
+        public SpriteSheet m_ObjectSpriteSheet;
+        public SpriteSheet m_HUDSpriteSheet;
+        public SpriteSheet m_MiscSpriteSheet;
 
         //Sound State
         public bool m_PlayGameBGMOnlyOnce = true;
@@ -70,7 +70,6 @@ namespace EscapeFromWizard
         //GameMap & GameView & Instances
         public Camera2D m_Camera;
         public Level m_Level;
-        public KeyIDProvider m_KeyIDProvider;
 
         //Game Objects
         public Player m_Player;
@@ -126,8 +125,6 @@ namespace EscapeFromWizard
             base.Initialize();
             this.IsMouseVisible = false;
 
-            // Map Related
-            m_KeyIDProvider = new KeyIDProvider();
             m_Level = new Level();
             m_Level.Initialize();
 
@@ -142,6 +139,7 @@ namespace EscapeFromWizard
             m_DoorLock = m_StaticObjectHandler.GetLocks();
             m_SpellItem = m_StaticObjectHandler.GetSpellItems();
 
+            // Initialize Key Container View Model
             m_KeyContainerViewModel = new KeyContainerViewModel();
             Rectangle keyViewRect = GameSettings.CreateTileRectangleAt(GameSettings.m_TilePerRow - 4, GameSettings.m_TilePerColumn - 1);
             m_KeyContainerViewModel.SetBaseWidgetPosition(keyViewRect.Location.ToVector2());
@@ -149,12 +147,8 @@ namespace EscapeFromWizard
             // Initialize key view models with HUD textures
             for (int i = 0; i < m_Key.Length; i++)
             {
-                KeyViewModel keyViewModel = new KeyViewModel();
-                
-                keyViewModel.SetSourceTexture(m_HUDCollection.m_TileSetTexture);
-                keyViewModel.SetPreLootedRectangle(m_HUDCollection.GetSourceRectangle(m_KeyIDProvider.GetKeyIndex(i + 4))); // Empty key slot
-                keyViewModel.SetPostLootedRectangle(m_HUDCollection.GetSourceRectangle(m_KeyIDProvider.GetKeyIndex(i))); // Filled key slot
-                
+                KeyViewModel keyViewModel = new KeyViewModel(m_Key[i]);
+                keyViewModel.SetSourceSpriteSheet(m_HUDSpriteSheet);
                 m_KeyContainerViewModel.AddKeyViewModel(keyViewModel);
             }
 
@@ -202,16 +196,16 @@ namespace EscapeFromWizard
 
         protected override void LoadContent()
         {
-            m_TileCollection = new Tile();
-            m_TileCollection.m_TileSetTexture = Content.Load<Texture2D>(@"Resource\Image\32PixelTiles\32Pixel_SpriteSheet_Tiles");
+            m_TileSpriteSheet = new SpriteSheet();
+            m_TileSpriteSheet.m_Texture = Content.Load<Texture2D>(@"Resource\Image\32PixelTiles\32Pixel_SpriteSheet_Tiles");
 
-            m_ObjectCollection = new Tile();
-            m_ObjectCollection.m_TileSetTexture = Content.Load<Texture2D>(@"Resource\Image\32PixelObjects\32Pixel_SpriteSheet_Object2");
+            m_ObjectSpriteSheet = new SpriteSheet();
+            m_ObjectSpriteSheet.m_Texture = Content.Load<Texture2D>(@"Resource\Image\32PixelObjects\32Pixel_SpriteSheet_Object2");
 
-            m_HUDCollection = new Tile();
-            m_HUDCollection.m_TileSetTexture = Content.Load<Texture2D>(@"Resource\Image\32PixelHUD\32Pixel_SpriteSheet_HUD");
+            m_HUDSpriteSheet = new SpriteSheet();
+            m_HUDSpriteSheet.m_Texture = Content.Load<Texture2D>(@"Resource\Image\32PixelHUD\32Pixel_SpriteSheet_HUD");
 
-            m_OtherTileCollection = new Tile();
+            m_MiscSpriteSheet = new SpriteSheet();
 
             m_Texture1px = new Texture2D(GraphicsDevice, 1, 1);
             m_Texture1px.SetData(new Microsoft.Xna.Framework.Color[] { Microsoft.Xna.Framework.Color.White });
@@ -526,7 +520,7 @@ namespace EscapeFromWizard
                 {
                     int tileID = m_Level.m_Data[row * m_Level.GetTotalTileWidth() + col];
                     Rectangle tileRect = GameSettings.CreateTileRectangleAt(col, row);
-                    m_SpriteBatch.Draw(m_TileCollection.m_TileSetTexture, tileRect, m_TileCollection.GetSourceRectangle(tileID), Microsoft.Xna.Framework.Color.White);
+                    m_SpriteBatch.Draw(m_TileSpriteSheet.m_Texture, tileRect, m_TileSpriteSheet.GetSourceRectangle(tileID), Microsoft.Xna.Framework.Color.White);
                 }
             }
             m_SpriteBatch.End();
@@ -554,7 +548,7 @@ namespace EscapeFromWizard
             m_SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, m_Camera.TransformMatrix());
 
             Rectangle playerRect = GameSettings.CreateTileRectangleAt(m_Player.GetPosition());
-            m_SpriteBatch.Draw(m_ObjectCollection.m_TileSetTexture, playerRect, m_ObjectCollection.GetSourceRectangle(4), Microsoft.Xna.Framework.Color.White);
+            m_SpriteBatch.Draw(m_ObjectSpriteSheet.m_Texture, playerRect, m_ObjectSpriteSheet.GetSourceRectangle(4), Microsoft.Xna.Framework.Color.White);
 
             m_SpriteBatch.End();
 
@@ -565,7 +559,7 @@ namespace EscapeFromWizard
             m_SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, m_Camera.TransformMatrix());
 
             Rectangle wizardRect = GameSettings.CreateTileRectangleAt(m_Wizard.GetTargetPosition());
-            m_SpriteBatch.Draw(m_ObjectCollection.m_TileSetTexture, wizardRect, m_ObjectCollection.GetSourceRectangle(14), Microsoft.Xna.Framework.Color.White);
+            m_SpriteBatch.Draw(m_ObjectSpriteSheet.m_Texture, wizardRect, m_ObjectSpriteSheet.GetSourceRectangle(14), Microsoft.Xna.Framework.Color.White);
             m_SpriteBatch.End();
         }
 
@@ -576,7 +570,7 @@ namespace EscapeFromWizard
                 m_SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, m_Camera.TransformMatrix());
 
                 Rectangle minionRect = GameSettings.CreateTileRectangleAt(m_Minions[i].GetTargetPosition());
-                m_SpriteBatch.Draw(m_ObjectCollection.m_TileSetTexture, minionRect, m_ObjectCollection.GetSourceRectangle(19), Microsoft.Xna.Framework.Color.White);
+                m_SpriteBatch.Draw(m_ObjectSpriteSheet.m_Texture, minionRect, m_ObjectSpriteSheet.GetSourceRectangle(19), Microsoft.Xna.Framework.Color.White);
                 m_SpriteBatch.End();
             }
         }
@@ -590,7 +584,7 @@ namespace EscapeFromWizard
                 if (!m_SpellItem[i].isLooted())
                 {
                     Rectangle spellItemRect = GameSettings.CreateTileRectangleAt((int) m_SpellItem[i].GetItemTilePositionX(), (int) m_SpellItem[i].GetItemTilePositionY());
-                    m_SpriteBatch.Draw(m_ObjectCollection.m_TileSetTexture, spellItemRect, m_ObjectCollection.GetSourceRectangle(m_SpellItem[i].GetItemTypeIndex()), Microsoft.Xna.Framework.Color.White);
+                    m_SpriteBatch.Draw(m_ObjectSpriteSheet.m_Texture, spellItemRect, m_ObjectSpriteSheet.GetSourceRectangle(m_SpellItem[i].GetItemTypeIndex()), Microsoft.Xna.Framework.Color.White);
                 }
             }
 
@@ -606,7 +600,7 @@ namespace EscapeFromWizard
                 if (!m_Key[i].IsLooted())
                 {
                     Rectangle keyRect = GameSettings.CreateTileRectangleAt(m_Key[i].GetPosition());
-                    m_SpriteBatch.Draw(m_ObjectCollection.m_TileSetTexture, keyRect, m_ObjectCollection.GetSourceRectangle((int) m_Key[i].GetColor()), Microsoft.Xna.Framework.Color.White);
+                    m_SpriteBatch.Draw(m_ObjectSpriteSheet.m_Texture, keyRect, m_ObjectSpriteSheet.GetSourceRectangle((int) m_Key[i].GetColor()), Microsoft.Xna.Framework.Color.White);
                 }
             }
             m_SpriteBatch.End();
@@ -620,7 +614,7 @@ namespace EscapeFromWizard
                 if (!m_DoorLock[i].IsDestroyed())
                 {
                     Rectangle lockRect = GameSettings.CreateTileRectangleAt(m_DoorLock[i].GetPosition());
-                    m_SpriteBatch.Draw(m_ObjectCollection.m_TileSetTexture, lockRect, m_ObjectCollection.GetSourceRectangle((int) ( m_DoorLock[i].GetColor() ) + 15), Microsoft.Xna.Framework.Color.White);
+                    m_SpriteBatch.Draw(m_ObjectSpriteSheet.m_Texture, lockRect, m_ObjectSpriteSheet.GetSourceRectangle((int) ( m_DoorLock[i].GetColor() ) + 15), Microsoft.Xna.Framework.Color.White);
                 }
             }
 
@@ -630,12 +624,6 @@ namespace EscapeFromWizard
         private void DrawHUD()
         {
             m_SpriteBatch.Begin();
-            
-            // Draw keys using the view model
-            for (int i = 0; i < m_Key.Length; i++)
-            {
-                m_KeyContainerViewModel.UpdateKeyState(i, m_Key[i].IsLooted());
-            }
             m_KeyContainerViewModel.Draw(m_SpriteBatch);
 
             // Draw Player's HP
@@ -644,12 +632,12 @@ namespace EscapeFromWizard
                 if (i < m_Player.GetHP())
                 {
                     Rectangle heartRect = GameSettings.CreateTileRectangleAt(i, GameSettings.m_TilePerColumn - 1);
-                    m_SpriteBatch.Draw(m_HUDCollection.m_TileSetTexture, heartRect, m_HUDCollection.GetSourceRectangle((int) HUDIcon.FULL_HEART), Microsoft.Xna.Framework.Color.White);
+                    m_SpriteBatch.Draw(m_HUDSpriteSheet.m_Texture, heartRect, m_HUDSpriteSheet.GetSourceRectangle((int) HUDIcon.FULL_HEART), Microsoft.Xna.Framework.Color.White);
                 }
                 else
                 {
                     Rectangle emptyHeartRect = GameSettings.CreateTileRectangleAt(i, GameSettings.m_TilePerColumn - 1);
-                    m_SpriteBatch.Draw(m_HUDCollection.m_TileSetTexture, emptyHeartRect, m_HUDCollection.GetSourceRectangle((int) HUDIcon.EMPTY_HEART), Microsoft.Xna.Framework.Color.White);
+                    m_SpriteBatch.Draw(m_HUDSpriteSheet.m_Texture, emptyHeartRect, m_HUDSpriteSheet.GetSourceRectangle((int) HUDIcon.EMPTY_HEART), Microsoft.Xna.Framework.Color.White);
                 }
             }
 
@@ -659,12 +647,12 @@ namespace EscapeFromWizard
                 if (i < m_Player.GetCurrentNumOfQuestItem())
                 {
                     Rectangle questItemRect = GameSettings.CreateTileRectangleAt(GameSettings.m_TilePerRow - ( m_Player.GetMaxNumOfQuestItem() - i ), GameSettings.m_TilePerColumn - 2);
-                    m_SpriteBatch.Draw(m_ObjectCollection.m_TileSetTexture, questItemRect, m_ObjectCollection.GetSourceRectangle((int) SpellItems.QUEST_POTION), Microsoft.Xna.Framework.Color.White);
+                    m_SpriteBatch.Draw(m_ObjectSpriteSheet.m_Texture, questItemRect, m_ObjectSpriteSheet.GetSourceRectangle((int) SpellItems.QUEST_POTION), Microsoft.Xna.Framework.Color.White);
                 }
                 else
                 {
                     Rectangle emptyQuestItemRect = GameSettings.CreateTileRectangleAt(GameSettings.m_TilePerRow - ( m_Player.GetMaxNumOfQuestItem() - i ), GameSettings.m_TilePerColumn - 2);
-                    m_SpriteBatch.Draw(m_ObjectCollection.m_TileSetTexture, emptyQuestItemRect, m_ObjectCollection.GetSourceRectangle((int) SpellItems.UNLOOTED_QUEST_ITEM), Microsoft.Xna.Framework.Color.White);
+                    m_SpriteBatch.Draw(m_ObjectSpriteSheet.m_Texture, emptyQuestItemRect, m_ObjectSpriteSheet.GetSourceRectangle((int) SpellItems.UNLOOTED_QUEST_ITEM), Microsoft.Xna.Framework.Color.White);
                 }
             }
 

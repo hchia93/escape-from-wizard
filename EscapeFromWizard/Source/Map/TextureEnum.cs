@@ -115,15 +115,4 @@
         GHOST_FACING_LEFT = 19,
         GHOST_FACING_RIGHT = 20,
     }
-
-    public class KeyIDProvider
-    {
-        int[] m_KeyIndex = new int[] { 17, 18, 15, 21, 22, 23, 20, 16 };
-        
-        public int GetKeyIndex(int i)
-        {
-            return m_KeyIndex[i];
-        }
-    }
-    
 }
