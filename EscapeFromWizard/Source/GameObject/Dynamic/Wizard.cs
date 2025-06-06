@@ -12,7 +12,7 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
         private double m_MoveDelayTimer;
         private double m_UpdateTimer;
         private int m_PathListIterator;
-        private Random random_stream;
+        private Random m_RandomStream;
 
         private Vector2 m_DestinationVector;
 
@@ -22,7 +22,7 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
             m_PathList = new List<Tuple<Vector2,Vector2,int>>();
             m_PathListIterator = 0;
 
-            random_stream = new Random();
+            m_RandomStream = new Random();
 
             //Timers
             m_UpdateTimer = 1.0f;
@@ -34,16 +34,16 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
         //----------------------------------------------------------------------
 
         /* Move Wizard to Desire Location With A* */
-        private void _MoveToTargetTile(int i_Column, int i_Row)
+        private void MoveToTargetTile(int column, int row)
         {
-            Vector2 Start = GetTargetPosition();
-            m_DestinationVector.X = i_Column;
-            m_DestinationVector.Y = i_Row;
-            _A_STAR_ALGORITHM(Start, m_DestinationVector);
-            _GetMoveablePathFromList();
+            Vector2 start = GetTargetPosition();
+            m_DestinationVector.X = column;
+            m_DestinationVector.Y = row;
+            AStarAlgorithm(start, m_DestinationVector);
+            GetMoveablePathFromList();
         }
 
-        private void _GetMoveablePathFromList()
+        private void GetMoveablePathFromList()
         {
             List<Tuple<Vector2, Vector2, int>> processedPathList = new List<Tuple<Vector2, Vector2, int>>();
             Vector2 currentTilePos = m_PathList[m_PathList.Count - 1].Item1;
@@ -51,26 +51,28 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
             processedPathList.Add(m_PathList[m_PathList.Count - 1]); //Always add this Tile. 
 
             for (int i = m_PathList.Count - 1; i > 0; --i)
+            {
                 if (parentTilePos == m_PathList[i - 1].Item1)
                 {
                     processedPathList.Add(m_PathList[i - 1]);
                     currentTilePos = m_PathList[i - 1].Item1;
                     parentTilePos = m_PathList[i - 1].Item2;
                 }
+            }
                  
-            _ClearPathList();
+            ClearPathList();
             m_PathList.AddRange(processedPathList);
             m_PathList.Reverse();
         }
 
-        private void _ClearPathList()
+        private void ClearPathList()
         {
             m_PathList.TrimExcess();
             m_PathList.Clear();
             m_PathListIterator = 0;
         }
 
-        private bool _A_STAR_ALGORITHM(Vector2 i_StartPosition, Vector2 i_EndPosition)
+        private bool AStarAlgorithm(Vector2 startPosition, Vector2 endPosition)
         {
             /* 
              *  Return True as if the Path was found, False as if there is a dead end.
@@ -78,167 +80,173 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
              */
 
             //Reject Noob Request that request wrong location.
-            if (!_IsDestinationValid(i_EndPosition))
+            if (!IsDestinationValid(endPosition))
             {
                 return false;
             }
              
 
             //Node Pos, Parent Pos, f_cost
-            List<Tuple<Vector2,Vector2, int>> OpenList = new List<Tuple<Vector2,Vector2,int>>();
-            List<Tuple<Vector2, Vector2, int>> CloseList = new List<Tuple<Vector2, Vector2, int>>();
+            List<Tuple<Vector2,Vector2, int>> openList = new List<Tuple<Vector2,Vector2,int>>();
+            List<Tuple<Vector2, Vector2, int>> closeList = new List<Tuple<Vector2, Vector2, int>>();
 
             //Cost Set Up
-            int h_cost = _ComputeDistance(i_StartPosition, i_EndPosition);
-            int g_cost = 0;
-            int f_score = 0;
-            f_score = g_cost + h_cost;
+            int hCost = ComputeDistance(startPosition, endPosition);
+            int gCost = 0;
+            int fScore = 0;
+            fScore = gCost + hCost;
 
             //SetUp Current Pos and Parent Pos
-            Vector2 CurrentPos = i_StartPosition;
-            Vector2 ParentPos = i_StartPosition;
-            Vector2 NextPos = i_StartPosition;
+            Vector2 currentPos = startPosition;
+            Vector2 parentPos = startPosition;
+            Vector2 nextPos = startPosition;
 
             //Index SetUp
             int minima = 999;
             int mindex = 0;
             
             //Add Start To OpenList
-            OpenList.Add(new Tuple<Vector2, Vector2, int>(CurrentPos, ParentPos, f_score));
+            openList.Add(new Tuple<Vector2, Vector2, int>(currentPos, parentPos, fScore));
 
             //While Not Empty
-            while(OpenList.Count != 0) 
+            while(openList.Count != 0) 
             {
                 
                 //Find the Minimum Index
-                _GetMinFScoreObject(ref OpenList, ref minima, ref mindex);
+                GetMinFScoreObject(ref openList, ref minima, ref mindex);
                
                 //Update CurrentPos
-                CurrentPos = OpenList[mindex].Item1;
+                currentPos = openList[mindex].Item1;
 
                 //Add Min Into Close List
-                CloseList.Add(OpenList[mindex]);
+                closeList.Add(openList[mindex]);
                 
                 //Remove Current Node From OpenList
-                OpenList.Remove(OpenList[mindex]);
+                openList.Remove(openList[mindex]);
                 
                 //Pick Next Node that is Movable, ReCompute f_cost, Add Into OpenList
                 foreach (EDirection direction in System.Enum.GetValues(typeof(EDirection)))
                 {
-                    if (_IsAdjacentTileMovable(CurrentPos, direction))
+                    if (IsAdjacentTileMovable(currentPos, direction))
                     {
-                        NextPos = _GetNextTileVector(CurrentPos, direction);
-                        if (!CloseList.Any(Pos => Pos.Item1 == NextPos))
+                        nextPos = GetNextTileVector(currentPos, direction);
+                        if (!closeList.Any(pos => pos.Item1 == nextPos))
                         {
-                            h_cost = _ComputeDistance(NextPos, i_EndPosition);
-                            g_cost = _ComputeDistance(NextPos, i_StartPosition);
-                            f_score = g_cost + h_cost;
-                            OpenList.Add(new Tuple<Vector2, Vector2, int>(NextPos, CurrentPos, f_score));
+                            hCost = ComputeDistance(nextPos, endPosition);
+                            gCost = ComputeDistance(nextPos, startPosition);
+                            fScore = gCost + hCost;
+                            openList.Add(new Tuple<Vector2, Vector2, int>(nextPos, currentPos, fScore));
                         }
 
                         //If current node is the target node
-                        if (NextPos == i_EndPosition)
+                        if (nextPos == endPosition)
                         {
-                            CloseList.Add(new Tuple<Vector2, Vector2, int>(i_EndPosition, CurrentPos, 0));
-                            CloseList.Add(new Tuple<Vector2, Vector2, int>(i_EndPosition, i_EndPosition, 0));
-                            m_PathList.AddRange(CloseList);
+                            closeList.Add(new Tuple<Vector2, Vector2, int>(endPosition, currentPos, 0));
+                            closeList.Add(new Tuple<Vector2, Vector2, int>(endPosition, endPosition, 0));
+                            m_PathList.AddRange(closeList);
                             return true;
                         }
                     }
                 }
             }
 
-            return !(OpenList.Count == 0);
+            return !(openList.Count == 0);
         }
 
         //=======================================================
         // Overritable Functions
         //=======================================================
-        override protected void _Wonder()
+        override protected void Wonder()
         {
-            _ClearPathList();
-            m_DestinationVector.X = random_stream.Next(0, 25);
-            m_DestinationVector.Y = random_stream.Next(0, 25);
-            while (!_IsDestinationValid(m_DestinationVector))
+            ClearPathList();
+            m_DestinationVector.X = m_RandomStream.Next(0, 25);
+            m_DestinationVector.Y = m_RandomStream.Next(0, 25);
+            while (!IsDestinationValid(m_DestinationVector))
             {
-                m_DestinationVector.X = random_stream.Next(0, 25);
-                m_DestinationVector.Y = random_stream.Next(0, 25);
+                m_DestinationVector.X = m_RandomStream.Next(0, 25);
+                m_DestinationVector.Y = m_RandomStream.Next(0, 25);
             }
-            _MoveToTargetTile((int)m_DestinationVector.X, (int)m_DestinationVector.Y);
+            MoveToTargetTile((int)m_DestinationVector.X, (int)m_DestinationVector.Y);
             m_UpdateTimer = 0.0f;
         }
 
-
-        override protected void _Chase(Vector2 i_playerPosVector)
+        override protected void Chase(Vector2 playerPosVector)
         {
-            _ClearPathList();
-            int playerPosX = (int)i_playerPosVector.X;
-            int playerPosY = (int)i_playerPosVector.Y;
-            _MoveToTargetTile(playerPosX, playerPosY);
+            ClearPathList();
+            int playerPosX = (int)playerPosVector.X;
+            int playerPosY = (int)playerPosVector.Y;
+            MoveToTargetTile(playerPosX, playerPosY);
             m_UpdateTimer = 0.0f;
         }
 
-
-        override protected void _LineOfSight(Vector2 i_playerPosVector)
+        override protected void LineOfSight(Vector2 playerPosVector)
         {
 
-            _ClearPathList();
-            int playerPosX = (int)i_playerPosVector.X;
-            int playerPosY = (int)i_playerPosVector.Y;
-            _MoveToTargetTile(playerPosX, playerPosY);
+            ClearPathList();
+            int playerPosX = (int)playerPosVector.X;
+            int playerPosY = (int)playerPosVector.Y;
+            MoveToTargetTile(playerPosX, playerPosY);
             m_UpdateTimer = 0.0f;
 
         }
 
-
-        override protected void _Decision(Vector2 i_playerPosVector)
+        override protected void Decision(Vector2 playerPosVector)
         {
            switch(GetBehavior())
            {
                case EBehaviorState.WONDER:
-                   _Wonder();
+                   Wonder();
                    return;
                case EBehaviorState.CHASE:
-                   _Chase(i_playerPosVector);
+                   Chase(playerPosVector);
                    return;
                case EBehaviorState.HAS_LINE_OF_SIGHT:
-                   _LineOfSight(i_playerPosVector);
+                   LineOfSight(playerPosVector);
                    return;
                case EBehaviorState.STOP:
-                   _ClearPathList();
                    return;
            }
         }
 
-        override public void UpdateMovement(GameTime gameTime, Vector2 i_playerPosVector)
+        override public void UpdateMovement(GameTime gameTime, Vector2 playerPosVector)
         {
             //Setup References
-            int playerPosX = (int)i_playerPosVector.X;
-            int playerPosY = (int)i_playerPosVector.Y;
+            int playerPosX = (int)playerPosVector.X;
+            int playerPosY = (int)playerPosVector.Y;
             int wizardX = (int)GetTargetPosition().X;
             int wizardY = (int)GetTargetPosition().Y;
             m_MoveDelayTimer += gameTime.ElapsedGameTime.TotalSeconds;
             m_UpdateTimer += gameTime.ElapsedGameTime.TotalSeconds;
 
             if (wizardX == playerPosX && wizardY == playerPosY)
+            {
                 SetPlayerWasHitFlag(true);
+            }
 
-            if (IsPlayerInLineOfSight(i_playerPosVector))
+            if (IsPlayerInLineOfSight(playerPosVector))
+            {
                 SetBehavior(EBehaviorState.HAS_LINE_OF_SIGHT);
+            }
 
             if (GetPlayerHideFlag() == false && GetPlayerExitFlag() == false )
+            {
                 SetBehavior(EBehaviorState.CHASE);
+            }
 
             //Update per 2.5f
             if (m_UpdateTimer > 1.50f /*&& GetEnumState() != EState.CHASE*/)
             {
                 if (GetPlayerHideFlag() == true )
-                        SetBehavior(EBehaviorState.WONDER); 
+                {
+                    SetBehavior(EBehaviorState.WONDER); 
+                }
                 
                 if (GetPlayerExitFlag() == true)
+                {
                     SetBehavior(EBehaviorState.STOP); 
+                }
 
-                _Decision(i_playerPosVector);
+                Decision(playerPosVector);
             }
             if (m_PathList.Count != 0 && m_PathListIterator < m_PathList.Count && !GetPlayerWasHitFlag())
             {
@@ -252,7 +260,9 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
                 }
 
                 if(m_PathListIterator == m_PathList.Count -1)
+                {
                     SetBehavior(EBehaviorState.STOP);
+                }
             }
         } 
     }

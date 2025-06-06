@@ -8,11 +8,11 @@ namespace EscapeFromWizard.Source.GameObject.Static
     {
         Vector2 m_Position;
         Color m_Color;
-        bool isLooted;
+        bool m_IsLooted;
 
         public Key()
         {
-            isLooted = false;
+            m_IsLooted = false;
         }
 
         public void SetPosition(int column, int row)
@@ -37,12 +37,12 @@ namespace EscapeFromWizard.Source.GameObject.Static
 
         public bool IsLooted()
         {
-            return isLooted;
+            return m_IsLooted;
         }
 
         public void SetLooted(bool value)
         {
-            this.isLooted = value;
+            this.m_IsLooted = value;
         }
 
         public bool IsOverlapped(Vector2 playerPosition)
@@ -51,9 +51,9 @@ namespace EscapeFromWizard.Source.GameObject.Static
             if (m_Position == playerPosition)
             {
                 /// function has side effect
-                if (!isLooted)
+                if (!m_IsLooted)
                 {
-                    isLooted = true;
+                    m_IsLooted = true;
                     return true;
                 }
             }

@@ -47,9 +47,9 @@ namespace EscapeFromWizard.Source.GameObject.Static
             return m_Type;
         }
 
-        public void SetItemType(SpellItems i_itemType)
+        public void SetItemType(SpellItems itemType)
         {
-            m_Type = i_itemType;
+            m_Type = itemType;
         }
 
         public bool isLooted()
@@ -57,22 +57,24 @@ namespace EscapeFromWizard.Source.GameObject.Static
             return m_IsItemLooted;
         }
 
-        public void SetLooted(bool i_itemLootFlag)
+        public void SetLooted(bool itemLootFlag)
         {
-            m_IsItemLooted = i_itemLootFlag;
+            m_IsItemLooted = itemLootFlag;
         }
 
-        public bool CheckPlayerPos(Vector2 i_playerPosVector)
+        public bool CheckPlayerPos(Vector2 playerPosVector)
         {
             /* 
              Return True if item Position matched Player Position, else return false;
              */
-            if (m_PositionX == (int)i_playerPosVector.X && m_PositionY == (int)i_playerPosVector.Y)
+            if (m_PositionX == (int)playerPosVector.X && m_PositionY == (int)playerPosVector.Y)
+            {
                 if (!m_IsItemLooted)
                 {
                     m_IsItemLooted = true;
                     return true;
                 }
+            }
                     
             return false;
         }

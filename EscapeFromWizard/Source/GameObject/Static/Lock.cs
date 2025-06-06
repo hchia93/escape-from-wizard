@@ -45,9 +45,9 @@ namespace EscapeFromWizard.Source.GameObject.Static
             m_IsUnlocked = true;
         }
 
-        public void CheckIfDoorLockIsUnlocked(bool i_keyLootFlag)
+        public void CheckIfDoorLockIsUnlocked(bool keyLootFlag)
         {
-            m_IsUnlocked = i_keyLootFlag;
+            m_IsUnlocked = keyLootFlag;
         }
 
         //When destroyedFlag is true, the lock will not be drawn in main loop

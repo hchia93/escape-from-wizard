@@ -8,32 +8,32 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
     public class Minion : Enemy
     {
         //Pathing variables
-        private List<Tuple<Vector2, Vector2, int>> m_pathList;
-        private double m_moveDelayTimer;
-        private double m_updateTimer;
-        private int m_pathListiterator;
+        private List<Tuple<Vector2, Vector2, int>> m_PathList;
+        private double m_MoveDelayTimer;
+        private double m_UpdateTimer;
+        private int m_PathListIterator;
 
-        private Vector2 PatrolStartPos;
-        private Vector2 PatrolEndPos;
+        private Vector2 m_PatrolStartPos;
+        private Vector2 m_PatrolEndPos;
 
-        private bool m_foundPatrolPath;
-        private bool m_reachDestinationFlag;
+        private bool m_FoundPatrolPath;
+        private bool m_ReachDestinationFlag;
 
-        private int coverageX;
-        private int coverageY;
+        private int m_CoverageX;
+        private int m_CoverageY;
 
-        private int minionId;
+        private int m_MinionId;
 
         public Minion()
         {
-            m_pathList = new List<Tuple<Vector2, Vector2, int>>();
-            m_pathListiterator = 0;
+            m_PathList = new List<Tuple<Vector2, Vector2, int>>();
+            m_PathListIterator = 0;
 
-            m_foundPatrolPath = false;
-            m_reachDestinationFlag = false;
+            m_FoundPatrolPath = false;
+            m_ReachDestinationFlag = false;
 
             //Timers
-            m_updateTimer = 1.0f;
+            m_UpdateTimer = 1.0f;
             SetBehavior(EBehaviorState.STOP);
 
         }
@@ -42,32 +42,31 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
         // Initialize
         //----------------------------------------------------------------------
 
-
-        public void SetPatrolStartPos(int i_StartPosX, int i_StartPosY, int i_coverageX, int i_coverageY)
+        public void SetPatrolStartPos(int startPosX, int startPosY, int coverageX, int coverageY)
         {
-            PatrolStartPos = new Vector2(i_StartPosX, i_StartPosY);
-            coverageX = i_coverageX;
-            coverageY = i_coverageY;
+            m_PatrolStartPos = new Vector2(startPosX, startPosY);
+            m_CoverageX = coverageX;
+            m_CoverageY = coverageY;
         }
 
-        public void SetPatrolStartPos(int[] i_PatrolData)
+        public void SetPatrolStartPos(int[] patrolData)
         {
-            PatrolStartPos = new Vector2(i_PatrolData[0], i_PatrolData[1]);
-            coverageX = i_PatrolData[2];
-            coverageY = i_PatrolData[3];
+            m_PatrolStartPos = new Vector2(patrolData[0], patrolData[1]);
+            m_CoverageX = patrolData[2];
+            m_CoverageY = patrolData[3];
 
         }
 
-        public void SetMinionId(int i_minionId)
+        public void SetMinionId(int minionId)
         {
-            minionId = i_minionId;
+            m_MinionId = minionId;
         }
 
         //----------------------------------------------------------------------
         // State Functions
         //----------------------------------------------------------------------
 
-        private void _Patrol()
+        private void Patrol()
         {
             /* 
              * Given an initial position (patrolCentrePos) and specified coverage values X and Y,
@@ -75,98 +74,83 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
              * and then patrol back and forth between the initial position & end position.
              */
 
-            if (!m_foundPatrolPath)
-                for (int i = coverageX; i >= 0; i--)
-                    for (int j = coverageY; j >= 0; j--)
+            if (!m_FoundPatrolPath)
+            {
+                for (int i = m_CoverageX; i >= 0; i--)
+                {
+                    for (int j = m_CoverageY; j >= 0; j--)
                     {
-                        PatrolEndPos.X = PatrolStartPos.X + i;
-                        PatrolEndPos.Y = PatrolStartPos.Y + j;
+                        m_PatrolEndPos.X = m_PatrolStartPos.X + i;
+                        m_PatrolEndPos.Y = m_PatrolStartPos.Y + j;
 
-                        if (_IsDestinationValid(PatrolEndPos))
+                        if (IsDestinationValid(m_PatrolEndPos))
                         {
-                            m_foundPatrolPath = true;
+                            m_FoundPatrolPath = true;
                             break;
                         }
                     }
-
+                }
+            }
 
             //if minion has not reached the End point, go to destination
             //else, go back to the starting position
-            if (!m_reachDestinationFlag)
+            if (!m_ReachDestinationFlag)
             {
-                _MoveToTargetTile((int)PatrolEndPos.X, (int)PatrolEndPos.Y);
+                MoveToTargetTile((int)m_PatrolEndPos.X, (int)m_PatrolEndPos.Y);
             }
             else
             {
-                _MoveToTargetTile((int)PatrolStartPos.X, (int)PatrolStartPos.Y);
+                MoveToTargetTile((int)m_PatrolStartPos.X, (int)m_PatrolStartPos.Y);
             }
-           
-
         }
 
-      /*  private void _PatrolBetweenTwoPositions(Vector2 i_startPos, Vector2 i_endPos)
-        {
-            /* 
-             * Given two defined X and Y positions, patrol back and forth between them
-            
-            //m_patrolFlag = true;
-
-            //if minion has not reached the End point, go to destination
-            //else, go back to the starting position
-            if (!m_reachDestinationFlag)
-                _MoveToTargetTile((int)i_endPos.X, (int)i_endPos.Y);
-            else
-                _MoveToTargetTile((int)i_startPos.X, (int)i_startPos.Y);
-
-            m_updateTimer = 0.0f;
-        }*/
-
-
-        private void _MoveToTargetTile(int i_Column, int i_Row)
+        private void MoveToTargetTile(int column, int row)
         {
             /* 
              *  Move Minion to Desire Location With A*. 
              */
-            Vector2 Start = GetTargetPosition();
-            Vector2 Destination;
-            Destination.X = i_Column;
-            Destination.Y = i_Row;
-            _A_STAR_ALGORITHM(Start, Destination);
-            _GetMoveablePathFromList();
+            Vector2 start = GetTargetPosition();
+            Vector2 destination;
+            destination.X = column;
+            destination.Y = row;
+            AStarAlgorithm(start, destination);
+            GetMoveablePathFromList();
         }
 
-        private void _GetMoveablePathFromList()
+        private void GetMoveablePathFromList()
         {
             List<Tuple<Vector2, Vector2, int>> processedPathList = new List<Tuple<Vector2, Vector2, int>>();
-            if (m_pathList.Count > 0)
+            if (m_PathList.Count > 0)
             {
-                Vector2 currentTilePos = m_pathList[m_pathList.Count - 1].Item1;
-                Vector2 parentTilePos = m_pathList[m_pathList.Count - 1].Item2;
-                processedPathList.Add(m_pathList[m_pathList.Count - 1]); //Always add this Tile. 
+                Vector2 currentTilePos = m_PathList[m_PathList.Count - 1].Item1;
+                Vector2 parentTilePos = m_PathList[m_PathList.Count - 1].Item2;
+                processedPathList.Add(m_PathList[m_PathList.Count - 1]); //Always add this Tile. 
 
-                for (int i = m_pathList.Count - 1; i > 0; --i)
-                    if (parentTilePos == m_pathList[i - 1].Item1)
+                for (int i = m_PathList.Count - 1; i > 0; --i)
+                {
+                    if (parentTilePos == m_PathList[i - 1].Item1)
                     {
-                        processedPathList.Add(m_pathList[i - 1]);
-                        currentTilePos = m_pathList[i - 1].Item1;
-                        parentTilePos = m_pathList[i - 1].Item2;
+                        processedPathList.Add(m_PathList[i - 1]);
+                        currentTilePos = m_PathList[i - 1].Item1;
+                        parentTilePos = m_PathList[i - 1].Item2;
                     }
+                }
 
-                _ClearPathList();
-                m_pathList.AddRange(processedPathList);
-                m_pathList.Reverse();
+                ClearPathList();
+                m_PathList.AddRange(processedPathList);
+                m_PathList.Reverse();
             }
         }
 
-        private void _ClearPathList()
+        private void ClearPathList()
         {
-            m_pathList.TrimExcess();
-            m_pathList.Clear();
+            m_PathList.TrimExcess();
+            m_PathList.Clear();
             //WP COMMENTED THE LINE BELOW : 28/9 TO FIX BUG
-            //m_pathListiterator = 0;
+            //m_PathListIterator = 0;
         }
 
-        private bool _A_STAR_ALGORITHM(Vector2 i_StartPosition, Vector2 i_PatrolEndPosition)
+        private bool AStarAlgorithm(Vector2 startPosition, Vector2 patrolEndPosition)
         {
             /* 
              *  Return True as if the Path was found, False as if there is a dead end.
@@ -174,78 +158,80 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
              */
 
             //Reject Noob Request that request wrong location.
-            if (!_IsDestinationValid(i_PatrolEndPosition))
+            if (!IsDestinationValid(patrolEndPosition))
+            {
                 return false;
+            }
 
             //Node Pos, Parent Pos, f_cost
-            List<Tuple<Vector2, Vector2, int>> OpenList = new List<Tuple<Vector2, Vector2, int>>();
-            List<Tuple<Vector2, Vector2, int>> CloseList = new List<Tuple<Vector2, Vector2, int>>();
+            List<Tuple<Vector2, Vector2, int>> openList = new List<Tuple<Vector2, Vector2, int>>();
+            List<Tuple<Vector2, Vector2, int>> closeList = new List<Tuple<Vector2, Vector2, int>>();
 
             //Cost Set Up
-            int h_cost = _ComputeDistance(i_StartPosition, i_PatrolEndPosition);
-            int g_cost = 0;
-            int f_score = 0;
-            f_score = g_cost + h_cost;
+            int hCost = ComputeDistance(startPosition, patrolEndPosition);
+            int gCost = 0;
+            int fScore = 0;
+            fScore = gCost + hCost;
 
             //SetUp Current Pos and Parent Pos
-            Vector2 CurrentPos = i_StartPosition;
-            Vector2 ParentPos = i_StartPosition;
-            Vector2 NextPos = i_StartPosition;
+            Vector2 currentPos = startPosition;
+            Vector2 parentPos = startPosition;
+            Vector2 nextPos = startPosition;
 
             //Index SetUp
             int minima = 999;
             int mindex = 0;
 
             //Add Start To OpenList
-            OpenList.Add(new Tuple<Vector2, Vector2, int>(CurrentPos, ParentPos, f_score));
+            openList.Add(new Tuple<Vector2, Vector2, int>(currentPos, parentPos, fScore));
 
             //While Not Empty
-            while (OpenList.Count != 0)
+            while (openList.Count != 0)
             {
 
                 //Find the Minimum Index
-                _GetMinFScoreObject(ref OpenList, ref minima, ref mindex);
+                GetMinFScoreObject(ref openList, ref minima, ref mindex);
 
                 //Update CurrentPos
-                CurrentPos = OpenList[mindex].Item1;
+                currentPos = openList[mindex].Item1;
 
                 //Add Min Into Close List
-                CloseList.Add(OpenList[mindex]);
+                closeList.Add(openList[mindex]);
 
                 //Remove Current Node From OpenList
-                OpenList.Remove(OpenList[mindex]);
+                openList.Remove(openList[mindex]);
 
                 //Pick Next Node that is Movable, ReCompute f_cost, Add Into OpenList
                 foreach (EDirection direction in System.Enum.GetValues(typeof(EDirection)))
                 {
-                    if (_IsAdjacentTileMovable(CurrentPos, direction))
+                    if (IsAdjacentTileMovable(currentPos, direction))
                     {
-                        NextPos = _GetNextTileVector(CurrentPos, direction);
-                        if (!CloseList.Any(Pos => Pos.Item1 == NextPos))
+                        nextPos = GetNextTileVector(currentPos, direction);
+                        if (!closeList.Any(Pos => Pos.Item1 == nextPos))
                         {
-                            h_cost = _ComputeDistance(NextPos, i_PatrolEndPosition);
-                            g_cost = _ComputeDistance(NextPos, i_StartPosition);
-                            f_score = g_cost + h_cost;
-                            OpenList.Add(new Tuple<Vector2, Vector2, int>(NextPos, CurrentPos, f_score));
+                            hCost = ComputeDistance(nextPos, patrolEndPosition);
+                            gCost = ComputeDistance(nextPos, startPosition);
+                            fScore = gCost + hCost;
+                            openList.Add(new Tuple<Vector2, Vector2, int>(nextPos, currentPos, fScore));
                         }
 
                         //If current node is the target node
-                        if (NextPos == i_PatrolEndPosition)
+                        if (nextPos == patrolEndPosition)
                         {
-                            CloseList.Add(new Tuple<Vector2, Vector2, int>(i_PatrolEndPosition, CurrentPos, 0));
-                            CloseList.Add(new Tuple<Vector2, Vector2, int>(i_PatrolEndPosition, i_PatrolEndPosition, 0));
-                            m_pathList.AddRange(CloseList);
-                            if (!m_reachDestinationFlag)
-                                m_reachDestinationFlag = true;
+                            closeList.Add(new Tuple<Vector2, Vector2, int>(patrolEndPosition, currentPos, 0));
+                            closeList.Add(new Tuple<Vector2, Vector2, int>(patrolEndPosition, patrolEndPosition, 0));
+                            m_PathList.AddRange(closeList);
+                            if (!m_ReachDestinationFlag)
+                                m_ReachDestinationFlag = true;
                             else
-                                m_reachDestinationFlag = false;
+                                m_ReachDestinationFlag = false;
                             return true;
                         }
                     }
                 }
             }
 
-            if (OpenList.Count == 0)
+            if (openList.Count == 0)
                 return false;
             else
                 return true;
@@ -256,46 +242,46 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
         //=======================================================
 
 
-        override protected void _LineOfSight(Vector2 i_playerPosVector)
+        override protected void LineOfSight(Vector2 playerPosVector)
         {
-            _ClearPathList();
-            int playerPosX = (int)i_playerPosVector.X;
-            int playerPosY = (int)i_playerPosVector.Y;
-            _MoveToTargetTile(playerPosX, playerPosY);
-            m_updateTimer = 0.0f;
+            ClearPathList();
+            int playerPosX = (int)playerPosVector.X;
+            int playerPosY = (int)playerPosVector.Y;
+            MoveToTargetTile(playerPosX, playerPosY);
+            m_UpdateTimer = 0.0f;
         }
 
-        override protected void _Decision(Vector2 i_playerPosVector)
+        override protected void Decision(Vector2 playerPosVector)
         {
             switch (GetBehavior())
             {
                 case EBehaviorState.WONDER:
-                    _Wonder(); //This function is not overrided. It used the super class version
+                    Wonder(); //This function is not overrided. It used the super class version
                     return;
                 case EBehaviorState.CHASE:
-                    _Chase(i_playerPosVector); //This function is not overrided. It used the super class version
+                    Chase(playerPosVector); //This function is not overrided. It used the super class version
                     return;
                 case EBehaviorState.HAS_LINE_OF_SIGHT:
-                    _LineOfSight(i_playerPosVector);
+                    LineOfSight(playerPosVector);
                     return;
                 case EBehaviorState.STOP:
-                    _ClearPathList();
+                    ClearPathList();
                     return;
                 case EBehaviorState.PATROL:
-                    _Patrol();
+                    Patrol();
                     return;
             }
         }
 
-        override public void UpdateMovement(GameTime gameTime, Vector2 i_playerPosVector)
+        override public void UpdateMovement(GameTime gameTime, Vector2 playerPosVector)
         {
             //Setup References
-            int playerPosX = (int)i_playerPosVector.X;
-            int playerPosY = (int)i_playerPosVector.Y;
+            int playerPosX = (int)playerPosVector.X;
+            int playerPosY = (int)playerPosVector.Y;
             int minionX = (int)GetTargetPosition().X;
             int minionY = (int)GetTargetPosition().Y;
-            m_moveDelayTimer += gameTime.ElapsedGameTime.TotalSeconds;
-            m_updateTimer += gameTime.ElapsedGameTime.TotalSeconds;
+            m_MoveDelayTimer += gameTime.ElapsedGameTime.TotalSeconds;
+            m_UpdateTimer += gameTime.ElapsedGameTime.TotalSeconds;
 
 
             //Outside of Timer Scope.
@@ -303,7 +289,7 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
                 SetPlayerWasHitFlag(true);
 
             //Timer Scope: Increased to make it slower to calculate next move.
-            if (m_updateTimer > 1.50f && GetBehavior() != EBehaviorState.PATROL)
+            if (m_UpdateTimer > 1.50f && GetBehavior() != EBehaviorState.PATROL)
             {
                 SetBehavior(EBehaviorState.PATROL);
                 
@@ -314,24 +300,24 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
                     SetBehavior(EBehaviorState.STOP);
 
                 //WP COMMENTED THE LINE BELOW : 28/9 TO FIX BUG (2)
-                //if (_PlayerInLineOfSight(i_playerPosVector))
+                //if (_PlayerInLineOfSight(playerPosVector))
                    // SetEnumState(EState.LINEOFSIGHT);
                 
-                _Decision(i_playerPosVector);
+                Decision(playerPosVector);
             }
 
-            if (m_pathList.Count != 0 && m_pathListiterator < m_pathList.Count && !GetPlayerWasHitFlag())
+            if (m_PathList.Count != 0 && m_PathListIterator < m_PathList.Count && !GetPlayerWasHitFlag())
             {
                 //Move Update Speed
-                if (m_moveDelayTimer >= 0.165f)
+                if (m_MoveDelayTimer >= 0.165f)
                 {
-                    Vector2 updatePosition = m_pathList[m_pathListiterator].Item1;
+                    Vector2 updatePosition = m_PathList[m_PathListIterator].Item1;
                     SetTargetPosition((int)updatePosition.X, (int)updatePosition.Y);
-                    m_pathListiterator++;
-                    m_moveDelayTimer = 0.0f;
+                    m_PathListIterator++;
+                    m_MoveDelayTimer = 0.0f;
                 }
 
-                if (m_pathListiterator == m_pathList.Count - 1)
+                if (m_PathListIterator == m_PathList.Count - 1)
                 {
                     SetBehavior(EBehaviorState.STOP);
                 }

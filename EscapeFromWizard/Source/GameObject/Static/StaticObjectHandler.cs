@@ -23,10 +23,10 @@ namespace EscapeFromWizard.Source.GameObject.Static
 
         //MapData
         private Level m_MapData;
-        private int levelRow;
-        private int levelColumn;
-        private List<Vector2> staticObjectPositions = new List<Vector2>();
-        private List<Vector2> walkablePositions = new List<Vector2>();
+        private int m_LevelRow;
+        private int m_LevelColumn;
+        private List<Vector2> m_StaticObjectPositions = new List<Vector2>();
+        private List<Vector2> m_WalkablePositions = new List<Vector2>();
 
         public StaticObjectHandler()
         {
@@ -38,9 +38,9 @@ namespace EscapeFromWizard.Source.GameObject.Static
         public StaticObjectHandler(Level mapData)
         {
             this.m_MapData = mapData;
-            walkablePositions = this.m_MapData.GetWalkablePaths();
-            levelRow = this.m_MapData.GetMapTileHeight();
-            levelColumn = this.m_MapData.GetMapTileWidth();
+            m_WalkablePositions = this.m_MapData.GetWalkablePaths();
+            m_LevelRow = this.m_MapData.GetMapTileHeight();
+            m_LevelColumn = this.m_MapData.GetMapTileWidth();
 
             InitializeKey();
             InitializeLock();
@@ -50,9 +50,9 @@ namespace EscapeFromWizard.Source.GameObject.Static
         public void SetMapReference(Level mapData)
         {
             this.m_MapData = mapData;
-            walkablePositions = this.m_MapData.GetWalkablePaths();
-            levelRow = this.m_MapData.GetMapTileHeight();
-            levelColumn = this.m_MapData.GetMapTileWidth();
+            m_WalkablePositions = this.m_MapData.GetWalkablePaths();
+            m_LevelRow = this.m_MapData.GetMapTileHeight();
+            m_LevelColumn = this.m_MapData.GetMapTileWidth();
         }
 
         private void InitializeKey()
@@ -67,7 +67,7 @@ namespace EscapeFromWizard.Source.GameObject.Static
                 m_Keys[i].SetColor(keyLockColors[i]);
 
                 //add keyTilePositions into the position list
-                staticObjectPositions.Add(keyTilePositions[i]);
+                m_StaticObjectPositions.Add(keyTilePositions[i]);
             }
         }
 
@@ -88,16 +88,16 @@ namespace EscapeFromWizard.Source.GameObject.Static
                 m_SpellItems[i].SetItemType(spellItemTypes[i]);
 
                 //add itemTilePositions into the position list
-                staticObjectPositions.Add(itemTilePositions[i]);
+                m_StaticObjectPositions.Add(itemTilePositions[i]);
             }
 
             //Randomly generate locations for stars
             Random rnd = new Random();
-            walkablePositions = walkablePositions.Except(staticObjectPositions).ToList();
+            m_WalkablePositions = m_WalkablePositions.Except(m_StaticObjectPositions).ToList();
             for (int i = 0; i < numOfStars; i++)
             {
                 //Random pick a vector2 position from the walkable paths list
-                Vector2 rndPos = walkablePositions[rnd.Next(walkablePositions.Count)];
+                Vector2 rndPos = m_WalkablePositions[rnd.Next(m_WalkablePositions.Count)];
 
                 int x = (int)rndPos.X;
                 int y = (int)rndPos.Y;
@@ -106,7 +106,6 @@ namespace EscapeFromWizard.Source.GameObject.Static
                 m_SpellItems[numOfSpellItem + i].SetItemType(SpellItems.STAR);
             }
         }
-
 
         private void InitializeLock()
         {
@@ -120,7 +119,7 @@ namespace EscapeFromWizard.Source.GameObject.Static
                 m_Locks[i].SetColor(keyLockColors[i]);
 
                 //add lockTilePositions into the position list
-                staticObjectPositions.Add(lockTilePositions[i]);
+                m_StaticObjectPositions.Add(lockTilePositions[i]);
             }
         }
 
@@ -140,7 +139,6 @@ namespace EscapeFromWizard.Source.GameObject.Static
                         colorLock.CheckIfDoorLockIsUnlocked(colorKey.IsLooted());
                     }
                 }
-
             }
 
             for (int i = 0; i < m_SpellItems.Length; i++)
@@ -163,8 +161,6 @@ namespace EscapeFromWizard.Source.GameObject.Static
                     }
                 }
             }
-
-
         }
 
         public Key[] GetKeys()

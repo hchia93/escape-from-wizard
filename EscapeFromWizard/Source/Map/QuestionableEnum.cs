@@ -119,11 +119,11 @@
 
     public class QuestionableEnum
     {
-        int[] keyIndex = new int[] { 17, 18, 15, 21, 22, 23, 20, 16 };
+        int[] m_KeyIndex = new int[] { 17, 18, 15, 21, 22, 23, 20, 16 };
         
         public int GetKeyIndex(int i)
         {
-            return keyIndex[i];
+            return m_KeyIndex[i];
         }
     }
     

@@ -29,16 +29,16 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
 
         //External References
         private Level m_MapData;
-        private bool refPlayerHideFlag;
-        private bool refPlayerWasHitFlag;
-        private bool refPlayerExitFlag;
+        private bool m_RefPlayerHideFlag;
+        private bool m_RefPlayerWasHitFlag;
+        private bool m_RefPlayerExitFlag;
 
         private EBehaviorState m_Behavior;
        
         public Enemy()
         {
-            refPlayerHideFlag = false;
-            refPlayerWasHitFlag = false;
+            m_RefPlayerHideFlag = false;
+            m_RefPlayerWasHitFlag = false;
         }
 
         //=======================================================
@@ -59,24 +59,20 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
             m_MapData = mapData;
         }
 
-
-        public void SetPlayerHideFlag(bool i_bool)
+        public void SetPlayerHideFlag(bool hideFlag)
         {
-            refPlayerHideFlag = i_bool;
+            m_RefPlayerHideFlag = hideFlag;
         }
 
-
-        public void SetPlayerWasHitFlag(bool i_bool)
+        public void SetPlayerWasHitFlag(bool wasHitFlag)
         {
-            refPlayerWasHitFlag = i_bool;
+            m_RefPlayerWasHitFlag = wasHitFlag;
         }
 
-
-        public void SetPlayerExitFlag(bool i_bool)
+        public void SetPlayerExitFlag(bool exitFlag)
         {
-            refPlayerExitFlag = i_bool;
+            m_RefPlayerExitFlag = exitFlag;
         }
-
 
         public EBehaviorState GetBehavior() 
         {
@@ -88,58 +84,54 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
             return m_TargetPosition;
         }
 
-
         public Level GetMapReference()
         {
             return m_MapData;
         }
 
-
         public bool GetPlayerHideFlag()
         {
-            return refPlayerHideFlag;
+            return m_RefPlayerHideFlag;
         }
-
 
         public bool GetPlayerWasHitFlag()
         {
-            return refPlayerWasHitFlag;
+            return m_RefPlayerWasHitFlag;
         }
-
 
         public bool GetPlayerExitFlag()
         {
-            return refPlayerExitFlag;
+            return m_RefPlayerExitFlag;
         }
 
         //=======================================================
         // Condition Functions
         //=======================================================
 
-        protected bool _PlayerInLineOfSightHorizontalFlag(Vector2 playerPosition)
+        protected bool PlayerInLineOfSightHorizontalFlag(Vector2 playerPosition)
         {
             int playerX = (int) playerPosition.X;
             int playerY = (int) playerPosition.Y;
             int wizardX = (int) m_TargetPosition.X;
             int wizardY = (int)m_TargetPosition.Y;
-            int R = m_MapData.GetMapTileHeight();
-            int C = m_MapData.GetMapTileWidth();
-            int TileID = 0;
+            int r = m_MapData.GetMapTileHeight();
+            int c = m_MapData.GetMapTileWidth();
+            int tileID = 0;
 
             //If same Row means different in X, player-wizard Horizontal
             if (wizardY == playerY)
             {
-                int _d = playerX - wizardX;
-                if (_d > 0) //Player on right side 
+                int d = playerX - wizardX;
+                if (d > 0) //Player on right side 
                 {
-                    while (_d != 0)
+                    while (d != 0)
                     {
-                        TileID = m_MapData.GetMapTileData(m_MapData.ConvertToMapIdex(wizardY, wizardX + 1, R, C));
+                        tileID = m_MapData.GetMapTileData(m_MapData.ConvertToMapIdex(wizardY, wizardX + 1, r, c));
 
-                        if (TileID == 00)
+                        if (tileID == 00)
                         {
                             wizardX++;
-                            _d--;
+                            d--;
                         }
                         else
                         {
@@ -150,14 +142,14 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
                 }
                 else //Player on left side
                 {
-                    while (_d != 0)
+                    while (d != 0)
                     {
-                        TileID = m_MapData.GetMapTileData(m_MapData.ConvertToMapIdex(wizardY, wizardX - 1, R, C));
+                        tileID = m_MapData.GetMapTileData(m_MapData.ConvertToMapIdex(wizardY, wizardX - 1, r, c));
 
-                        if (TileID == 00)
+                        if (tileID == 00)
                         {
                             wizardX--;
-                            _d++;
+                            d++;
                         }
                         else
                         {
@@ -170,30 +162,30 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
             return false;
         }
 
-        protected bool _PlayerInLineOfSightVerticalFlag(Vector2 playerPosition)
+        protected bool PlayerInLineOfSightVerticalFlag(Vector2 playerPosition)
         {
             int playerX = (int) playerPosition.X;
             int playerY = (int) playerPosition.Y;
             int wizardX = (int) m_TargetPosition.X;
             int wizardY = (int) m_TargetPosition.Y;
-            int R = m_MapData.GetMapTileHeight();
-            int C = m_MapData.GetMapTileWidth();
-            int TileID = 0;
+            int r = m_MapData.GetMapTileHeight();
+            int c = m_MapData.GetMapTileWidth();
+            int tileID = 0;
 
             //If same Col means different in Y, player-wizard Vertical
             if (wizardX == playerX)
             {
-                int _d = playerY - wizardY;
-                if (_d > 0) //Player beneath Wizard 
+                int d = playerY - wizardY;
+                if (d > 0) //Player beneath Wizard 
                 {
-                    while (_d != 0)
+                    while (d != 0)
                     {
-                        TileID = m_MapData.GetMapTileData(m_MapData.ConvertToMapIdex(wizardY + 1, wizardX, R, C));
+                        tileID = m_MapData.GetMapTileData(m_MapData.ConvertToMapIdex(wizardY + 1, wizardX, r, c));
 
-                        if (TileID == 00)
+                        if (tileID == 00)
                         {
                             wizardY++;
-                            _d--;
+                            d--;
                         }
                         else
                         {
@@ -206,14 +198,14 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
                 }
                 else //Player above Wizard
                 {
-                    while (_d != 0)
+                    while (d != 0)
                     {
-                        TileID = m_MapData.GetMapTileData(m_MapData.ConvertToMapIdex(wizardY - 1, wizardX, R, C));
+                        tileID = m_MapData.GetMapTileData(m_MapData.ConvertToMapIdex(wizardY - 1, wizardX, r, c));
 
-                        if (TileID == 00)
+                        if (tileID == 00)
                         {
                             wizardY--;
-                            _d++;
+                            d++;
                         }
                         else
                         {
@@ -230,91 +222,90 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
 
         protected bool IsPlayerInLineOfSight(Vector2 playerPosition)
         {
-            return _PlayerInLineOfSightHorizontalFlag(playerPosition) || _PlayerInLineOfSightVerticalFlag(playerPosition);
+            return PlayerInLineOfSightHorizontalFlag(playerPosition) || PlayerInLineOfSightVerticalFlag(playerPosition);
         }
 
-        protected bool _IsAdjacentTileMovable(Vector2 i_CurrentTile, EDirection i_Direction)
+        protected bool IsAdjacentTileMovable(Vector2 currentTile, EDirection direction)
         {
             /* 
              * Return true - It is movable for wizard
              * Return false - It is an unmovable tile for wizard
              */
-            int R = m_MapData.GetMapTileHeight();
-            int C = m_MapData.GetMapTileWidth();
-            int X = (int)i_CurrentTile.X;
-            int Y = (int)i_CurrentTile.Y;
-            int TileID = 0;
+            int r = m_MapData.GetMapTileHeight();
+            int c = m_MapData.GetMapTileWidth();
+            int x = (int)currentTile.X;
+            int y = (int)currentTile.Y;
+            int tileID = 0;
 
-            switch (i_Direction)
+            switch (direction)
             {
                 case EDirection.UP:
-                    TileID = m_MapData.GetMapTileData(m_MapData.ConvertToMapIdex(Y - 1, X, R, C));
+                    tileID = m_MapData.GetMapTileData(m_MapData.ConvertToMapIdex(y - 1, x, r, c));
                     break;
                 case EDirection.DOWN:
-                    TileID = m_MapData.GetMapTileData(m_MapData.ConvertToMapIdex(Y + 1, X, R, C));
+                    tileID = m_MapData.GetMapTileData(m_MapData.ConvertToMapIdex(y + 1, x, r, c));
                     break;
                 case EDirection.LEFT:
-                    TileID = m_MapData.GetMapTileData(m_MapData.ConvertToMapIdex(Y, X - 1, R, C));
+                    tileID = m_MapData.GetMapTileData(m_MapData.ConvertToMapIdex(y, x - 1, r, c));
                     break;
                 case EDirection.RIGHT:
-                    TileID = m_MapData.GetMapTileData(m_MapData.ConvertToMapIdex(Y, X + 1, R, C));
+                    tileID = m_MapData.GetMapTileData(m_MapData.ConvertToMapIdex(y, x + 1, r, c));
                     break;
             }
-            if (TileID == 0)
+            if (tileID == 0)
                 return true;
 
             return false;
         }
 
-        protected bool _IsDestinationValid(Vector2 i_Location)
+        protected bool IsDestinationValid(Vector2 location)
         {
-            int R = m_MapData.GetMapTileHeight();
-            int C = m_MapData.GetMapTileWidth();
-            int X = (int)i_Location.X;
-            int Y = (int)i_Location.Y;
-            int CurrentTileID = GetMapReference().GetMapTileData(GetMapReference().ConvertToMapIdex(Y, X, R, C));
+            int r = m_MapData.GetMapTileHeight();
+            int c = m_MapData.GetMapTileWidth();
+            int x = (int)location.X;
+            int y = (int)location.Y;
+            int currentTileID = GetMapReference().GetMapTileData(GetMapReference().ConvertToMapIdex(y, x, r, c));
 
-            if (CurrentTileID != 0)
+            if (currentTileID != 0)
                 return false;
 
             return true;
         }
 
-
         //=======================================================
         // Computation Functions
         //=======================================================
 
-        protected Vector2 _GetNextTileVector(Vector2 i_CurrentTile, EDirection i_Direction)
+        protected Vector2 GetNextTileVector(Vector2 currentTile, EDirection direction)
         {
             /* 
             * Return a new vector2 values according to relative direction of wizard
             * Return original vector2 values if the function failed to get.
             * Potential Error: Does not check on invalid index on map.
             */
-            switch (i_Direction)
+            switch (direction)
             {
                 case EDirection.UP:
-                    i_CurrentTile.Y -= 1;
-                    return i_CurrentTile;
+                    currentTile.Y -= 1;
+                    return currentTile;
                 case EDirection.DOWN:
-                    i_CurrentTile.Y += 1;
-                    return i_CurrentTile;
+                    currentTile.Y += 1;
+                    return currentTile;
                 case EDirection.LEFT:
-                    i_CurrentTile.X -= 1;
-                    return i_CurrentTile;
+                    currentTile.X -= 1;
+                    return currentTile;
                 case EDirection.RIGHT:
-                    i_CurrentTile.X += 1;
-                    return i_CurrentTile;
+                    currentTile.X += 1;
+                    return currentTile;
             }
-            return i_CurrentTile;
+            return currentTile;
         }
 
-        protected int _ComputeDistance(Vector2 i_Pos1, Vector2 i_Pos2)
+        protected int ComputeDistance(Vector2 pos1, Vector2 pos2)
         {
             //Heuristic implement here.
-            int offsetX = (int)MathHelper.Distance(i_Pos1.X, i_Pos2.X);
-            int offsetY = (int)MathHelper.Distance(i_Pos1.Y, i_Pos2.Y);
+            int offsetX = (int)MathHelper.Distance(pos1.X, pos2.X);
+            int offsetY = (int)MathHelper.Distance(pos1.Y, pos2.Y);
             return offsetX + offsetY;
         }
 
@@ -323,7 +314,7 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
         // Pathing Functions
         //=======================================================
 
-        protected void _GetMinFScoreObject(ref List<Tuple<Vector2, Vector2, int>> refList, ref int minima, ref int mindex)
+        protected void GetMinFScoreObject(ref List<Tuple<Vector2, Vector2, int>> refList, ref int minima, ref int mindex)
         {
             for (int i = 0; i < refList.Count; ++i)
                 if (refList[i].Item3 <= minima)
@@ -343,15 +334,15 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
         //=======================================================
         // Overritable Functions
         //=======================================================
-        protected virtual void _Chase(Vector2 i_playerPosVector){ }
+        protected virtual void Chase(Vector2 playerPosVector){ }
 
-        protected virtual void _LineOfSight(Vector2 i_playerPosVector){ }
+        protected virtual void LineOfSight(Vector2 playerPosVector){ }
 
-        protected virtual void _Wonder() { }
+        protected virtual void Wonder() { }
 
-        protected virtual void _Decision(Vector2 i_playerPosVectror) { }
+        protected virtual void Decision(Vector2 playerPosVectror) { }
 
-        public virtual void UpdateMovement(GameTime gameTime, Vector2 i_playerPosVector){ }
+        public virtual void UpdateMovement(GameTime gameTime, Vector2 playerPosVector){ }
       
 
     }

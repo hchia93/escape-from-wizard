@@ -10,11 +10,11 @@ using TileEngine;
 
 namespace EscapeFromWizard
 {
-    public enum CurrentScreen
+    public enum ScreenType
     {
-        HOME_SCREEN, 
-        GAME_SCREEN, 
-        GAME_OVER_SCREEN, 
+        HOME_SCREEN,
+        GAME_SCREEN,
+        GAME_OVER_SCREEN,
         YOU_WON_SCREEN
     }
 
@@ -28,101 +28,102 @@ namespace EscapeFromWizard
 
     public class EscapeFromWizard : Game
     {
-        public GraphicsDeviceManager graphics;
-        public SpriteBatch mapSpriteBatch;
+        public GraphicsDeviceManager m_Graphics;
+        public SpriteBatch m_MapSpriteBatch;
 
         //Game Setting
         public const int pixelHeightPerTile = 32;
         public const int pixelWidthPerTile = 32;
         public const int squaresAcross = 18; //How many rows on screen
         public const int squaresDown = 18; //How many coloum on screen
-        public int tileRow = 0; //Iterator that draw Grid and Label on Screen
-        public int tileCol = 0; //Iterator that draw Grid and Label on Screen
+        public int m_TileRow = 0; //Iterator that draw Grid and Label on Screen
+        public int m_TileCol = 0; //Iterator that draw Grid and Label on Screen
         public const int numOfKey = 4;
         public const int numOfLock = 4;
 
         // Debug Mode
-        public bool showGrid = false;
-        public bool showTileRowCol = false;
-        public bool isGodMode = false;
+        public bool m_ShowGrid = false;
+        public bool m_ShowTileRowCol = false;
+        public bool m_IsGodMode = false;
 
         //GameFonts & Resources & Texture & Custom Class
-        public SpriteFont font_ArialBlack_14;
-        public Texture2D texture1px;
-        public Texture2D background;
-        public Texture2D homeScreenBackground;
-        public Texture2D gameOverScreenBackground;
-        public Texture2D youWonScreenBackground;
-        public Texture2D questNotCompletedErrorNotice;
-        public Tile tileTileSet;
-        public Tile objectTileSet;
-        public Tile hudTileSet;
-        public Tile otherTileSet;
+        public SpriteFont m_FontArialBlack14;
+        public Texture2D m_Texture1px;
+        public Texture2D m_Background;
+        public Texture2D m_HomeScreenBackground;
+        public Texture2D m_GameOverScreenBackground;
+        public Texture2D m_YouWonScreenBackground;
+        public Texture2D m_QuestNotCompletedErrorNotice;
+        public Tile m_TileTileSet;
+        public Tile m_ObjectTileSet;
+        public Tile m_HudTileSet;
+        public Tile m_OtherTileSet;
 
         //Sound State
-        public bool playGameBGMOnlyOnce = true;
-        public bool playGameOverOnlyOnce = true;
-        public bool playButtonOnlyOnce = true;
-        public bool playPickUpOnlyOnce = true;
-        public bool[] playUnlockDoorOnlyOnce = new bool[] { true, true, true, true };
-        public bool playerPickUpSomething = false;
-        public double footStepTimer = 0.0f;
+        public bool m_PlayGameBGMOnlyOnce = true;
+        public bool m_PlayGameOverOnlyOnce = true;
+        public bool m_PlayButtonOnlyOnce = true;
+        public bool m_PlayPickUpOnlyOnce = true;
+        public bool[] m_PlayUnlockDoorOnlyOnce = new bool[] { true, true, true, true };
+        public bool m_PlayerPickUpSomething = false;
+        public double m_FootStepTimer = 0.0f;
 
         //Inputs
-        public KeyboardState inputKey;
-        public KeyboardState previousInputKey;
-        public MouseState mouseState;
-        public Input inputStruct;
+        public KeyboardState m_InputKey;
+        public KeyboardState m_PreviousInputKey;
+        public MouseState m_MouseState;
+        public Input m_InputStruct;
 
         //GameMap & GameView & Instances
-        public Camera2D cameraView;
-        public Level m_MapData; 
-        public QuestionableEnum enumMapData;
+        public Camera2D m_CameraView;
+        public Level m_MapData;
+        public QuestionableEnum m_EnumMapData;
 
         //Game Objects
-        public Player player;
-        public Wizard wizard;
-        public Minion[] minions;
-        public StaticObjectHandler staticObjectHandler;
-        public Key[] key;
-        public Lock[] doorLock;
-        public SpellItem[] spellItem;
+        public Player m_Player;
+        public Wizard m_Wizard;
+        public Minion[] m_Minions;
+        public StaticObjectHandler m_StaticObjectHandler;
+        public Key[] m_Key;
+        public Lock[] m_DoorLock;
+        public SpellItem[] m_SpellItem;
 
         //Other buffer values
-        public Vector2 screenCenter;
-        public int demoMapTileWidth; //The Dimension W of the loaded map
-        public int demoMapTileHeight; //The Dimension H of the loaded map
+        public Vector2 m_ScreenCenter;
+        public int m_DemoMapTileWidth; //The Dimension W of the loaded map
+        public int m_DemoMapTileHeight; //The Dimension H of the loaded map
 
-        //
-        public Vector2 movementOffset;
+        public Vector2 m_MovementOffset;
 
         //Game State
-        public CurrentScreen currentScreen;
-        public bool gameIsOver;
-        public bool showErrorMsg = false;
-        public float totalGameTime;
-        public float secondsPlaying;
-        public int minutesPlaying;
-        public int score;
+        public ScreenType m_CurrentScreen;
+        public bool m_GameIsOver;
+        public bool m_ShowErrorMsg = false;
+        public float m_TotalGameTime;
+        public float m_SecondsPlaying;
+        public int m_MinutesPlaying;
+        public int m_Score;
 
         //Minion Hit
         private const int minionHitDamage = 1;
-        public bool decreaseHPOnlyOnce;
-        public double hitDetectionTimer = 5.0f;
-
+        public bool m_DecreaseHPOnlyOnce;
+        public double m_HitDetectionTimer = 5.0f;
 
         public SoundManager m_SoundManager;
 
         public EscapeFromWizard()
         {
-            graphics = new GraphicsDeviceManager(this);
-            graphics.PreferredBackBufferWidth = pixelWidthPerTile * squaresAcross;
-            graphics.PreferredBackBufferHeight = pixelHeightPerTile * squaresDown;
-            screenCenter = new Vector2(graphics.PreferredBackBufferWidth / 2, graphics.PreferredBackBufferHeight / 2);
-            graphics.IsFullScreen = false;
-            graphics.ApplyChanges();
+            m_Graphics = new GraphicsDeviceManager(this);
+            m_Graphics.PreferredBackBufferWidth = pixelWidthPerTile * squaresAcross;
+            m_Graphics.PreferredBackBufferHeight = pixelHeightPerTile * squaresDown;
+            m_Graphics.IsFullScreen = false;
+            m_Graphics.ApplyChanges();
+
+            m_ScreenCenter = new Vector2(m_Graphics.PreferredBackBufferWidth / 2, m_Graphics.PreferredBackBufferHeight / 2);
+         
+            m_CurrentScreen = ScreenType.HOME_SCREEN;
+
             Content.RootDirectory = "Content";
-            currentScreen = CurrentScreen.HOME_SCREEN;
         }
 
         protected override void Initialize()
@@ -131,35 +132,35 @@ namespace EscapeFromWizard
             this.IsMouseVisible = true;
 
             //Map Related
-            enumMapData = new QuestionableEnum();
+            m_EnumMapData = new QuestionableEnum();
             m_MapData = new Level();
             m_MapData.Initialize();
-            demoMapTileWidth = m_MapData.GetMapTileWidth();
-            demoMapTileHeight = m_MapData.GetMapTileHeight();
+            m_DemoMapTileWidth = m_MapData.GetMapTileWidth();
+            m_DemoMapTileHeight = m_MapData.GetMapTileHeight();
 
             //Camera
-            cameraView = new Camera2D();
-            cameraView.SetBoundary(0, 0, ((demoMapTileWidth - squaresAcross) * pixelWidthPerTile), ((demoMapTileHeight - squaresDown) * pixelHeightPerTile));
+            m_CameraView = new Camera2D();
+            m_CameraView.SetBoundary(0, 0, ((m_DemoMapTileWidth - squaresAcross) * pixelWidthPerTile), ((m_DemoMapTileHeight - squaresDown) * pixelHeightPerTile));
 
             //Key And Locks
-            staticObjectHandler = new StaticObjectHandler(m_MapData);
-            key = staticObjectHandler.GetKeys();
-            doorLock = staticObjectHandler.GetLocks();
-            spellItem = staticObjectHandler.GetSpellItems();
+            m_StaticObjectHandler = new StaticObjectHandler(m_MapData);
+            m_Key = m_StaticObjectHandler.GetKeys();
+            m_DoorLock = m_StaticObjectHandler.GetLocks();
+            m_SpellItem = m_StaticObjectHandler.GetSpellItems();
 
             //Player
-            player = new Player();
-            player.SetMapReference(m_MapData);
-            player.SetPosition(1, 1);
-            player.SetUpLockInformation(doorLock);
+            m_Player = new Player();
+            m_Player.SetMapReference(m_MapData);
+            m_Player.SetPosition(1, 1);
+            m_Player.SetUpLockInformation(m_DoorLock);
 
             //Wizard
-            wizard = new Wizard();
-            wizard.SetMapReference(m_MapData);
-            wizard.SetTargetPosition(12, 4);
+            m_Wizard = new Wizard();
+            m_Wizard.SetMapReference(m_MapData);
+            m_Wizard.SetTargetPosition(12, 4);
 
             //Minions array
-            minions = new Minion[5];
+            m_Minions = new Minion[5];
             int[][] minionsInitialPatrolData = new int[5][] {
                 new int[] {4,1,5,6},
                 new int[] {4,15,5,6},
@@ -167,28 +168,28 @@ namespace EscapeFromWizard
                 new int[] {20,15,4,5},
                 new int[] {11,8,7,7}
             };
-            for (int i = 0; i < minions.Length; i++)
+            for (int i = 0; i < m_Minions.Length; i++)
             {
-                minions[i] = new Minion();
-                minions[i].SetMinionId(i);
-                minions[i].SetMapReference(m_MapData);
-                minions[i].SetPatrolStartPos(minionsInitialPatrolData[i]);
-                minions[i].SetTargetPosition(minionsInitialPatrolData[i][0], minionsInitialPatrolData[i][1]);
+                m_Minions[i] = new Minion();
+                m_Minions[i].SetMinionId(i);
+                m_Minions[i].SetMapReference(m_MapData);
+                m_Minions[i].SetPatrolStartPos(minionsInitialPatrolData[i]);
+                m_Minions[i].SetTargetPosition(minionsInitialPatrolData[i][0], minionsInitialPatrolData[i][1]);
             }
 
-            gameIsOver = false;
-            minutesPlaying = 0;
-            secondsPlaying = 0.0f;
+            m_GameIsOver = false;
+            m_MinutesPlaying = 0;
+            m_SecondsPlaying = 0.0f;
 
             //Sound
             m_SoundManager = new SoundManager(this.Content);
-            playGameBGMOnlyOnce = true;
-            playGameOverOnlyOnce = true;
-            playButtonOnlyOnce = true;
-            playPickUpOnlyOnce = true;
-            playUnlockDoorOnlyOnce = new bool[] { true, true, true, true };
-            playerPickUpSomething = false;
-            footStepTimer = 0.0f;
+            m_PlayGameBGMOnlyOnce = true;
+            m_PlayGameOverOnlyOnce = true;
+            m_PlayButtonOnlyOnce = true;
+            m_PlayPickUpOnlyOnce = true;
+            m_PlayUnlockDoorOnlyOnce = new bool[] { true, true, true, true };
+            m_PlayerPickUpSomething = false;
+            m_FootStepTimer = 0.0f;
         }
 
         protected override void LoadContent()
@@ -196,46 +197,38 @@ namespace EscapeFromWizard
             //---------------------------------------------------------------------
             // Map 
             // --------------------------------------------------------------------
-            mapSpriteBatch = new SpriteBatch(GraphicsDevice);
+            m_MapSpriteBatch = new SpriteBatch(GraphicsDevice);
 
-            tileTileSet = new Tile();
-            tileTileSet.TileSetTexture = Content.Load<Texture2D>(@"Resource\Image\32PixelTiles\32Pixel_SpriteSheet_Tiles");
+            m_TileTileSet = new Tile();
+            m_TileTileSet.TileSetTexture = Content.Load<Texture2D>(@"Resource\Image\32PixelTiles\32Pixel_SpriteSheet_Tiles");
 
-            objectTileSet = new Tile();
-            objectTileSet.TileSetTexture = Content.Load<Texture2D>(@"Resource\Image\32PixelObjects\32Pixel_SpriteSheet_Object2");
+            m_ObjectTileSet = new Tile();
+            m_ObjectTileSet.TileSetTexture = Content.Load<Texture2D>(@"Resource\Image\32PixelObjects\32Pixel_SpriteSheet_Object2");
 
-            hudTileSet = new Tile();
-            hudTileSet.TileSetTexture = Content.Load<Texture2D>(@"Resource\Image\32PixelHUD\32Pixel_SpriteSheet_HUD");
+            m_HudTileSet = new Tile();
+            m_HudTileSet.TileSetTexture = Content.Load<Texture2D>(@"Resource\Image\32PixelHUD\32Pixel_SpriteSheet_HUD");
 
-            otherTileSet = new Tile();
+            m_OtherTileSet = new Tile();
 
-            //---------------------------------------------------------------------
-            // Texture
-            // --------------------------------------------------------------------
+            m_Texture1px = new Texture2D(GraphicsDevice, 1, 1);
+            m_Texture1px.SetData(new Microsoft.Xna.Framework.Color[] { Microsoft.Xna.Framework.Color.White });
 
-            texture1px = new Texture2D(graphics.GraphicsDevice, 1, 1);
-            texture1px.SetData(new Microsoft.Xna.Framework.Color[] { Microsoft.Xna.Framework.Color.White });
+            m_Background = new Texture2D(GraphicsDevice, 256, 256);
+            m_Background = Content.Load<Texture2D>(@"Resource\Image\floor_256px");
 
-            background = new Texture2D(graphics.GraphicsDevice, 256, 256);
-            background = Content.Load<Texture2D>(@"Resource\Image\floor_256px");
+            m_HomeScreenBackground = new Texture2D(GraphicsDevice, 576, 576);
+            m_HomeScreenBackground = Content.Load<Texture2D>(@"Resource\Image\home_fit");
 
-            homeScreenBackground = new Texture2D(graphics.GraphicsDevice, 576, 576);
-            homeScreenBackground = Content.Load<Texture2D>(@"Resource\Image\home_fit");
+            m_GameOverScreenBackground = new Texture2D(GraphicsDevice, 576, 576);
+            m_GameOverScreenBackground = Content.Load<Texture2D>(@"Resource\Image\gameover_fit");
 
-            gameOverScreenBackground = new Texture2D(graphics.GraphicsDevice, 576, 576);
-            gameOverScreenBackground = Content.Load<Texture2D>(@"Resource\Image\gameover_fit");
+            m_YouWonScreenBackground = new Texture2D(GraphicsDevice, 576, 576);
+            m_YouWonScreenBackground = Content.Load<Texture2D>(@"Resource\Image\youwon_fit");
 
-            youWonScreenBackground = new Texture2D(graphics.GraphicsDevice, 576, 576);
-            youWonScreenBackground = Content.Load<Texture2D>(@"Resource\Image\youwon_fit");
+            m_QuestNotCompletedErrorNotice = new Texture2D(GraphicsDevice, 576, 576);
+            m_QuestNotCompletedErrorNotice = Content.Load<Texture2D>(@"Resource\Image\questnotcompleted");
 
-            questNotCompletedErrorNotice = new Texture2D(graphics.GraphicsDevice, 576, 576);
-            questNotCompletedErrorNotice = Content.Load<Texture2D>(@"Resource\Image\questnotcompleted");
-
-
-            //---------------------------------------------------------------------
-            // Font Loading
-            //---------------------------------------------------------------------
-            font_ArialBlack_14 = Content.Load<SpriteFont>(@"Resource\Font\Arial_Black_14pxl");
+            m_FontArialBlack14 = Content.Load<SpriteFont>(@"Resource\Font\Arial_Black_14pxl");
         }
 
         protected override void Update(GameTime gameTime)
@@ -243,24 +236,24 @@ namespace EscapeFromWizard
             //if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
             // Exit();
 
-            inputKey = Keyboard.GetState();
-            mouseState = Mouse.GetState();
+            m_InputKey = Keyboard.GetState();
+            m_MouseState = Mouse.GetState();
 
-            if (currentScreen == CurrentScreen.GAME_SCREEN)
+            if (m_CurrentScreen == ScreenType.GAME_SCREEN)
             {
 
                 //----------------------------------------------------------------------
                 // Timer
                 //----------------------------------------------------------------------
-                footStepTimer += gameTime.ElapsedGameTime.TotalSeconds;
-                hitDetectionTimer += gameTime.ElapsedGameTime.TotalSeconds;
+                m_FootStepTimer += gameTime.ElapsedGameTime.TotalSeconds;
+                m_HitDetectionTimer += gameTime.ElapsedGameTime.TotalSeconds;
 
                 //calculate total game time elapsed
-                secondsPlaying += (float)gameTime.ElapsedGameTime.TotalSeconds;
-                if (secondsPlaying >= 60)
+                m_SecondsPlaying += (float)gameTime.ElapsedGameTime.TotalSeconds;
+                if (m_SecondsPlaying >= 60)
                 {
-                    minutesPlaying++;
-                    secondsPlaying = 0;
+                    m_MinutesPlaying++;
+                    m_SecondsPlaying = 0;
                 }
 
                 //----------------------------------------------------------------------
@@ -268,596 +261,489 @@ namespace EscapeFromWizard
                 //----------------------------------------------------------------------
 
                 //No longer listen user input if game is over
-                if (!gameIsOver)
+                if (!m_GameIsOver)
                 {
-                    inputStruct.VerticalDown = (inputKey.IsKeyDown(Keys.S) || inputKey.IsKeyDown(Keys.Down)) ? -1 : 0;
-                    inputStruct.VerticalUp = (inputKey.IsKeyDown(Keys.W) || inputKey.IsKeyDown(Keys.Up)) ? 1 : 0;
-                    inputStruct.HorizontalLeft = (inputKey.IsKeyDown(Keys.A) || inputKey.IsKeyDown(Keys.Left)) ? -1 : 0;
-                    inputStruct.HorizontalRight = (inputKey.IsKeyDown(Keys.D) || inputKey.IsKeyDown(Keys.Right)) ? 1 : 0;
+                    m_InputStruct.VerticalDown = (m_InputKey.IsKeyDown(Keys.S) || m_InputKey.IsKeyDown(Keys.Down)) ? -1 : 0;
+                    m_InputStruct.VerticalUp = (m_InputKey.IsKeyDown(Keys.W) || m_InputKey.IsKeyDown(Keys.Up)) ? 1 : 0;
+                    m_InputStruct.HorizontalLeft = (m_InputKey.IsKeyDown(Keys.A) || m_InputKey.IsKeyDown(Keys.Left)) ? -1 : 0;
+                    m_InputStruct.HorizontalRight = (m_InputKey.IsKeyDown(Keys.D) || m_InputKey.IsKeyDown(Keys.Right)) ? 1 : 0;
                 }
 
-                int finalVertical = inputStruct.VerticalDown + inputStruct.VerticalUp;
-                int finalHorizontal = inputStruct.HorizontalLeft + inputStruct.HorizontalRight;
+                int finalVertical = m_InputStruct.VerticalDown + m_InputStruct.VerticalUp;
+                int finalHorizontal = m_InputStruct.HorizontalLeft + m_InputStruct.HorizontalRight;
 
-
-                if (inputKey.IsKeyDown(Keys.F1))
+                if (m_InputKey.IsKeyDown(Keys.F1))
                 {
                     DebugToggleGuideLine();
                 }
 
-                if (inputKey.IsKeyDown(Keys.F2))
+                if (m_InputKey.IsKeyDown(Keys.F2))
                 {
                     DebugToggleGodMode();
                 }
 
-                if (inputKey.IsKeyDown(Keys.Escape))
+                if (m_InputKey.IsKeyDown(Keys.Escape))
                 {
                     this.Exit();
                 }
 
-                if (showErrorMsg && (inputKey.IsKeyDown(Keys.Enter) || mouseState.LeftButton == ButtonState.Pressed))
+                if (m_ShowErrorMsg && (m_InputKey.IsKeyDown(Keys.Enter) || m_MouseState.LeftButton == ButtonState.Pressed))
                 {
-                    showErrorMsg = false;
+                    m_ShowErrorMsg = false;
                 }
-                   
 
                 //----------------------------------------------------------------------
                 // Movement
                 //----------------------------------------------------------------------
 
-                movementOffset.X = finalHorizontal;
-                movementOffset.Y = -finalVertical;
-                player.ProcessMovement(movementOffset);
-                player.UpdateMovement(gameTime);
+                m_MovementOffset.X = finalHorizontal;
+                m_MovementOffset.Y = -finalVertical;
+                m_Player.ProcessMovement(m_MovementOffset);
+                m_Player.UpdateMovement(gameTime);
 
+                m_Wizard.SetPlayerExitFlag(m_Player.IsOnExit());
+                m_Wizard.SetPlayerHideFlag(m_Player.IsHiding());
+                m_Wizard.UpdateMovement(gameTime, m_Player.GetPosition());
 
-                wizard.SetPlayerExitFlag(player.IsOnExit());
-                wizard.SetPlayerHideFlag(player.IsHiding());
-                wizard.UpdateMovement(gameTime, player.GetPosition());
-
-
-                for (int i = 0; i < minions.Length; i++)
+                for (int i = 0; i < m_Minions.Length; i++)
                 {
-                    minions[i].SetPlayerExitFlag(player.IsOnExit());
-                    minions[i].SetPlayerHideFlag(player.IsOnExit());
-                    minions[i].UpdateMovement(gameTime, player.GetPosition());
+                    m_Minions[i].SetPlayerExitFlag(m_Player.IsOnExit());
+                    m_Minions[i].SetPlayerHideFlag(m_Player.IsOnExit());
+                    m_Minions[i].UpdateMovement(gameTime, m_Player.GetPosition());
                 }
 
-
-                staticObjectHandler.CheckLooted(gameTime, player);
-
-                cameraView.UpdateMovement(player.GetMovingDirection(), player.GetPosition(), screenCenter);
-                //----------------------------------------------------------------------
-                // Flag Updates
-                //----------------------------------------------------------------------
-
-                if (playGameBGMOnlyOnce)
+                m_StaticObjectHandler.CheckLooted(gameTime, m_Player);
+                m_CameraView.UpdateMovement(m_Player.GetMovingDirection(), m_Player.GetPosition(), m_ScreenCenter);
+               
+                if (m_PlayGameBGMOnlyOnce)
                 {
                     m_SoundManager.PlayBGM();
-                    playGameBGMOnlyOnce = false;
+                    m_PlayGameBGMOnlyOnce = false;
                 }
 
                 //Delay Playing Interval, 0.2 secons
-                if (!player.IsStanding() && footStepTimer > 0.2f)
+                if (!m_Player.IsStanding() && m_FootStepTimer > 0.2f)
                 {
                     m_SoundManager.PlayFootstepSound();
-                    footStepTimer = 0.0f;
-                    playButtonOnlyOnce = true;
+                    m_FootStepTimer = 0.0f;
+                    m_PlayButtonOnlyOnce = true;
                 }
 
-                for (int i = 0; i < doorLock.Length; i++)
+                for (int i = 0; i < m_DoorLock.Length; i++)
                 {
-                    if (doorLock[i].IsDestroyed() && playUnlockDoorOnlyOnce[i])
+                    if (m_DoorLock[i].IsDestroyed() && m_PlayUnlockDoorOnlyOnce[i])
                     {
                         m_SoundManager.PlayUnlockDoorSound();
-                        playUnlockDoorOnlyOnce[i] = false;
+                        m_PlayUnlockDoorOnlyOnce[i] = false;
                     }
                 }
 
-                //Play Just Step on Hiding Tile
-                if (player.IsHiding() == true && playButtonOnlyOnce)
+                if (m_Player.IsHiding() == true && m_PlayButtonOnlyOnce)
                 {
                     m_SoundManager.PlayHidingSound();
-                    playButtonOnlyOnce = false;
+                    m_PlayButtonOnlyOnce = false;
                 }
 
-                if (player.IsLootedSomething())
+                if (m_Player.IsLootedSomething())
                 {
                     m_SoundManager.PlayPickUpSound();
-                    player.SetPickUpFlag(false);
+                    m_Player.SetPickUpFlag(false);
                 }
 
-                //If Player On Exit
-                if (player.IsOnExit() == true)
+                if (m_Player.IsOnExit() == true)
                 {
-                    _GameFinished(gameTime);
+                    GameFinished(gameTime);
                 }
 
                 //If Player hit Minions
-                if (hitDetectionTimer > 1.0f)
+                if (m_HitDetectionTimer > 1.0f)
                 {
-                    if (!isGodMode)
+                    if (!m_IsGodMode)
                     {
-                        for (int i = 0; i < minions.Length; i++)
+                        for (int i = 0; i < m_Minions.Length; i++)
                         {
-                            if (minions[i].GetPlayerWasHitFlag() == true)
+                            if (m_Minions[i].GetPlayerWasHitFlag() == true)
                             {
-                                player.TakeDamage(minionHitDamage);
+                                m_Player.TakeDamage(minionHitDamage);
                                 m_SoundManager.PlayHitByMinionSound();
-                                minions[i].SetPlayerWasHitFlag(false);
+                                m_Minions[i].SetPlayerWasHitFlag(false);
                             }
                         }
 
-                        if (wizard.GetPlayerWasHitFlag() == true)
+                        if (m_Wizard.GetPlayerWasHitFlag() == true)
                         {
-                            player.TakeDamage(3);
+                            m_Player.TakeDamage(3);
                             m_SoundManager.PlayHitByWizardSound();
-                            wizard.SetPlayerWasHitFlag(false);
+                            m_Wizard.SetPlayerWasHitFlag(false);
                         }
                     }
 
-                    hitDetectionTimer = 0.0f;
+                    m_HitDetectionTimer = 0.0f;
                 }
 
-                if (player.GetHP() <= 0)
+                if (m_Player.GetHP() <= 0)
                 {
-                    _GameOver(gameTime);
+                    GameOver(gameTime);
                 }
 
                 base.Update(gameTime);
             }
-            else if (currentScreen == CurrentScreen.HOME_SCREEN)
+            else if (m_CurrentScreen == ScreenType.HOME_SCREEN)
             {
-                if ((inputKey.IsKeyDown(Keys.Enter) || mouseState.LeftButton == ButtonState.Pressed) && !previousInputKey.IsKeyDown(Keys.Enter))
-                    currentScreen = CurrentScreen.GAME_SCREEN;
+                if ((m_InputKey.IsKeyDown(Keys.Enter) || m_MouseState.LeftButton == ButtonState.Pressed) && !m_PreviousInputKey.IsKeyDown(Keys.Enter))
+                {
+                    m_CurrentScreen = ScreenType.GAME_SCREEN;
+                }
             }
-            else if (currentScreen == CurrentScreen.GAME_OVER_SCREEN)
+            else if (m_CurrentScreen == ScreenType.GAME_OVER_SCREEN)
             {
-                if (inputKey.IsKeyDown(Keys.Enter) || mouseState.LeftButton == ButtonState.Pressed)
+                if (m_InputKey.IsKeyDown(Keys.Enter) || m_MouseState.LeftButton == ButtonState.Pressed)
                 {
                     m_SoundManager.StopGameOverSound();
                     Initialize();
-                    currentScreen = CurrentScreen.GAME_SCREEN;
+                    m_CurrentScreen = ScreenType.GAME_SCREEN;
                 }
             }
-            else if (currentScreen == CurrentScreen.YOU_WON_SCREEN)
+            else if (m_CurrentScreen == ScreenType.YOU_WON_SCREEN)
             {
-                if (inputKey.IsKeyDown(Keys.Enter) || mouseState.LeftButton == ButtonState.Pressed)
+                if (m_InputKey.IsKeyDown(Keys.Enter) || m_MouseState.LeftButton == ButtonState.Pressed)
                 {
                     Initialize();
-                    currentScreen = CurrentScreen.HOME_SCREEN;
+                    m_CurrentScreen = ScreenType.HOME_SCREEN;
                 }
             }
 
-            previousInputKey = inputKey;
+            m_PreviousInputKey = m_InputKey;
         }
 
         protected override void Draw(GameTime gameTime)
         {
-            if (currentScreen == CurrentScreen.GAME_SCREEN)
+            if (m_CurrentScreen == ScreenType.GAME_SCREEN)
             {
                 GraphicsDevice.Clear(Microsoft.Xna.Framework.Color.Black);
-                _DrawBackground();
-                _DrawMap();
-                _DrawSpellItem();
-                _DrawKey();
-                _DrawLock();
-                _DrawPlayer();
-                _DrawWizard();
-                _DrawMinions();
-                _DrawHUD();
-                _DrawGameTime();
+                DrawBackground();
+                DrawMap();
+                DrawSpellItem();
+                DrawKey();
+                DrawLock();
+                DrawPlayer();
+                DrawWizard();
+                DrawMinions();
+                DrawHUD();
+                DrawGameTime();
 
-                if (showGrid)
+                if (m_ShowGrid)
                 {
                     ShowLevelGrid();
                 }
 
-                if (showTileRowCol)
+                if (m_ShowTileRowCol)
                 {
                     ShowRowColumnIndex();
                 }
-                    
 
-                if (showErrorMsg)
-                    _DrawQuestNotCompletedError();
+                if (m_ShowErrorMsg)
+                {
+                    DrawQuestNotCompletedError();
+                }
 
                 base.Draw(gameTime);
             }
-            else if (currentScreen == CurrentScreen.HOME_SCREEN)
-                _DrawScreenBackground(homeScreenBackground);
-            else if (currentScreen == CurrentScreen.GAME_OVER_SCREEN)
-                _DrawScreenBackground(gameOverScreenBackground);
-            else if (currentScreen == CurrentScreen.YOU_WON_SCREEN)
+            else if (m_CurrentScreen == ScreenType.HOME_SCREEN)
             {
-                _DrawScreenBackground(youWonScreenBackground);
-                _DrawGameScore();
+                DrawScreenBackground(m_HomeScreenBackground);
+            }
+            else if (m_CurrentScreen == ScreenType.GAME_OVER_SCREEN)
+            {
+                DrawScreenBackground(m_GameOverScreenBackground);
+            }
+            else if (m_CurrentScreen == ScreenType.YOU_WON_SCREEN)
+            {
+                DrawScreenBackground(m_YouWonScreenBackground);
+                DrawGameScore();
             }
         }
-
-        private void _GameFinished(GameTime gameTime)
+        private void GameFinished(GameTime gameTime)
         {
-            if (player.GetCurrentNumOfQuestItem() >= player.GetMaxNumOfQuestItem())
+            if (m_Player.GetCurrentNumOfQuestItem() >= m_Player.GetMaxNumOfQuestItem())
             {
-                _CalculateScore();
-                currentScreen = CurrentScreen.YOU_WON_SCREEN;
+                CalculateScore();
+                m_CurrentScreen = ScreenType.YOU_WON_SCREEN;
                 m_SoundManager.StopBGM();
                 m_SoundManager.PlayWinningSound();
             }
             else
             {
-                showErrorMsg = true;
-                player.SetOnExit(false);
-                player.RevertPositionOnIncompleteQuest();
+                m_ShowErrorMsg = true;
+                m_Player.SetOnExit(false);
+                m_Player.RevertPositionOnIncompleteQuest();
             }
 
         }
-
-        private void _GameOver(GameTime gameTime)
+        private void GameOver(GameTime gameTime)
         {
-            currentScreen = CurrentScreen.GAME_OVER_SCREEN;
-            gameIsOver = true;
+            m_CurrentScreen = ScreenType.GAME_OVER_SCREEN;
+            m_GameIsOver = true;
 
-            foreach (var minion in minions)
+            foreach (var minion in m_Minions)
             {
                 minion.SetBehavior(EBehaviorState.STOP);
             }
 
-            if (playGameOverOnlyOnce)
+            if (m_PlayGameOverOnlyOnce)
             {
                 m_SoundManager.PlayGameOverSound();
-                playGameOverOnlyOnce = false;
+                m_PlayGameOverOnlyOnce = false;
             }
         }
-
-        private void _CalculateScore()
+        private void CalculateScore()
         {
-            score = 300 / ((minutesPlaying * 60) + (int)secondsPlaying) * 100 + player.GetCurrentNumOfStar() * 5;
+            m_Score = 300 / ((m_MinutesPlaying * 60) + (int)m_SecondsPlaying) * 100 + m_Player.GetCurrentNumOfStar() * 5;
         }
 
-        private void _DrawQuestNotCompletedError()
+        private void DrawQuestNotCompletedError()
         {
-            mapSpriteBatch.Begin();
-            mapSpriteBatch.Draw(questNotCompletedErrorNotice, new Vector2(50, screenCenter.Y), Microsoft.Xna.Framework.Color.White);
-            mapSpriteBatch.End();
+            m_MapSpriteBatch.Begin();
+            m_MapSpriteBatch.Draw(m_QuestNotCompletedErrorNotice, new Vector2(50, m_ScreenCenter.Y), Microsoft.Xna.Framework.Color.White);
+            m_MapSpriteBatch.End();
+        }
+        private void DrawScreenBackground(Texture2D screenBackground)
+        {
+            m_MapSpriteBatch.Begin();
+            m_MapSpriteBatch.Draw(screenBackground, new Vector2(0, 0), Microsoft.Xna.Framework.Color.White);
+            m_MapSpriteBatch.End();
         }
 
-        private void _DrawScreenBackground(Texture2D screenBackground)
+        private void DrawGameScore()
         {
-            mapSpriteBatch.Begin();
-            mapSpriteBatch.Draw(screenBackground, new Vector2(0, 0), Microsoft.Xna.Framework.Color.White);
-            mapSpriteBatch.End();
-        }
-
-        private void _DrawGameScore()
-        {
-            if (currentScreen != CurrentScreen.YOU_WON_SCREEN)
+            if (m_CurrentScreen != ScreenType.YOU_WON_SCREEN)
+            {
                 return;
+            }
 
-            string gameScoreStr = "Your score is " + score.ToString();
-            mapSpriteBatch.Begin();
-            mapSpriteBatch.DrawString(font_ArialBlack_14, gameScoreStr,
-                new Vector2(screenCenter.X - font_ArialBlack_14.MeasureString(gameScoreStr).Length() / 2, screenCenter.Y - 50), Microsoft.Xna.Framework.Color.Black);
-            mapSpriteBatch.End();
+            string gameScoreStr = "Your score is " + m_Score.ToString();
+            m_MapSpriteBatch.Begin();
+            m_MapSpriteBatch.DrawString(m_FontArialBlack14, gameScoreStr, new Vector2(m_ScreenCenter.X - m_FontArialBlack14.MeasureString(gameScoreStr).Length() / 2, m_ScreenCenter.Y - 50), Microsoft.Xna.Framework.Color.Black);
+            m_MapSpriteBatch.End();
         }
 
-        private void _DrawMap()
+        private void DrawMap()
         {
-            mapSpriteBatch.Begin(SpriteSortMode.Immediate,
-                                     BlendState.AlphaBlend,
-                                     SamplerState.LinearClamp,
-                                     DepthStencilState.None,
-                                     RasterizerState.CullCounterClockwise,
-                                     null,
-                                     cameraView.TransformMatrix());
-            for (int row = 0; row < demoMapTileHeight; ++row)
-                for (int col = 0; col < demoMapTileWidth; ++col)
+            m_MapSpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, m_CameraView.TransformMatrix());
+            for (int row = 0; row < m_DemoMapTileHeight; ++row)
+            {
+                for (int col = 0; col < m_DemoMapTileWidth; ++col)
                 {
-                    int tileID = m_MapData.m_Data[row * demoMapTileWidth + col];
-                    mapSpriteBatch.Draw(tileTileSet.TileSetTexture,
-                                        new Rectangle((col * pixelWidthPerTile), (row * pixelHeightPerTile),
-                                        pixelWidthPerTile, pixelHeightPerTile),
-                                        tileTileSet.GetSourceRectangle(tileID),
-                                        Microsoft.Xna.Framework.Color.White);
+                    int tileID = m_MapData.m_Data[row * m_DemoMapTileWidth + col];
+                    m_MapSpriteBatch.Draw(m_TileTileSet.TileSetTexture, new Rectangle((col * pixelWidthPerTile), (row * pixelHeightPerTile), pixelWidthPerTile, pixelHeightPerTile), m_TileTileSet.GetSourceRectangle(tileID), Microsoft.Xna.Framework.Color.White);
                 }
-            mapSpriteBatch.End();
+            }
+            m_MapSpriteBatch.End();
         }
 
-        private void _DrawBackground()
+        private void DrawBackground()
         {
             int x = 0, y = 32;
-            mapSpriteBatch.Begin(SpriteSortMode.Immediate,
-                                     BlendState.AlphaBlend,
-                                     SamplerState.LinearClamp,
-                                     DepthStencilState.None,
-                                     RasterizerState.CullCounterClockwise,
-                                     null,
-                                     cameraView.TransformMatrix());
+            m_MapSpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, m_CameraView.TransformMatrix());
             for (int row = 0; row < 3; ++row)
             {
                 for (int col = 0; col < 3; ++col)
                 {
-                    mapSpriteBatch.Draw(background, new Vector2(x, y), Microsoft.Xna.Framework.Color.White);
+                    m_MapSpriteBatch.Draw(m_Background, new Vector2(x, y), Microsoft.Xna.Framework.Color.White);
                     x += 8 * pixelWidthPerTile;
                 }
                 y += 8 * pixelHeightPerTile;
                 x = 0;
             }
-            mapSpriteBatch.End();
+            m_MapSpriteBatch.End();
         }
 
-        private void _DrawPlayer()
+        private void DrawPlayer()
         {
-            int screenOffsetX = (int)player.GetPosition().X * pixelWidthPerTile;
-            int screenOffsetY = (int)player.GetPosition().Y * pixelHeightPerTile;
-            mapSpriteBatch.Begin(SpriteSortMode.Immediate,
-                                   BlendState.AlphaBlend,
-                                   SamplerState.LinearClamp,
-                                   DepthStencilState.None,
-                                   RasterizerState.CullCounterClockwise,
-                                   null,
-                                   cameraView.TransformMatrix());
+            int screenOffsetX = (int)m_Player.GetPosition().X * pixelWidthPerTile;
+            int screenOffsetY = (int)m_Player.GetPosition().Y * pixelHeightPerTile;
+            m_MapSpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, m_CameraView.TransformMatrix());
 
-            mapSpriteBatch.Draw(objectTileSet.TileSetTexture,
-                                new Rectangle(screenOffsetX, screenOffsetY, pixelWidthPerTile, pixelHeightPerTile),
-                                objectTileSet.GetSourceRectangle(4),
-                                Microsoft.Xna.Framework.Color.White);
+            m_MapSpriteBatch.Draw(m_ObjectTileSet.TileSetTexture, new Rectangle(screenOffsetX, screenOffsetY, pixelWidthPerTile, pixelHeightPerTile), m_ObjectTileSet.GetSourceRectangle(4), Microsoft.Xna.Framework.Color.White);
 
-            mapSpriteBatch.End();
+            m_MapSpriteBatch.End();
 
         }
 
-        private void _DrawWizard()
+        private void DrawWizard()
         {
-            int screenOffsetX = (int)wizard.GetTargetPosition().X * pixelWidthPerTile;
-            int screenOffsetY = (int)wizard.GetTargetPosition().Y * pixelHeightPerTile;
-            mapSpriteBatch.Begin(SpriteSortMode.Immediate,
-                                   BlendState.AlphaBlend,
-                                   SamplerState.LinearClamp,
-                                   DepthStencilState.None,
-                                   RasterizerState.CullCounterClockwise,
-                                   null,
-                                   cameraView.TransformMatrix());
+            int screenOffsetX = (int)m_Wizard.GetTargetPosition().X * pixelWidthPerTile;
+            int screenOffsetY = (int)m_Wizard.GetTargetPosition().Y * pixelHeightPerTile;
+            m_MapSpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, m_CameraView.TransformMatrix());
 
-            mapSpriteBatch.Draw(objectTileSet.TileSetTexture,
-                                new Rectangle(screenOffsetX, screenOffsetY, pixelWidthPerTile, pixelHeightPerTile),
-                                objectTileSet.GetSourceRectangle(14),
-                                Microsoft.Xna.Framework.Color.White);
-            mapSpriteBatch.End();
-
+            m_MapSpriteBatch.Draw(m_ObjectTileSet.TileSetTexture, new Rectangle(screenOffsetX, screenOffsetY, pixelWidthPerTile, pixelHeightPerTile), m_ObjectTileSet.GetSourceRectangle(14), Microsoft.Xna.Framework.Color.White);
+            m_MapSpriteBatch.End();
         }
 
-
-        private void _DrawMinions()
+        private void DrawMinions()
         {
-            for (int i = 0; i < minions.Length; i++)
+            for (int i = 0; i < m_Minions.Length; i++)
             {
-                int screenOffsetX = (int)minions[i].GetTargetPosition().X * pixelWidthPerTile;
-                int screenOffsetY = (int)minions[i].GetTargetPosition().Y * pixelHeightPerTile;
-                mapSpriteBatch.Begin(SpriteSortMode.Immediate,
-                                       BlendState.AlphaBlend,
-                                       SamplerState.LinearClamp,
-                                       DepthStencilState.None,
-                                       RasterizerState.CullCounterClockwise,
-                                       null,
-                                       cameraView.TransformMatrix());
+                int screenOffsetX = (int)m_Minions[i].GetTargetPosition().X * pixelWidthPerTile;
+                int screenOffsetY = (int)m_Minions[i].GetTargetPosition().Y * pixelHeightPerTile;
+                m_MapSpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, m_CameraView.TransformMatrix());
 
-                mapSpriteBatch.Draw(objectTileSet.TileSetTexture,
-                                    new Rectangle(screenOffsetX, screenOffsetY, pixelWidthPerTile, pixelHeightPerTile),
-                                    objectTileSet.GetSourceRectangle(19),
-                                    Microsoft.Xna.Framework.Color.White);
-                mapSpriteBatch.End();
+                m_MapSpriteBatch.Draw(m_ObjectTileSet.TileSetTexture, new Rectangle(screenOffsetX, screenOffsetY, pixelWidthPerTile, pixelHeightPerTile), m_ObjectTileSet.GetSourceRectangle(19), Microsoft.Xna.Framework.Color.White);
+                m_MapSpriteBatch.End();
             }
-
         }
 
-        private void _DrawSpellItem()
+        private void DrawSpellItem()
         {
-            mapSpriteBatch.Begin(SpriteSortMode.Immediate,
-                                   BlendState.AlphaBlend,
-                                   SamplerState.LinearClamp,
-                                   DepthStencilState.None,
-                                   RasterizerState.CullCounterClockwise,
-                                   null,
-                                   cameraView.TransformMatrix());
+            m_MapSpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, m_CameraView.TransformMatrix());
 
-            for (int i = 0; i < spellItem.Length; i++)
+            for (int i = 0; i < m_SpellItem.Length; i++)
             {
-                if (!spellItem[i].isLooted())
+                if (!m_SpellItem[i].isLooted())
                 {
-                    mapSpriteBatch.Draw(objectTileSet.TileSetTexture,
-                                        new Rectangle((int)(spellItem[i].GetItemTilePositionX() * pixelWidthPerTile),
-                                        (int)(spellItem[i].GetItemTilePositionY() * pixelHeightPerTile),
-                                        pixelWidthPerTile, pixelHeightPerTile),
-                                        objectTileSet.GetSourceRectangle(spellItem[i].GetItemTypeIndex()),
-                                        Microsoft.Xna.Framework.Color.White);
+                    m_MapSpriteBatch.Draw(m_ObjectTileSet.TileSetTexture, new Rectangle((int)(m_SpellItem[i].GetItemTilePositionX() * pixelWidthPerTile), (int)(m_SpellItem[i].GetItemTilePositionY() * pixelHeightPerTile), pixelWidthPerTile, pixelHeightPerTile), m_ObjectTileSet.GetSourceRectangle(m_SpellItem[i].GetItemTypeIndex()), Microsoft.Xna.Framework.Color.White);
                 }
             }
 
-            mapSpriteBatch.End();
+            m_MapSpriteBatch.End();
         }
 
-        private void _DrawKey()
+        private void DrawKey()
         {
-            mapSpriteBatch.Begin(SpriteSortMode.Immediate,
-                                   BlendState.AlphaBlend,
-                                   SamplerState.LinearClamp,
-                                   DepthStencilState.None,
-                                   RasterizerState.CullCounterClockwise,
-                                   null,
-                                   cameraView.TransformMatrix());
+            m_MapSpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, m_CameraView.TransformMatrix());
 
-            for (int i = 0; i < key.Length; i++)
+            for (int i = 0; i < m_Key.Length; i++)
             {
-                if (!key[i].IsLooted())
+                if (!m_Key[i].IsLooted())
                 {
-                    mapSpriteBatch.Draw(objectTileSet.TileSetTexture,
-                                        new Rectangle((int)(key[i].GetPosition().X * pixelWidthPerTile),
-                                        (int)(key[i].GetPosition().Y * pixelHeightPerTile),
-                                        pixelWidthPerTile, pixelHeightPerTile),
-                                        objectTileSet.GetSourceRectangle((int) key[i].GetColor()),
-                                        Microsoft.Xna.Framework.Color.White);
+                    m_MapSpriteBatch.Draw(m_ObjectTileSet.TileSetTexture, new Rectangle((int)(m_Key[i].GetPosition().X * pixelWidthPerTile), (int)(m_Key[i].GetPosition().Y * pixelHeightPerTile), pixelWidthPerTile, pixelHeightPerTile), m_ObjectTileSet.GetSourceRectangle((int)m_Key[i].GetColor()), Microsoft.Xna.Framework.Color.White);
                 }
             }
 
-            mapSpriteBatch.End();
+            m_MapSpriteBatch.End();
         }
 
-        private void _DrawLock()
+        private void DrawLock()
         {
-            mapSpriteBatch.Begin(SpriteSortMode.Immediate,
-                                   BlendState.AlphaBlend,
-                                   SamplerState.LinearClamp,
-                                   DepthStencilState.None,
-                                   RasterizerState.CullCounterClockwise,
-                                   null,
-                                   cameraView.TransformMatrix());
-            for (int i = 0; i < doorLock.Length; i++)
+            m_MapSpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, m_CameraView.TransformMatrix());
+            for (int i = 0; i < m_DoorLock.Length; i++)
             {
-                if (!doorLock[i].IsDestroyed())
-                    mapSpriteBatch.Draw(objectTileSet.TileSetTexture,
-                                   new Rectangle((int)(doorLock[i].GetPosition().X * pixelWidthPerTile),
-                                   (int)(doorLock[i].GetPosition().Y * pixelHeightPerTile),
-                                   pixelWidthPerTile, pixelHeightPerTile),
-                                   objectTileSet.GetSourceRectangle((int)(doorLock[i].GetColor()) + 15),
-                                   Microsoft.Xna.Framework.Color.White);
+                if (!m_DoorLock[i].IsDestroyed())
+                {
+                    m_MapSpriteBatch.Draw(m_ObjectTileSet.TileSetTexture, new Rectangle((int)(m_DoorLock[i].GetPosition().X * pixelWidthPerTile), (int)(m_DoorLock[i].GetPosition().Y * pixelHeightPerTile), pixelWidthPerTile, pixelHeightPerTile), m_ObjectTileSet.GetSourceRectangle((int)(m_DoorLock[i].GetColor()) + 15), Microsoft.Xna.Framework.Color.White);
+                }
             }
 
-            mapSpriteBatch.End();
+            m_MapSpriteBatch.End();
         }
 
-        private void _DrawHUD()
+        private void DrawHUD()
         {
 
-            mapSpriteBatch.Begin();
+            m_MapSpriteBatch.Begin();
             int count = 4;
             for (int i = 0; i < 4; i++)
             {
-                if (key[i].IsLooted())
-                    mapSpriteBatch.Draw(hudTileSet.TileSetTexture,
-                                        new Rectangle((int)((squaresAcross - count) * pixelWidthPerTile),
-                                        (int)((squaresDown - 1) * pixelHeightPerTile),
-                                        pixelWidthPerTile, pixelHeightPerTile),
-                                        hudTileSet.GetSourceRectangle(enumMapData.GetKeyIndex(i)),
-                                        Microsoft.Xna.Framework.Color.White);
+                if (m_Key[i].IsLooted())
+                {
+                    m_MapSpriteBatch.Draw(m_HudTileSet.TileSetTexture, new Rectangle((int)((squaresAcross - count) * pixelWidthPerTile), (int)((squaresDown - 1) * pixelHeightPerTile), pixelWidthPerTile, pixelHeightPerTile), m_HudTileSet.GetSourceRectangle(m_EnumMapData.GetKeyIndex(i)), Microsoft.Xna.Framework.Color.White);
+                }
                 else
-                    mapSpriteBatch.Draw(hudTileSet.TileSetTexture,
-                                    new Rectangle((int)((squaresAcross - count) * pixelWidthPerTile),
-                                    (int)((squaresDown - 1) * pixelHeightPerTile),
-                                    pixelWidthPerTile, pixelHeightPerTile),
-                                    hudTileSet.GetSourceRectangle(enumMapData.GetKeyIndex(i + 4)),
-                                    Microsoft.Xna.Framework.Color.White);
+                {
+                    m_MapSpriteBatch.Draw(m_HudTileSet.TileSetTexture, new Rectangle((int)((squaresAcross - count) * pixelWidthPerTile), (int)((squaresDown - 1) * pixelHeightPerTile), pixelWidthPerTile, pixelHeightPerTile), m_HudTileSet.GetSourceRectangle(m_EnumMapData.GetKeyIndex(i + 4)), Microsoft.Xna.Framework.Color.White);
+                }
                 count--;
             }
 
             // Draw Player's HP
-            for (int i = 0; i < player.GetMaxHP(); i++)
+            for (int i = 0; i < m_Player.GetMaxHP(); i++)
             {
 
-                if (i < player.GetHP())
-                    mapSpriteBatch.Draw(hudTileSet.TileSetTexture,
-                                                new Rectangle((int)(i * pixelWidthPerTile),
-                                                (int)((squaresDown - 1) * pixelHeightPerTile),
-                                                pixelWidthPerTile, pixelHeightPerTile),
-                                                hudTileSet.GetSourceRectangle((int)HUDIcon.FULL_HEART),
-                                                Microsoft.Xna.Framework.Color.White);
+                if (i < m_Player.GetHP())
+                {
+                    m_MapSpriteBatch.Draw(m_HudTileSet.TileSetTexture, new Rectangle((int)(i * pixelWidthPerTile), (int)((squaresDown - 1) * pixelHeightPerTile), pixelWidthPerTile, pixelHeightPerTile), m_HudTileSet.GetSourceRectangle((int)HUDIcon.FULL_HEART), Microsoft.Xna.Framework.Color.White);
+                }
                 else
-                    mapSpriteBatch.Draw(hudTileSet.TileSetTexture,
-                                                new Rectangle((int)(i * pixelWidthPerTile),
-                                                (int)((squaresDown - 1) * pixelHeightPerTile),
-                                                pixelWidthPerTile, pixelHeightPerTile),
-                                                hudTileSet.GetSourceRectangle((int)HUDIcon.EMPTY_HEART),
-                                                Microsoft.Xna.Framework.Color.White);
+                {
+                    m_MapSpriteBatch.Draw(m_HudTileSet.TileSetTexture, new Rectangle((int)(i * pixelWidthPerTile), (int)((squaresDown - 1) * pixelHeightPerTile), pixelWidthPerTile, pixelHeightPerTile), m_HudTileSet.GetSourceRectangle((int)HUDIcon.EMPTY_HEART), Microsoft.Xna.Framework.Color.White);
+                }
             }
 
             //Draw Player's Quest Item
-            for (int i = 0; i < player.GetMaxNumOfQuestItem(); i++)
+            for (int i = 0; i < m_Player.GetMaxNumOfQuestItem(); i++)
             {
-                if (i < player.GetCurrentNumOfQuestItem())
-                    mapSpriteBatch.Draw(objectTileSet.TileSetTexture,
-                                                new Rectangle((int)((squaresAcross - (player.GetMaxNumOfQuestItem() - i)) * pixelWidthPerTile),
-                                                (int)((squaresDown - 2) * pixelHeightPerTile),
-                                                pixelWidthPerTile, pixelHeightPerTile),
-                                                objectTileSet.GetSourceRectangle((int)SpellItems.QUEST_POTION),
-                                                Microsoft.Xna.Framework.Color.White);
+                if (i < m_Player.GetCurrentNumOfQuestItem())
+                {
+                    m_MapSpriteBatch.Draw(m_ObjectTileSet.TileSetTexture, new Rectangle((int)((squaresAcross - (m_Player.GetMaxNumOfQuestItem() - i)) * pixelWidthPerTile), (int)((squaresDown - 2) * pixelHeightPerTile), pixelWidthPerTile, pixelHeightPerTile), m_ObjectTileSet.GetSourceRectangle((int)SpellItems.QUEST_POTION), Microsoft.Xna.Framework.Color.White);
+                }
                 else
-                    mapSpriteBatch.Draw(objectTileSet.TileSetTexture,
-                                                new Rectangle((int)((squaresAcross - (player.GetMaxNumOfQuestItem() - i)) * pixelWidthPerTile),
-                                                (int)((squaresDown - 2) * pixelHeightPerTile),
-                                                pixelWidthPerTile, pixelHeightPerTile),
-                                                objectTileSet.GetSourceRectangle((int)SpellItems.UNLOOTED_QUEST_ITEM),
-                                                Microsoft.Xna.Framework.Color.White);
+                {
+                    m_MapSpriteBatch.Draw(m_ObjectTileSet.TileSetTexture, new Rectangle((int)((squaresAcross - (m_Player.GetMaxNumOfQuestItem() - i)) * pixelWidthPerTile), (int)((squaresDown - 2) * pixelHeightPerTile), pixelWidthPerTile, pixelHeightPerTile), m_ObjectTileSet.GetSourceRectangle((int)SpellItems.UNLOOTED_QUEST_ITEM), Microsoft.Xna.Framework.Color.White);
+                }
             }
 
-            mapSpriteBatch.End();
+            m_MapSpriteBatch.End();
         }
 
-        private void _DrawGameTime()
+        private void DrawGameTime()
         {
-            String gameTimeStr = minutesPlaying.ToString("00") + ":" + secondsPlaying.ToString("00");
-            mapSpriteBatch.Begin();
-            mapSpriteBatch.DrawString(font_ArialBlack_14, gameTimeStr,
-                new Vector2((screenCenter.X) - font_ArialBlack_14.MeasureString(gameTimeStr).Length() / 2, 0), Microsoft.Xna.Framework.Color.Black);
-            mapSpriteBatch.End();
+            String gameTimeStr = m_MinutesPlaying.ToString("00") + ":" + m_SecondsPlaying.ToString("00");
+            m_MapSpriteBatch.Begin();
+            m_MapSpriteBatch.DrawString(m_FontArialBlack14, gameTimeStr, new Vector2((m_ScreenCenter.X) - m_FontArialBlack14.MeasureString(gameTimeStr).Length() / 2, 0), Microsoft.Xna.Framework.Color.Black);
+            m_MapSpriteBatch.End();
         }
 
         private void ShowLevelGrid()
         {
-            for (int i = 0; i < doorLock.Length; i++)
+            for (int i = 0; i < m_DoorLock.Length; i++)
             {
-                doorLock[i].SetDestroyed(true);
-                doorLock[i].SetUnlocked();
+                m_DoorLock[i].SetDestroyed(true);
+                m_DoorLock[i].SetUnlocked();
             }
-            mapSpriteBatch.Begin(SpriteSortMode.Immediate,
-                                    BlendState.AlphaBlend,
-                                    SamplerState.LinearClamp,
-                                    DepthStencilState.None,
-                                    RasterizerState.CullCounterClockwise,
-                                    null,
-                                    cameraView.TransformMatrix());
+            m_MapSpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, m_CameraView.TransformMatrix());
 
 
-            for (tileCol = 0; tileCol < demoMapTileWidth; tileCol++)
+            for (m_TileCol = 0; m_TileCol < m_DemoMapTileWidth; m_TileCol++)
             {
-                Rectangle horizontal_thin_rec = new Rectangle((int)(0 + (tileCol * pixelWidthPerTile)), 0, 1, (pixelHeightPerTile * demoMapTileWidth));
-                mapSpriteBatch.Draw(texture1px, horizontal_thin_rec, Microsoft.Xna.Framework.Color.DarkGray);
+                Rectangle horizontal_thin_rec = new Rectangle((int)(0 + (m_TileCol * pixelWidthPerTile)), 0, 1, (pixelHeightPerTile * m_DemoMapTileWidth));
+                m_MapSpriteBatch.Draw(m_Texture1px, horizontal_thin_rec, Microsoft.Xna.Framework.Color.DarkGray);
             }
 
-            for (tileRow = 0; tileRow < demoMapTileHeight; tileRow++)
+            for (m_TileRow = 0; m_TileRow < m_DemoMapTileHeight; m_TileRow++)
             {
-                Rectangle vertical_thin_rec = new Rectangle(0, (int)(0 + (tileRow * pixelHeightPerTile)), (pixelWidthPerTile * demoMapTileHeight), 1);
-                mapSpriteBatch.Draw(texture1px, vertical_thin_rec, Microsoft.Xna.Framework.Color.DarkGray);
+                Rectangle vertical_thin_rec = new Rectangle(0, (int)(0 + (m_TileRow * pixelHeightPerTile)), (pixelWidthPerTile * m_DemoMapTileHeight), 1);
+                m_MapSpriteBatch.Draw(m_Texture1px, vertical_thin_rec, Microsoft.Xna.Framework.Color.DarkGray);
             }
-            mapSpriteBatch.End();
+            m_MapSpriteBatch.End();
         }
 
         private void ShowRowColumnIndex()
         {
-            mapSpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, cameraView.TransformMatrix());
+            m_MapSpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, m_CameraView.TransformMatrix());
 
             string infoString;
             Vector2 originPosition = new Vector2(0, 0);
-            for (int i = 0; i < demoMapTileHeight; i++)
+            for (int i = 0; i < m_DemoMapTileHeight; i++)
             {
-                for (int j = 0; j < demoMapTileWidth; j++)
+                for (int j = 0; j < m_DemoMapTileWidth; j++)
                 {
                     infoString = i + "." + j;
-                    originPosition = font_ArialBlack_14.MeasureString(infoString) / 2;
-                    mapSpriteBatch.DrawString(font_ArialBlack_14, infoString, new Vector2(i * pixelHeightPerTile + 16, j * pixelWidthPerTile + 16), Microsoft.Xna.Framework.Color.Blue, 0, originPosition, 1.0f, SpriteEffects.None, 0.5f);
+                    originPosition = m_FontArialBlack14.MeasureString(infoString) / 2;
+                    m_MapSpriteBatch.DrawString(m_FontArialBlack14, infoString, new Vector2(i * pixelHeightPerTile + 16, j * pixelWidthPerTile + 16), Microsoft.Xna.Framework.Color.Blue, 0, originPosition, 1.0f, SpriteEffects.None, 0.5f);
                 }
             }
-            mapSpriteBatch.End();
+            m_MapSpriteBatch.End();
         }
 
         private void DebugToggleGuideLine()
         {
-            showGrid = !showGrid;
-            showTileRowCol = !showTileRowCol;
+            m_ShowGrid = !m_ShowGrid;
+            m_ShowTileRowCol = !m_ShowTileRowCol;
         }
 
         private void DebugToggleGodMode()
         {
-            isGodMode = !isGodMode;
+            m_IsGodMode = !m_IsGodMode;
         }
     }
 }
