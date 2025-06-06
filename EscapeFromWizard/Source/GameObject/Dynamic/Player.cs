@@ -65,6 +65,7 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
         // Sound callback functions
         public Action OnHitByMinion { get; set; }
         public Action OnHitByWizard { get; set; }
+        public event EventHandler<int> OnHPChanged;
 
         public Player()
         {
@@ -174,10 +175,15 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
 
         public void TakeDamage(int value)
         {
+            int oldHP = m_HP;
             m_HP -= value;
             if (m_HP <= 0)
             {
                 m_HP = 0;
+            }
+            if (oldHP != m_HP)
+            {
+                OnHPChanged?.Invoke(this, m_HP);
             }
         }
 
@@ -195,10 +201,15 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
 
         public void Heal(int value)
         {
+            int oldHP = m_HP;
             m_HP += value;
-            if ( m_HP >= m_MaxHP)
+            if (m_HP >= m_MaxHP)
             {
                 m_HP = m_MaxHP;
+            }
+            if (oldHP != m_HP)
+            {
+                OnHPChanged?.Invoke(this, m_HP);
             }
         }
 

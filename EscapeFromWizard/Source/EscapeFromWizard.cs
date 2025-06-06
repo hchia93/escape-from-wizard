@@ -102,6 +102,7 @@ namespace EscapeFromWizard
 
         // Add new field for key container view model
         private KeyContainerViewModel m_KeyContainerViewModel;
+        private PlayerHealthViewModel m_PlayerHealthViewModel;
 
         public EscapeFromWizard()
         {
@@ -162,6 +163,12 @@ namespace EscapeFromWizard
             m_Player.SetUpLockInformation(m_DoorLock);
             m_Player.OnHitByMinion = () => m_SoundManager.PlayHitByMinionSound();
             m_Player.OnHitByWizard = () => m_SoundManager.PlayHitByWizardSound();
+
+            // Initialize Player Health View Model
+            m_PlayerHealthViewModel = new PlayerHealthViewModel(m_Player);
+            m_PlayerHealthViewModel.SetSourceSpriteSheet(m_HUDSpriteSheet);
+            Vector2 healthPosition = new Vector2(0, (GameSettings.m_TilePerColumn - 1) * 32); // Position at bottom row
+            m_PlayerHealthViewModel.SetWidgetPosition(healthPosition);
 
             // Wizard
             m_Wizard = new Wizard();
@@ -625,21 +632,7 @@ namespace EscapeFromWizard
         {
             m_SpriteBatch.Begin();
             m_KeyContainerViewModel.Draw(m_SpriteBatch);
-
-            // Draw Player's HP
-            for (int i = 0; i < m_Player.GetMaxHP(); i++)
-            {
-                if (i < m_Player.GetHP())
-                {
-                    Rectangle heartRect = GameSettings.CreateTileRectangleAt(i, GameSettings.m_TilePerColumn - 1);
-                    m_SpriteBatch.Draw(m_HUDSpriteSheet.m_Texture, heartRect, m_HUDSpriteSheet.GetSourceRectangle((int) HUDIcon.FULL_HEART), Microsoft.Xna.Framework.Color.White);
-                }
-                else
-                {
-                    Rectangle emptyHeartRect = GameSettings.CreateTileRectangleAt(i, GameSettings.m_TilePerColumn - 1);
-                    m_SpriteBatch.Draw(m_HUDSpriteSheet.m_Texture, emptyHeartRect, m_HUDSpriteSheet.GetSourceRectangle((int) HUDIcon.EMPTY_HEART), Microsoft.Xna.Framework.Color.White);
-                }
-            }
+            m_PlayerHealthViewModel.DrawView(m_SpriteBatch);
 
             //Draw Player's Quest Item
             for (int i = 0; i < m_Player.GetMaxNumOfQuestItem(); i++)
