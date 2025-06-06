@@ -7,14 +7,14 @@ namespace EscapeFromWizard.ViewModel
     public class KeyContainerViewModel
     {
         private List<KeyViewModel> m_KeyViewModels;
-        private Vector2 m_BaseOffset;
-        private Vector2 m_KeySpacing;
+        private Vector2 m_BaseWidgetPosition;
+        private Vector2 m_PaddingInPX;
 
         public KeyContainerViewModel()
         {
             m_KeyViewModels = new List<KeyViewModel>();
-            m_BaseOffset = Vector2.Zero;
-            m_KeySpacing = new Vector2(32, 0); // Default spacing of 32 pixels between keys
+            m_BaseWidgetPosition = Vector2.Zero;
+            m_PaddingInPX = new Vector2(32, 0); // Default spacing of 32 pixels between keys
         }
 
         public void AddKeyViewModel(KeyViewModel keyViewModel)
@@ -23,25 +23,18 @@ namespace EscapeFromWizard.ViewModel
             UpdateKeyPositions();
         }
 
-        public void SetBaseOffset(Vector2 offset)
+        public void SetBaseWidgetPosition(Vector2 position)
         {
-            m_BaseOffset = offset;
+            m_BaseWidgetPosition = position;
             UpdateKeyPositions();
         }
-
-        public void SetKeySpacing(Vector2 spacing)
-        {
-            m_KeySpacing = spacing;
-            UpdateKeyPositions();
-        }
-
         private void UpdateKeyPositions()
         {
-            Vector2 currentPosition = m_BaseOffset;
+            Vector2 currentPosition = m_BaseWidgetPosition;
             foreach (var keyViewModel in m_KeyViewModels)
             {
-                keyViewModel.SetPosition(currentPosition);
-                currentPosition += m_KeySpacing;
+                keyViewModel.SetWidgetPosition(currentPosition);
+                currentPosition += m_PaddingInPX;
             }
         }
 

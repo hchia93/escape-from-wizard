@@ -23,7 +23,7 @@ namespace EscapeFromWizard.ViewModel
             m_SourceTexture = texture;
         }
 
-        public void SetPosition(Vector2 position)
+        public void SetWidgetPosition(Vector2 position)
         {
             m_Position = position;
         }

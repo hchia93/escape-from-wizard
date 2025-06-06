@@ -4,11 +4,13 @@ namespace EscapeFromWizard
 {
     public static class GameSettings
     {
-        // Tile and Screen Settings
-        public const int PixelHeightPerTile = 32;
-        public const int PixelWidthPerTile = 32;
-        public const int SquaresAcross = 18; // How many columns on screen
-        public const int SquaresDown = 18; // How many rows on screen
+        // Each tile is 32x32 pixels.
+        public const int m_TileHeightInPx = 32;
+        public const int m_TileWidthInPx = 32;
+        
+        // Number of tiles visible on screens.
+        public const int m_TilePerRow = 18;
+        public const int m_TilePerColumn = 18; 
         
         // Game Object Counts
         public const int NumOfKeys = 4;
@@ -19,10 +21,10 @@ namespace EscapeFromWizard
         public const int MinionHitDamage = 1;
         public const double HitDetectionTimerDefault = 5.0;
         
-        // Screen Dimensions (calculated properties)
-        public static int ScreenWidth => PixelWidthPerTile * SquaresAcross;
-        public static int ScreenHeight => PixelHeightPerTile * SquaresDown;
-        public static Vector2 ScreenCenter => new Vector2(ScreenWidth / 2, ScreenHeight / 2);
+        // Viewport Dimensions
+        public static Vector2 m_ViewportSize => new Vector2(m_TileWidthInPx * m_TilePerRow, m_TileHeightInPx * m_TilePerColumn);
+    
+        public static Vector2 m_ViewportCenter => new Vector2(m_ViewportSize.X / 2, m_ViewportSize.Y / 2);
         
         // Minion Initial Patrol Data
         public static readonly int[][] MinionsInitialPatrolData = new int[NumOfMinions][]
@@ -35,31 +37,32 @@ namespace EscapeFromWizard
         };
         
         // Utility Functions
-        public static Vector2 CalculateCameraBoundary(int mapTileWidth, int mapTileHeight)
+        public static Vector2 CalculateCameraBound(int levelWidth, int levelHeight)
         {
-            int maxX = (mapTileWidth - SquaresAcross) * PixelWidthPerTile;
-            int maxY = (mapTileHeight - SquaresDown) * PixelHeightPerTile;
+            int maxX = (levelWidth - m_TilePerRow) * m_TileWidthInPx;
+            int maxY = (levelHeight - m_TilePerColumn) * m_TileHeightInPx;
             return new Vector2(maxX, maxY);
         }
         
-        public static Rectangle CreateTileRectangle(int tileX, int tileY)
+        public static Rectangle CreateTileRectangleAt(int tileIndexX, int tileIndexY)
         {
             return new Rectangle(
-                tileX * PixelWidthPerTile,
-                tileY * PixelHeightPerTile,
-                PixelWidthPerTile,
-                PixelHeightPerTile
+                tileIndexX * m_TileWidthInPx,
+                tileIndexY * m_TileHeightInPx,
+                m_TileWidthInPx,
+                m_TileHeightInPx
             );
         }
         
-        public static Rectangle CreateTileRectangle(Vector2 tilePosition)
+        // Vector2 version : 
+        public static Rectangle CreateTileRectangleAt(Vector2 tileIndex)
         {
-            return CreateTileRectangle((int)tilePosition.X, (int)tilePosition.Y);
+            return CreateTileRectangleAt((int)tileIndex.X, (int)tileIndex.Y);
         }
         
         public static Vector2 TileToPixelPosition(int tileX, int tileY)
         {
-            return new Vector2(tileX * PixelWidthPerTile, tileY * PixelHeightPerTile);
+            return new Vector2(tileX * m_TileWidthInPx, tileY * m_TileHeightInPx);
         }
         
         public static Vector2 TileToPixelPosition(Vector2 tilePosition)
@@ -70,8 +73,8 @@ namespace EscapeFromWizard
         public static Vector2 PixelToTilePosition(Vector2 pixelPosition)
         {
             return new Vector2(
-                (int)(pixelPosition.X / PixelWidthPerTile),
-                (int)(pixelPosition.Y / PixelHeightPerTile)
+                (int)(pixelPosition.X / m_TileWidthInPx),
+                (int)(pixelPosition.Y / m_TileHeightInPx)
             );
         }
     }

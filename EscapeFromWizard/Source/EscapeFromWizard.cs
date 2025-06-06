@@ -107,14 +107,14 @@ namespace EscapeFromWizard
         public EscapeFromWizard()
         {
             m_Graphics = new GraphicsDeviceManager(this);
-            m_Graphics.PreferredBackBufferWidth = GameSettings.ScreenWidth;
-            m_Graphics.PreferredBackBufferHeight = GameSettings.ScreenHeight;
+            m_Graphics.PreferredBackBufferWidth = (int)GameSettings.m_ViewportSize.X;
+            m_Graphics.PreferredBackBufferHeight = (int)GameSettings.m_ViewportSize.Y;
             m_Graphics.IsFullScreen = false;
             m_Graphics.ApplyChanges();
 
             m_SpriteBatch = new SpriteBatch(GraphicsDevice);
 
-            m_ScreenCenter = GameSettings.ScreenCenter;
+            m_ScreenCenter = GameSettings.m_ViewportCenter;
 
             m_CurrentScreen = GameScreen.HOME_SCREEN;
 
@@ -132,7 +132,7 @@ namespace EscapeFromWizard
             m_Level.Initialize();
 
             // Camera
-            Vector2 cameraBound = GameSettings.CalculateCameraBoundary(m_Level.GetTotalTileWidth(), m_Level.GetTotalTileHeight());
+            Vector2 cameraBound = GameSettings.CalculateCameraBound(m_Level.GetTotalTileWidth(), m_Level.GetTotalTileHeight());
             m_Camera = new Camera2D();
             m_Camera.SetBoundary(0, 0, (int) cameraBound.X, (int) cameraBound.Y);
 
@@ -142,11 +142,9 @@ namespace EscapeFromWizard
             m_DoorLock = m_StaticObjectHandler.GetLocks();
             m_SpellItem = m_StaticObjectHandler.GetSpellItems();
 
-            // Initialize Key Container View Model
             m_KeyContainerViewModel = new KeyContainerViewModel();
-            // Set base offset for HUD keys (bottom right corner)
-            Rectangle keyRect = GameSettings.CreateTileRectangle(GameSettings.SquaresAcross - 4, GameSettings.SquaresDown - 1);
-            m_KeyContainerViewModel.SetBaseOffset(keyRect.Location.ToVector2());
+            Rectangle keyViewRect = GameSettings.CreateTileRectangleAt(GameSettings.m_TilePerRow - 4, GameSettings.m_TilePerColumn - 1);
+            m_KeyContainerViewModel.SetBaseWidgetPosition(keyViewRect.Location.ToVector2());
 
             // Initialize key view models with HUD textures
             for (int i = 0; i < m_Key.Length; i++)
@@ -527,7 +525,7 @@ namespace EscapeFromWizard
                 for (int col = 0; col < m_Level.GetTotalTileWidth(); ++col)
                 {
                     int tileID = m_Level.m_Data[row * m_Level.GetTotalTileWidth() + col];
-                    Rectangle tileRect = GameSettings.CreateTileRectangle(col, row);
+                    Rectangle tileRect = GameSettings.CreateTileRectangleAt(col, row);
                     m_SpriteBatch.Draw(m_TileCollection.m_TileSetTexture, tileRect, m_TileCollection.GetSourceRectangle(tileID), Microsoft.Xna.Framework.Color.White);
                 }
             }
@@ -543,9 +541,9 @@ namespace EscapeFromWizard
                 for (int col = 0; col < 3; ++col)
                 {
                     m_SpriteBatch.Draw(m_Background, new Vector2(x, y), Microsoft.Xna.Framework.Color.White);
-                    x += 8 * GameSettings.PixelWidthPerTile;
+                    x += 8 * GameSettings.m_TileWidthInPx;
                 }
-                y += 8 * GameSettings.PixelHeightPerTile;
+                y += 8 * GameSettings.m_TileHeightInPx;
                 x = 0;
             }
             m_SpriteBatch.End();
@@ -555,7 +553,7 @@ namespace EscapeFromWizard
         {
             m_SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, m_Camera.TransformMatrix());
 
-            Rectangle playerRect = GameSettings.CreateTileRectangle(m_Player.GetPosition());
+            Rectangle playerRect = GameSettings.CreateTileRectangleAt(m_Player.GetPosition());
             m_SpriteBatch.Draw(m_ObjectCollection.m_TileSetTexture, playerRect, m_ObjectCollection.GetSourceRectangle(4), Microsoft.Xna.Framework.Color.White);
 
             m_SpriteBatch.End();
@@ -566,7 +564,7 @@ namespace EscapeFromWizard
         {
             m_SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, m_Camera.TransformMatrix());
 
-            Rectangle wizardRect = GameSettings.CreateTileRectangle(m_Wizard.GetTargetPosition());
+            Rectangle wizardRect = GameSettings.CreateTileRectangleAt(m_Wizard.GetTargetPosition());
             m_SpriteBatch.Draw(m_ObjectCollection.m_TileSetTexture, wizardRect, m_ObjectCollection.GetSourceRectangle(14), Microsoft.Xna.Framework.Color.White);
             m_SpriteBatch.End();
         }
@@ -577,7 +575,7 @@ namespace EscapeFromWizard
             {
                 m_SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, m_Camera.TransformMatrix());
 
-                Rectangle minionRect = GameSettings.CreateTileRectangle(m_Minions[i].GetTargetPosition());
+                Rectangle minionRect = GameSettings.CreateTileRectangleAt(m_Minions[i].GetTargetPosition());
                 m_SpriteBatch.Draw(m_ObjectCollection.m_TileSetTexture, minionRect, m_ObjectCollection.GetSourceRectangle(19), Microsoft.Xna.Framework.Color.White);
                 m_SpriteBatch.End();
             }
@@ -591,7 +589,7 @@ namespace EscapeFromWizard
             {
                 if (!m_SpellItem[i].isLooted())
                 {
-                    Rectangle spellItemRect = GameSettings.CreateTileRectangle((int) m_SpellItem[i].GetItemTilePositionX(), (int) m_SpellItem[i].GetItemTilePositionY());
+                    Rectangle spellItemRect = GameSettings.CreateTileRectangleAt((int) m_SpellItem[i].GetItemTilePositionX(), (int) m_SpellItem[i].GetItemTilePositionY());
                     m_SpriteBatch.Draw(m_ObjectCollection.m_TileSetTexture, spellItemRect, m_ObjectCollection.GetSourceRectangle(m_SpellItem[i].GetItemTypeIndex()), Microsoft.Xna.Framework.Color.White);
                 }
             }
@@ -607,7 +605,7 @@ namespace EscapeFromWizard
             {
                 if (!m_Key[i].IsLooted())
                 {
-                    Rectangle keyRect = GameSettings.CreateTileRectangle(m_Key[i].GetPosition());
+                    Rectangle keyRect = GameSettings.CreateTileRectangleAt(m_Key[i].GetPosition());
                     m_SpriteBatch.Draw(m_ObjectCollection.m_TileSetTexture, keyRect, m_ObjectCollection.GetSourceRectangle((int) m_Key[i].GetColor()), Microsoft.Xna.Framework.Color.White);
                 }
             }
@@ -621,7 +619,7 @@ namespace EscapeFromWizard
             {
                 if (!m_DoorLock[i].IsDestroyed())
                 {
-                    Rectangle lockRect = GameSettings.CreateTileRectangle(m_DoorLock[i].GetPosition());
+                    Rectangle lockRect = GameSettings.CreateTileRectangleAt(m_DoorLock[i].GetPosition());
                     m_SpriteBatch.Draw(m_ObjectCollection.m_TileSetTexture, lockRect, m_ObjectCollection.GetSourceRectangle((int) ( m_DoorLock[i].GetColor() ) + 15), Microsoft.Xna.Framework.Color.White);
                 }
             }
@@ -645,12 +643,12 @@ namespace EscapeFromWizard
             {
                 if (i < m_Player.GetHP())
                 {
-                    Rectangle heartRect = GameSettings.CreateTileRectangle(i, GameSettings.SquaresDown - 1);
+                    Rectangle heartRect = GameSettings.CreateTileRectangleAt(i, GameSettings.m_TilePerColumn - 1);
                     m_SpriteBatch.Draw(m_HUDCollection.m_TileSetTexture, heartRect, m_HUDCollection.GetSourceRectangle((int) HUDIcon.FULL_HEART), Microsoft.Xna.Framework.Color.White);
                 }
                 else
                 {
-                    Rectangle emptyHeartRect = GameSettings.CreateTileRectangle(i, GameSettings.SquaresDown - 1);
+                    Rectangle emptyHeartRect = GameSettings.CreateTileRectangleAt(i, GameSettings.m_TilePerColumn - 1);
                     m_SpriteBatch.Draw(m_HUDCollection.m_TileSetTexture, emptyHeartRect, m_HUDCollection.GetSourceRectangle((int) HUDIcon.EMPTY_HEART), Microsoft.Xna.Framework.Color.White);
                 }
             }
@@ -660,12 +658,12 @@ namespace EscapeFromWizard
             {
                 if (i < m_Player.GetCurrentNumOfQuestItem())
                 {
-                    Rectangle questItemRect = GameSettings.CreateTileRectangle(GameSettings.SquaresAcross - ( m_Player.GetMaxNumOfQuestItem() - i ), GameSettings.SquaresDown - 2);
+                    Rectangle questItemRect = GameSettings.CreateTileRectangleAt(GameSettings.m_TilePerRow - ( m_Player.GetMaxNumOfQuestItem() - i ), GameSettings.m_TilePerColumn - 2);
                     m_SpriteBatch.Draw(m_ObjectCollection.m_TileSetTexture, questItemRect, m_ObjectCollection.GetSourceRectangle((int) SpellItems.QUEST_POTION), Microsoft.Xna.Framework.Color.White);
                 }
                 else
                 {
-                    Rectangle emptyQuestItemRect = GameSettings.CreateTileRectangle(GameSettings.SquaresAcross - ( m_Player.GetMaxNumOfQuestItem() - i ), GameSettings.SquaresDown - 2);
+                    Rectangle emptyQuestItemRect = GameSettings.CreateTileRectangleAt(GameSettings.m_TilePerRow - ( m_Player.GetMaxNumOfQuestItem() - i ), GameSettings.m_TilePerColumn - 2);
                     m_SpriteBatch.Draw(m_ObjectCollection.m_TileSetTexture, emptyQuestItemRect, m_ObjectCollection.GetSourceRectangle((int) SpellItems.UNLOOTED_QUEST_ITEM), Microsoft.Xna.Framework.Color.White);
                 }
             }
@@ -693,13 +691,13 @@ namespace EscapeFromWizard
 
             for (int column = 0; column < m_Level.GetTotalTileWidth(); column++)
             {
-                Rectangle horizontal_thin_rec = new Rectangle((int) ( 0 + ( column * GameSettings.PixelWidthPerTile ) ), 0, 1, ( GameSettings.PixelHeightPerTile * m_Level.GetTotalTileWidth() ));
+                Rectangle horizontal_thin_rec = new Rectangle((int) ( 0 + ( column * GameSettings.m_TileWidthInPx ) ), 0, 1, ( GameSettings.m_TileHeightInPx * m_Level.GetTotalTileWidth() ));
                 m_SpriteBatch.Draw(m_Texture1px, horizontal_thin_rec, Microsoft.Xna.Framework.Color.DarkGray);
             }
 
             for (int row = 0; row < m_Level.GetTotalTileHeight(); row++)
             {
-                Rectangle vertical_thin_rec = new Rectangle(0, (int) ( 0 + ( row * GameSettings.PixelHeightPerTile ) ), ( GameSettings.PixelWidthPerTile * m_Level.GetTotalTileHeight() ), 1);
+                Rectangle vertical_thin_rec = new Rectangle(0, (int) ( 0 + ( row * GameSettings.m_TileHeightInPx ) ), ( GameSettings.m_TileWidthInPx * m_Level.GetTotalTileHeight() ), 1);
                 m_SpriteBatch.Draw(m_Texture1px, vertical_thin_rec, Microsoft.Xna.Framework.Color.DarkGray);
             }
             m_SpriteBatch.End();
@@ -717,7 +715,7 @@ namespace EscapeFromWizard
                 {
                     infoString = i + "." + j;
                     originPosition = m_FontArialBlack14.MeasureString(infoString) / 2;
-                    m_SpriteBatch.DrawString(m_FontArialBlack14, infoString, new Vector2(i * GameSettings.PixelHeightPerTile + 16, j * GameSettings.PixelWidthPerTile + 16), Microsoft.Xna.Framework.Color.Blue, 0, originPosition, 1.0f, SpriteEffects.None, 0.5f);
+                    m_SpriteBatch.DrawString(m_FontArialBlack14, infoString, new Vector2(i * GameSettings.m_TileHeightInPx + 16, j * GameSettings.m_TileWidthInPx + 16), Microsoft.Xna.Framework.Color.Blue, 0, originPosition, 1.0f, SpriteEffects.None, 0.5f);
                 }
             }
             m_SpriteBatch.End();
