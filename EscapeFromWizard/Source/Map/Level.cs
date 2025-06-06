@@ -7,22 +7,22 @@ namespace EscapeFromWizard.Map
     {
         public int[] m_Data;
 
-        public int GetMapTileWidth()
+        public int GetTotalTileWidth()
         {
             return 25;
         }
 
-        public int GetMapTileHeight()
+        public int GetTotalTileHeight()
         {
             return 25;
         }
 
-        public int GetMapTileData(int index)
+        public int GetTileData(int index)
         {
             return m_Data[index];
         }
 
-        public int ConvertToMapIdex(int row, int column, int totalRow, int totalColumn)
+        public int ToTileIndex(int row, int column, int totalRow, int totalColumn)
         {
             return row * 25 + column;
         }
@@ -31,10 +31,10 @@ namespace EscapeFromWizard.Map
         public List<Vector2> GetWalkablePaths()
         {
             List<Vector2> walkablePositions = new List<Vector2>();
-         
-            for (int i = 0; i < GetMapTileWidth(); i++)
+
+            for (int i = 0; i < GetTotalTileWidth(); i++)
             {
-                for (int j = 0; j < GetMapTileHeight(); j++)
+                for (int j = 0; j < GetTotalTileHeight(); j++)
                 {
                     // if index is not a path (floor), store it in positions list
                     if (m_Data[i * 25 + j] == (int) TileType.PATH)
@@ -42,14 +42,14 @@ namespace EscapeFromWizard.Map
                         walkablePositions.Add(new Vector2(j, i));
                     }
                 }
-            }   
-            
+            }
+
             return walkablePositions;
         }
 
         public void Initialize()
         {
-            m_Data = new int[25 * 25] 
+            m_Data = new int[25 * 25]
             {
                 01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,
                 01,10,01,05,00,00,00,00,00,01,21,21,15,21,21,01,00,00,00,00,00,00,00,00,01,

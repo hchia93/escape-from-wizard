@@ -5,17 +5,17 @@ namespace TileEngine
 {
     public class Tile
     {
-        public Texture2D TileSetTexture;
-        static public int TileWidth = 32;
-        static public int TileHeight = 32;
-        static public Vector2 TileOriginPoint = new Vector2(0, 0);
+        static public int m_WidthPx = 32;
+        static public int m_HeightPx = 32;
+        public Texture2D m_TileSetTexture;
+        static public Vector2 m_Origin = new Vector2(0, 0);
 
         public Rectangle GetSourceRectangle(int tileIndex)
         {
-            int tileY = tileIndex / (TileSetTexture.Width / TileWidth); 
-            int tileX = tileIndex % (TileSetTexture.Width / TileWidth);  
+            int tileY = tileIndex / (m_TileSetTexture.Width / m_WidthPx); 
+            int tileX = tileIndex % (m_TileSetTexture.Width / m_WidthPx);  
 
-            return new Rectangle(tileX * TileWidth, tileY * TileHeight, TileWidth, TileHeight);
+            return new Rectangle(tileX * m_WidthPx, tileY * m_HeightPx, m_WidthPx, m_HeightPx);
         }
     }
 }

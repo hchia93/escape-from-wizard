@@ -39,8 +39,8 @@ namespace EscapeFromWizard.Source.GameObject.Static
         {
             this.m_MapData = mapData;
             m_WalkablePositions = this.m_MapData.GetWalkablePaths();
-            m_LevelRow = this.m_MapData.GetMapTileHeight();
-            m_LevelColumn = this.m_MapData.GetMapTileWidth();
+            m_LevelRow = this.m_MapData.GetTotalTileHeight();
+            m_LevelColumn = this.m_MapData.GetTotalTileWidth();
 
             InitializeKey();
             InitializeLock();
@@ -51,8 +51,8 @@ namespace EscapeFromWizard.Source.GameObject.Static
         {
             this.m_MapData = mapData;
             m_WalkablePositions = this.m_MapData.GetWalkablePaths();
-            m_LevelRow = this.m_MapData.GetMapTileHeight();
-            m_LevelColumn = this.m_MapData.GetMapTileWidth();
+            m_LevelRow = this.m_MapData.GetTotalTileHeight();
+            m_LevelColumn = this.m_MapData.GetTotalTileWidth();
         }
 
         private void InitializeKey()
@@ -136,7 +136,7 @@ namespace EscapeFromWizard.Source.GameObject.Static
                 {
                     if (colorKey.GetColor() == colorLock.GetColor())
                     {
-                        colorLock.CheckIfDoorLockIsUnlocked(colorKey.IsLooted());
+                        colorLock.SetUnlocked(colorKey.IsLooted());
                     }
                 }
             }

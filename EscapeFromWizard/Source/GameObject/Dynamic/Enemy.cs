@@ -54,7 +54,7 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
             m_TargetPosition = new Vector2(column, row);
         }
 
-        public void SetMapReference(Level mapData)
+        public void SetWorld(Level mapData)
         {
             m_MapData = mapData;
         }
@@ -114,8 +114,8 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
             int playerY = (int) playerPosition.Y;
             int wizardX = (int) m_TargetPosition.X;
             int wizardY = (int)m_TargetPosition.Y;
-            int r = m_MapData.GetMapTileHeight();
-            int c = m_MapData.GetMapTileWidth();
+            int r = m_MapData.GetTotalTileHeight();
+            int c = m_MapData.GetTotalTileWidth();
             int tileID = 0;
 
             //If same Row means different in X, player-wizard Horizontal
@@ -126,7 +126,7 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
                 {
                     while (d != 0)
                     {
-                        tileID = m_MapData.GetMapTileData(m_MapData.ConvertToMapIdex(wizardY, wizardX + 1, r, c));
+                        tileID = m_MapData.GetTileData(m_MapData.ToTileIndex(wizardY, wizardX + 1, r, c));
 
                         if (tileID == 00)
                         {
@@ -144,7 +144,7 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
                 {
                     while (d != 0)
                     {
-                        tileID = m_MapData.GetMapTileData(m_MapData.ConvertToMapIdex(wizardY, wizardX - 1, r, c));
+                        tileID = m_MapData.GetTileData(m_MapData.ToTileIndex(wizardY, wizardX - 1, r, c));
 
                         if (tileID == 00)
                         {
@@ -168,8 +168,8 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
             int playerY = (int) playerPosition.Y;
             int wizardX = (int) m_TargetPosition.X;
             int wizardY = (int) m_TargetPosition.Y;
-            int r = m_MapData.GetMapTileHeight();
-            int c = m_MapData.GetMapTileWidth();
+            int r = m_MapData.GetTotalTileHeight();
+            int c = m_MapData.GetTotalTileWidth();
             int tileID = 0;
 
             //If same Col means different in Y, player-wizard Vertical
@@ -180,7 +180,7 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
                 {
                     while (d != 0)
                     {
-                        tileID = m_MapData.GetMapTileData(m_MapData.ConvertToMapIdex(wizardY + 1, wizardX, r, c));
+                        tileID = m_MapData.GetTileData(m_MapData.ToTileIndex(wizardY + 1, wizardX, r, c));
 
                         if (tileID == 00)
                         {
@@ -200,7 +200,7 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
                 {
                     while (d != 0)
                     {
-                        tileID = m_MapData.GetMapTileData(m_MapData.ConvertToMapIdex(wizardY - 1, wizardX, r, c));
+                        tileID = m_MapData.GetTileData(m_MapData.ToTileIndex(wizardY - 1, wizardX, r, c));
 
                         if (tileID == 00)
                         {
@@ -231,8 +231,8 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
              * Return true - It is movable for wizard
              * Return false - It is an unmovable tile for wizard
              */
-            int r = m_MapData.GetMapTileHeight();
-            int c = m_MapData.GetMapTileWidth();
+            int r = m_MapData.GetTotalTileHeight();
+            int c = m_MapData.GetTotalTileWidth();
             int x = (int)currentTile.X;
             int y = (int)currentTile.Y;
             int tileID = 0;
@@ -240,16 +240,16 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
             switch (direction)
             {
                 case EDirection.UP:
-                    tileID = m_MapData.GetMapTileData(m_MapData.ConvertToMapIdex(y - 1, x, r, c));
+                    tileID = m_MapData.GetTileData(m_MapData.ToTileIndex(y - 1, x, r, c));
                     break;
                 case EDirection.DOWN:
-                    tileID = m_MapData.GetMapTileData(m_MapData.ConvertToMapIdex(y + 1, x, r, c));
+                    tileID = m_MapData.GetTileData(m_MapData.ToTileIndex(y + 1, x, r, c));
                     break;
                 case EDirection.LEFT:
-                    tileID = m_MapData.GetMapTileData(m_MapData.ConvertToMapIdex(y, x - 1, r, c));
+                    tileID = m_MapData.GetTileData(m_MapData.ToTileIndex(y, x - 1, r, c));
                     break;
                 case EDirection.RIGHT:
-                    tileID = m_MapData.GetMapTileData(m_MapData.ConvertToMapIdex(y, x + 1, r, c));
+                    tileID = m_MapData.GetTileData(m_MapData.ToTileIndex(y, x + 1, r, c));
                     break;
             }
             if (tileID == 0)
@@ -260,11 +260,11 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
 
         protected bool IsDestinationValid(Vector2 location)
         {
-            int r = m_MapData.GetMapTileHeight();
-            int c = m_MapData.GetMapTileWidth();
+            int r = m_MapData.GetTotalTileHeight();
+            int c = m_MapData.GetTotalTileWidth();
             int x = (int)location.X;
             int y = (int)location.Y;
-            int currentTileID = GetMapReference().GetMapTileData(GetMapReference().ConvertToMapIdex(y, x, r, c));
+            int currentTileID = GetMapReference().GetTileData(GetMapReference().ToTileIndex(y, x, r, c));
 
             if (currentTileID != 0)
                 return false;

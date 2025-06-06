@@ -15,8 +15,8 @@ namespace EscapeFromWizard.Source.Audio
         public SoundEffect m_OnHealSFX;
 
         public SoundEffect m_BGMSound;
-        public SoundEffect m_GameOver_Win;
-        public SoundEffect m_GameOver_Lose;
+        public SoundEffect m_GameVictory;
+        public SoundEffect m_GameOver;
         public SoundEffectInstance m_BGMSoundInstance;
         public SoundEffectInstance m_GameOverSoundInstance;
 
@@ -24,17 +24,28 @@ namespace EscapeFromWizard.Source.Audio
         {
             m_ButtonSFX = Content.Load<SoundEffect>(@"Resource\Audio\ButtonSFX");
             m_FootStepSFX = Content.Load<SoundEffect>(@"Resource\Audio\FootstepSFX");
-
             m_BGMSound = Content.Load<SoundEffect>(@"Resource\Audio\Tombi_Dwarf_Forest_BGM");
-            m_GameOver_Lose = Content.Load<SoundEffect>(@"Resource\Audio\GameOverSFX");
-            m_GameOver_Win = Content.Load<SoundEffect>(@"Resource\Audio\Winning");
-
+            m_GameOver = Content.Load<SoundEffect>(@"Resource\Audio\GameOverSFX");
+            m_GameVictory = Content.Load<SoundEffect>(@"Resource\Audio\Winning");
             m_OnItemLootedSFX = Content.Load<SoundEffect>(@"Resource\Audio\GetItemSFX");
             m_OnUnlockDoorSFX = Content.Load<SoundEffect>(@"Resource\Audio\UnlockDoorSFX");
             m_OnMajorDamageSFX = Content.Load<SoundEffect>(@"Resource\Audio\HitByWizardSFX");
             m_OnMinorDamageSFX = Content.Load<SoundEffect>(@"Resource\Audio\HitByMinionSFX");
             m_OnHealSFX = Content.Load<SoundEffect>(@"Resource\Audio\HPRecoverySFX");
+        }
 
+        public void OnGameFinished()
+        {
+            m_BGMSoundInstance.Stop(); 
+            m_GameVictory.Play();
+        }
+
+        public void OnGameOver()
+        {
+            m_BGMSoundInstance.Stop();
+            m_GameOverSoundInstance = m_GameOver.CreateInstance();
+            m_GameOverSoundInstance.IsLooped = true;
+            m_GameOverSoundInstance.Play();
         }
 
         public void PlayBGM()
@@ -79,27 +90,10 @@ namespace EscapeFromWizard.Source.Audio
             m_OnHealSFX.Play();
         }
 
-        public void PlayWinningSound()
-        {
-            m_GameOver_Win.Play();
-        }
-
-        public void PlayGameOverSound()
-        {
-            m_BGMSoundInstance.Stop();
-            m_GameOverSoundInstance = m_GameOver_Lose.CreateInstance();
-            m_GameOverSoundInstance.IsLooped = true;
-            m_GameOverSoundInstance.Play();
-        }
-
         public void StopGameOverSound()
         {
             m_GameOverSoundInstance.Stop();
         }
 
-        public void StopBGM()
-        {
-            m_BGMSoundInstance.Stop();
-        }
     }
 }

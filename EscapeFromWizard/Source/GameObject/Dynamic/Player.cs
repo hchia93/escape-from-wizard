@@ -2,6 +2,7 @@
 using EscapeFromWizard.Source.GameObject.Static;
 using EscapeFromWizard.Source.Interface;
 using Microsoft.Xna.Framework;
+using System;
 using System.Collections.Generic;
 
 namespace EscapeFromWizard.Source.GameObject.Dynamic
@@ -61,6 +62,10 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
         private int m_CollectedStar;
         private int m_MaxStar = 15;
 
+        // Sound callback functions
+        public Action OnHitByMinion { get; set; }
+        public Action OnHitByWizard { get; set; }
+
         public Player()
         {
             m_IsHiding = true;
@@ -78,7 +83,7 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
             m_Direction = PlayerDirection.STILL;
         }
 
-        public void SetMapReference(Level level)
+        public void SetWorld(Level level)
         {
             m_ReferenceMapData = level;
         }
@@ -176,6 +181,18 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
             }
         }
 
+        public void TakeDamageFromMinion(int value)
+        {
+            TakeDamage(value);
+            OnHitByMinion?.Invoke();
+        }
+
+        public void TakeDamageFromWizard(int value)
+        {
+            TakeDamage(value);
+            OnHitByWizard?.Invoke();
+        }
+
         public void Heal(int value)
         {
             m_HP += value;
@@ -226,9 +243,9 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
 
         private void CheckCurrentTile(GameTime gameTime)
         {
-            int maxRow = m_ReferenceMapData.GetMapTileHeight();
-            int maxColumn = m_ReferenceMapData.GetMapTileWidth();
-            int tileIdCurrentTile = m_ReferenceMapData.GetMapTileData(m_ReferenceMapData.ConvertToMapIdex((int)m_Position.Y, (int)m_Position.X, maxRow, maxColumn));
+            int maxRow = m_ReferenceMapData.GetTotalTileHeight();
+            int maxColumn = m_ReferenceMapData.GetTotalTileWidth();
+            int tileIdCurrentTile = m_ReferenceMapData.GetTileData(m_ReferenceMapData.ToTileIndex((int)m_Position.Y, (int)m_Position.X, maxRow, maxColumn));
 
             if (tileIdCurrentTile == (int)TileType.PATH)
             {
@@ -262,8 +279,8 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
         private bool IsMoveToNextTilePossible() 
         {
 
-            int totalRow = m_ReferenceMapData.GetMapTileHeight();
-            int totalCol = m_ReferenceMapData.GetMapTileWidth();
+            int totalRow = m_ReferenceMapData.GetTotalTileHeight();
+            int totalCol = m_ReferenceMapData.GetTotalTileWidth();
             int nextTileTileID = 0;
 
             int nextTileX = 0;
@@ -289,7 +306,7 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
                     break;
             }
 
-            nextTileTileID = m_ReferenceMapData.GetMapTileData(m_ReferenceMapData.ConvertToMapIdex(nextTileY, nextTileX, totalRow, totalCol));
+            nextTileTileID = m_ReferenceMapData.GetTileData(m_ReferenceMapData.ToTileIndex(nextTileY, nextTileX, totalRow, totalCol));
 
             //Lock control
             if (CheckIfPlayerIsNextToLock(nextTileX, nextTileY))
