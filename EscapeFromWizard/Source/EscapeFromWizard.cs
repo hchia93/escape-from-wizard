@@ -2,6 +2,7 @@
 using EscapeFromWizard.Source.Audio;
 using EscapeFromWizard.Source.GameObject.Dynamic;
 using EscapeFromWizard.Source.GameObject.Static;
+using EscapeFromWizard.ViewModel;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -100,6 +101,9 @@ namespace EscapeFromWizard
 
         public SoundManager m_SoundManager;
 
+        // Add new field for key container view model
+        private KeyContainerViewModel m_KeyContainerViewModel;
+
         public EscapeFromWizard()
         {
             m_Graphics = new GraphicsDeviceManager(this);
@@ -138,7 +142,25 @@ namespace EscapeFromWizard
             m_DoorLock = m_StaticObjectHandler.GetLocks();
             m_SpellItem = m_StaticObjectHandler.GetSpellItems();
 
-           // Sound
+            // Initialize Key Container View Model
+            m_KeyContainerViewModel = new KeyContainerViewModel();
+            // Set base offset for HUD keys (bottom right corner)
+            Rectangle keyRect = GameSettings.CreateTileRectangle(GameSettings.SquaresAcross - 4, GameSettings.SquaresDown - 1);
+            m_KeyContainerViewModel.SetBaseOffset(keyRect.Location.ToVector2());
+
+            // Initialize key view models with HUD textures
+            for (int i = 0; i < m_Key.Length; i++)
+            {
+                KeyViewModel keyViewModel = new KeyViewModel();
+                
+                keyViewModel.SetSourceTexture(m_HUDCollection.m_TileSetTexture);
+                keyViewModel.SetPreLootedRectangle(m_HUDCollection.GetSourceRectangle(m_KeyIDProvider.GetKeyIndex(i + 4))); // Empty key slot
+                keyViewModel.SetPostLootedRectangle(m_HUDCollection.GetSourceRectangle(m_KeyIDProvider.GetKeyIndex(i))); // Filled key slot
+                
+                m_KeyContainerViewModel.AddKeyViewModel(keyViewModel);
+            }
+
+            // Sound
             m_SoundManager = new SoundManager(this.Content);
 
             // Player
@@ -212,6 +234,8 @@ namespace EscapeFromWizard
             m_QuestIncompleteMessage = Content.Load<Texture2D>(@"Resource\Image\questnotcompleted");
 
             m_FontArialBlack14 = Content.Load<SpriteFont>(@"Resource\Font\Arial_Black_14pxl");
+
+           
         }
 
         protected override void Update(GameTime gameTime)
@@ -587,7 +611,6 @@ namespace EscapeFromWizard
                     m_SpriteBatch.Draw(m_ObjectCollection.m_TileSetTexture, keyRect, m_ObjectCollection.GetSourceRectangle((int) m_Key[i].GetColor()), Microsoft.Xna.Framework.Color.White);
                 }
             }
-
             m_SpriteBatch.End();
         }
 
@@ -609,26 +632,17 @@ namespace EscapeFromWizard
         private void DrawHUD()
         {
             m_SpriteBatch.Begin();
-            int count = 4;
-            for (int i = 0; i < 4; i++)
+            
+            // Draw keys using the view model
+            for (int i = 0; i < m_Key.Length; i++)
             {
-                if (m_Key[i].IsLooted())
-                {
-                    Rectangle keyHudRect = GameSettings.CreateTileRectangle(GameSettings.SquaresAcross - count, GameSettings.SquaresDown - 1);
-                    m_SpriteBatch.Draw(m_HUDCollection.m_TileSetTexture, keyHudRect, m_HUDCollection.GetSourceRectangle(m_KeyIDProvider.GetKeyIndex(i)), Microsoft.Xna.Framework.Color.White);
-                }
-                else
-                {
-                    Rectangle keyHudEmptyRect = GameSettings.CreateTileRectangle(GameSettings.SquaresAcross - count, GameSettings.SquaresDown - 1);
-                    m_SpriteBatch.Draw(m_HUDCollection.m_TileSetTexture, keyHudEmptyRect, m_HUDCollection.GetSourceRectangle(m_KeyIDProvider.GetKeyIndex(i + 4)), Microsoft.Xna.Framework.Color.White);
-                }
-                count--;
+                m_KeyContainerViewModel.UpdateKeyState(i, m_Key[i].IsLooted());
             }
+            m_KeyContainerViewModel.Draw(m_SpriteBatch);
 
             // Draw Player's HP
             for (int i = 0; i < m_Player.GetMaxHP(); i++)
             {
-
                 if (i < m_Player.GetHP())
                 {
                     Rectangle heartRect = GameSettings.CreateTileRectangle(i, GameSettings.SquaresDown - 1);

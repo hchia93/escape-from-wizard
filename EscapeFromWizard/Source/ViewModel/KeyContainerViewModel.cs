@@ -60,5 +60,14 @@ namespace EscapeFromWizard.ViewModel
                 m_KeyViewModels[index].SetLooted(isLooted);
             }
         }
+
+        public KeyViewModel GetKeyViewModel(int index)
+        {
+            if (index >= 0 && index < m_KeyViewModels.Count)
+            {
+                return m_KeyViewModels[index];
+            }
+            return null;
+        }
     }
 } 

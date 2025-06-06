@@ -5,27 +5,22 @@ namespace EscapeFromWizard.ViewModel
 {
     public class KeyViewModel
     {
-        private Texture2D m_PreLootTexture;
-        private Texture2D m_PostLootTexture;
+        private Texture2D m_SourceTexture;
         private bool m_IsLooted;
         private Vector2 m_Position;
-        private Rectangle m_SourceRectangle;
-
+        private Rectangle m_PreLootedRectangle;
+        private Rectangle m_PostLootedRectangle;
         public KeyViewModel()
         {
             m_IsLooted = false;
             m_Position = Vector2.Zero;
-            m_SourceRectangle = Rectangle.Empty;
+            m_PreLootedRectangle = Rectangle.Empty;
+            m_PostLootedRectangle = Rectangle.Empty;
         }
 
-        public void SetPreLootTexture(Texture2D texture)
+        public void SetSourceTexture(Texture2D texture)
         {
-            m_PreLootTexture = texture;
-        }
-
-        public void SetPostLootTexture(Texture2D texture)
-        {
-            m_PostLootTexture = texture;
+            m_SourceTexture = texture;
         }
 
         public void SetPosition(Vector2 position)
@@ -33,9 +28,14 @@ namespace EscapeFromWizard.ViewModel
             m_Position = position;
         }
 
-        public void SetSourceRectangle(Rectangle sourceRect)
+        public void SetPreLootedRectangle(Rectangle rectangle)
         {
-            m_SourceRectangle = sourceRect;
+            m_PreLootedRectangle = rectangle;
+        }
+
+        public void SetPostLootedRectangle(Rectangle rectangle)
+        {
+            m_PostLootedRectangle = rectangle;
         }
 
         public void SetLooted(bool isLooted)
@@ -45,20 +45,18 @@ namespace EscapeFromWizard.ViewModel
 
         public void DrawView(SpriteBatch spriteBatch)
         {
-            if (m_IsLooted)
+            if ( m_SourceTexture != null)
             {
-                if (m_PostLootTexture != null)
+                if (m_IsLooted)
                 {
-                    spriteBatch.Draw(m_PostLootTexture, m_Position, m_SourceRectangle, Microsoft.Xna.Framework.Color.White);
+                    spriteBatch.Draw(m_SourceTexture, m_Position, m_PostLootedRectangle, Microsoft.Xna.Framework.Color.White);  
+                }
+                else
+                {
+                    spriteBatch.Draw(m_SourceTexture, m_Position, m_PreLootedRectangle, Microsoft.Xna.Framework.Color.White);
                 }
             }
-            else
-            {
-                if (m_PreLootTexture != null)
-                {
-                    spriteBatch.Draw(m_PreLootTexture, m_Position, m_SourceRectangle, Microsoft.Xna.Framework.Color.White);
-                }
-            }
+            
         }
     }
 } 
