@@ -91,24 +91,6 @@
         GREEN_LOCK = 18,
     }
 
-    public enum HUDIcon
-    {
-        RED_KEY_TAKEN = 17,
-        YELLOW_KEY_TAKEN = 18,
-        BLUE_KEY_TAKEN = 15,
-        GREEN_KEY_TAKEN = 21,
-        
-        RED_KEY_NONE = 22,
-        YELLOW_KEY_NONE = 23,
-        BLUE_KEY_NONE = 20,
-        GREEN_KEY_NONE = 16,
-
-        EMPTY_HEART = 10,
-        FULL_HEART = 11,
-        HALF_HEART = 12,
-
-    }
-
     public enum MovingObject
     {
         WIZARD = 14,

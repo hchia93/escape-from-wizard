@@ -103,6 +103,7 @@ namespace EscapeFromWizard
         // Add new field for key container view model
         private KeyContainerViewModel m_KeyContainerViewModel;
         private PlayerHealthViewModel m_PlayerHealthViewModel;
+        private QuestItemViewModel m_QuestItemViewModel;
 
         public EscapeFromWizard()
         {
@@ -167,8 +168,15 @@ namespace EscapeFromWizard
             // Initialize Player Health View Model
             m_PlayerHealthViewModel = new PlayerHealthViewModel(m_Player);
             m_PlayerHealthViewModel.SetSourceSpriteSheet(m_HUDSpriteSheet);
-            Vector2 healthPosition = new Vector2(0, (GameSettings.m_TilePerColumn - 1) * 32); // Position at bottom row
+            Vector2 healthPosition = new Vector2(0, (GameSettings.m_TilePerColumn - 1) * GameSettings.m_TileHeightInPx); // Position at bottom row
             m_PlayerHealthViewModel.SetWidgetPosition(healthPosition);
+
+            // Initialize Quest Item View Model
+            m_QuestItemViewModel = new QuestItemViewModel(m_Player);
+            m_QuestItemViewModel.SetSourceSpriteSheet(m_ObjectSpriteSheet);
+            Vector2 questItemPosition = new Vector2((GameSettings.m_TilePerRow - m_Player.GetMaxNumOfQuestItem()) * GameSettings.m_TileWidthInPx, 
+                                                  (GameSettings.m_TilePerColumn - 2) * GameSettings.m_TileHeightInPx);
+            m_QuestItemViewModel.SetWidgetPosition(questItemPosition);
 
             // Wizard
             m_Wizard = new Wizard();
@@ -233,8 +241,6 @@ namespace EscapeFromWizard
             m_QuestIncompleteMessage = Content.Load<Texture2D>(@"Resource\Image\questnotcompleted");
 
             m_FontArialBlack14 = Content.Load<SpriteFont>(@"Resource\Font\Arial_Black_14pxl");
-
-           
         }
 
         protected override void Update(GameTime gameTime)
@@ -421,7 +427,7 @@ namespace EscapeFromWizard
                 DrawPlayer();
                 DrawWizard();
                 DrawMinions();
-                DrawHUD();
+                DrawWidget();
                 DrawGameTime();
 
                 if (m_ShowGrid)
@@ -628,27 +634,12 @@ namespace EscapeFromWizard
             m_SpriteBatch.End();
         }
 
-        private void DrawHUD()
+        private void DrawWidget()
         {
             m_SpriteBatch.Begin();
-            m_KeyContainerViewModel.Draw(m_SpriteBatch);
-            m_PlayerHealthViewModel.DrawView(m_SpriteBatch);
-
-            //Draw Player's Quest Item
-            for (int i = 0; i < m_Player.GetMaxNumOfQuestItem(); i++)
-            {
-                if (i < m_Player.GetCurrentNumOfQuestItem())
-                {
-                    Rectangle questItemRect = GameSettings.CreateTileRectangleAt(GameSettings.m_TilePerRow - ( m_Player.GetMaxNumOfQuestItem() - i ), GameSettings.m_TilePerColumn - 2);
-                    m_SpriteBatch.Draw(m_ObjectSpriteSheet.m_Texture, questItemRect, m_ObjectSpriteSheet.GetSourceRectangle((int) SpellItems.QUEST_POTION), Microsoft.Xna.Framework.Color.White);
-                }
-                else
-                {
-                    Rectangle emptyQuestItemRect = GameSettings.CreateTileRectangleAt(GameSettings.m_TilePerRow - ( m_Player.GetMaxNumOfQuestItem() - i ), GameSettings.m_TilePerColumn - 2);
-                    m_SpriteBatch.Draw(m_ObjectSpriteSheet.m_Texture, emptyQuestItemRect, m_ObjectSpriteSheet.GetSourceRectangle((int) SpellItems.UNLOOTED_QUEST_ITEM), Microsoft.Xna.Framework.Color.White);
-                }
-            }
-
+            m_KeyContainerViewModel.DrawWidget(m_SpriteBatch);
+            m_PlayerHealthViewModel.DrawWidget(m_SpriteBatch);
+            m_QuestItemViewModel.DrawWidget(m_SpriteBatch);
             m_SpriteBatch.End();
         }
 

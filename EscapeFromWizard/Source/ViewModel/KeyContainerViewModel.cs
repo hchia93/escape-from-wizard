@@ -56,11 +56,11 @@ namespace EscapeFromWizard.ViewModel
             }
         }
 
-        public void Draw(SpriteBatch spriteBatch)
+        public void DrawWidget(SpriteBatch spriteBatch)
         {
             foreach (var keyViewModel in m_KeyViewModels)
             {
-                keyViewModel.DrawView(spriteBatch);
+                keyViewModel.DrawWidget(spriteBatch);
             }
         }
 

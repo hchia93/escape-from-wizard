@@ -65,7 +65,7 @@ namespace EscapeFromWizard.ViewModel
             m_WidgetPosition = position;
         }
 
-        public void DrawView(SpriteBatch spriteBatch)
+        public void DrawWidget(SpriteBatch spriteBatch)
         {
             if (m_SourceSpriteSheet != null)
             {

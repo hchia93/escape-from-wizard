@@ -66,6 +66,7 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
         public Action OnHitByMinion { get; set; }
         public Action OnHitByWizard { get; set; }
         public event EventHandler<int> OnHPChanged;
+        public event EventHandler<int> OnQuestItemChanged;
 
         public Player()
         {
@@ -224,7 +225,12 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
         }
         public void LootQuestItem()
         {
+            int oldQuestItems = m_QuestItemOnHand;
             m_QuestItemOnHand += 1;
+            if (oldQuestItems != m_QuestItemOnHand)
+            {
+                OnQuestItemChanged?.Invoke(this, m_QuestItemOnHand);
+            }
         }
 
         public int GetCurrentNumOfQuestItem()
