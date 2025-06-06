@@ -1,14 +1,18 @@
 ﻿using EscapeFromWizard.Source.GameObject.Dynamic;
 using EscapeFromWizard.Source.Interface;
 using Microsoft.Xna.Framework;
+using System;
 
 namespace EscapeFromWizard.Source.GameObject.Static
 {
     public class Key : ICollectibles
     {
-        Vector2 m_Position;
-        Color m_Color;
-        bool m_IsLooted;
+        private Vector2 m_Position;
+        private Color m_Color;
+        private bool m_IsLooted;
+
+        // Event that fires when the key's looted state changes
+        public event EventHandler<bool> OnLootedStateChanged;
 
         public Key()
         {
@@ -42,7 +46,11 @@ namespace EscapeFromWizard.Source.GameObject.Static
 
         public void SetLooted(bool value)
         {
-            this.m_IsLooted = value;
+            if (m_IsLooted != value)
+            {
+                m_IsLooted = value;
+                OnLootedStateChanged?.Invoke(this, m_IsLooted);
+            }
         }
 
         public bool IsOverlapped(Vector2 playerPosition)
@@ -53,7 +61,7 @@ namespace EscapeFromWizard.Source.GameObject.Static
                 /// function has side effect
                 if (!m_IsLooted)
                 {
-                    m_IsLooted = true;
+                    SetLooted(true);
                     return true;
                 }
             }
