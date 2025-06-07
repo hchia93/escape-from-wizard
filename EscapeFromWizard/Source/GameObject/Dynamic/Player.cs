@@ -155,7 +155,7 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
             m_Direction = PlayerDirection.STILL;
         }
 
-        public void SetWorld(Level level)
+        public void SetLevel(Level level)
         {
             m_ReferenceMapData = level;
         }

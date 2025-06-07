@@ -6,6 +6,7 @@ namespace EscapeFromWizard.Map
     public class Level
     {
         public int[] m_Data;
+        public List<Vector2> m_WalkablePositions = new List<Vector2>();
 
         public int GetTotalTileWidth()
         {
@@ -25,26 +26,6 @@ namespace EscapeFromWizard.Map
         public int ToTileIndex(int row, int column, int totalRow, int totalColumn)
         {
             return row * 25 + column;
-        }
-
-        // Computationally expensive to regenerate all
-        public List<Vector2> GetWalkablePaths()
-        {
-            List<Vector2> walkablePositions = new List<Vector2>();
-
-            for (int i = 0; i < GetTotalTileWidth(); i++)
-            {
-                for (int j = 0; j < GetTotalTileHeight(); j++)
-                {
-                    // if index is not a path (floor), store it in positions list
-                    if (m_Data[i * 25 + j] == (int) TileType.PATH)
-                    {
-                        walkablePositions.Add(new Vector2(j, i));
-                    }
-                }
-            }
-
-            return walkablePositions;
         }
 
         public void Initialize()
@@ -77,6 +58,22 @@ namespace EscapeFromWizard.Map
                 01,00,01,00,00,00,00,00,00,00,01,00,00,00,00,01,00,00,00,00,00,00,00,00,01,
                 01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,
             };
+            GenerateWalkablePaths();
         }
+        private void GenerateWalkablePaths()
+        {
+            for (int i = 0; i < GetTotalTileWidth(); i++)
+            {
+                for (int j = 0; j < GetTotalTileHeight(); j++)
+                {
+                    // if index is not a path (floor), store it in positions list
+                    if (m_Data[i * 25 + j] == (int) TileType.PATH)
+                    {
+                        m_WalkablePositions.Add(new Vector2(j, i));
+                    }
+                }
+            }
+        }
+
     }
 }

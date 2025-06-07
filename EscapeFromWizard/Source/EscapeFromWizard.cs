@@ -1,4 +1,5 @@
 ﻿using EscapeFromWizard.Map;
+using EscapeFromWizard.Source;
 using EscapeFromWizard.Source.Audio;
 using EscapeFromWizard.Source.GameObject.Dynamic;
 using EscapeFromWizard.Source.GameObject.Static;
@@ -32,8 +33,6 @@ namespace EscapeFromWizard
         public GraphicsDeviceManager m_Graphics;
         public SpriteBatch m_SpriteBatch;
 
-        // Game settings are now centralized in GameSettings class
-
         // Debug Mode
         public bool m_ShowGrid = false;
         public bool m_ShowTileRowCol = false;
@@ -52,7 +51,7 @@ namespace EscapeFromWizard
         public SpriteSheet m_HUDSpriteSheet;
         public SpriteSheet m_MiscSpriteSheet;
 
-        //Sound State
+        // Sound State
         public bool m_PlayGameBGMOnlyOnce = true;
         public bool m_PlayGameOverOnlyOnce = true;
         public bool m_PlayButtonOnlyOnce = true;
@@ -61,21 +60,22 @@ namespace EscapeFromWizard
         public bool m_PlayerPickUpSomething = false;
         public double m_FootStepTimer = 0.0f;
 
-        //Inputs
+        // Inputs
         public KeyboardState m_InputKey;
         public KeyboardState m_PreviousInputKey;
         public MouseState m_MouseState;
         public InputAxisInfo m_InputHandler;
 
-        //GameMap & GameView & Instances
-        public Camera2D m_Camera;
+        // GameMap & GameView & Instances
         public Level m_Level;
+        public Camera2D m_Camera;
 
-        //Game Objects
+        public GameStates m_GameStates;
+
+        // Game Objects
         public Player m_Player;
         public Wizard m_Wizard;
         public Minion[] m_Minions;
-        public StaticObjectHandler m_StaticObjectHandler;
         public Key[] m_Key;
         public Lock[] m_DoorLock;
         public SpellItem[] m_SpellItem;
@@ -108,8 +108,8 @@ namespace EscapeFromWizard
         public EscapeFromWizard()
         {
             m_Graphics = new GraphicsDeviceManager(this);
-            m_Graphics.PreferredBackBufferWidth = (int)GameSettings.m_ViewportSize.X;
-            m_Graphics.PreferredBackBufferHeight = (int)GameSettings.m_ViewportSize.Y;
+            m_Graphics.PreferredBackBufferWidth = (int) GameSettings.m_ViewportSize.X;
+            m_Graphics.PreferredBackBufferHeight = (int) GameSettings.m_ViewportSize.Y;
             m_Graphics.IsFullScreen = false;
             m_Graphics.ApplyChanges();
 
@@ -136,10 +136,10 @@ namespace EscapeFromWizard
             m_Camera.SetBoundary(0, 0, (int) cameraBound.X, (int) cameraBound.Y);
 
             // Key And Locks
-            m_StaticObjectHandler = new StaticObjectHandler(m_Level);
-            m_Key = m_StaticObjectHandler.GetKeys();
-            m_DoorLock = m_StaticObjectHandler.GetLocks();
-            m_SpellItem = m_StaticObjectHandler.GetSpellItems();
+            m_GameStates = new GameStates(m_Level);
+            m_Key = m_GameStates.GetKeys();
+            m_DoorLock = m_GameStates.GetLocks();
+            m_SpellItem = m_GameStates.GetSpellItems();
 
             // Initialize Key Container View Model
             m_KeyContainerViewModel = new KeyContainerViewModel();
@@ -159,7 +159,7 @@ namespace EscapeFromWizard
 
             // Player
             m_Player = new Player();
-            m_Player.SetWorld(m_Level);
+            m_Player.SetLevel(m_Level);
             m_Player.SetPosition(1, 1);
             m_Player.SetUpLockInformation(m_DoorLock);
             m_Player.OnHitByMinion = () => m_SoundManager.PlayHitByMinionSound();
@@ -168,19 +168,19 @@ namespace EscapeFromWizard
             // Initialize Player Health View Model
             m_PlayerHealthViewModel = new PlayerHealthViewModel(m_Player);
             m_PlayerHealthViewModel.SetSourceSpriteSheet(m_HUDSpriteSheet);
-            Vector2 healthPosition = new Vector2(0, (GameSettings.m_TilePerColumn - 1) * GameSettings.m_TileHeightInPx); // Position at bottom row
+            Vector2 healthPosition = new Vector2(0, ( GameSettings.m_TilePerColumn - 1 ) * GameSettings.m_TileHeightInPx); // Position at bottom row
             m_PlayerHealthViewModel.SetWidgetPosition(healthPosition);
 
             // Initialize Quest Item View Model
             m_QuestItemViewModel = new QuestItemViewModel(m_Player);
             m_QuestItemViewModel.SetSourceSpriteSheet(m_ObjectSpriteSheet);
-            Vector2 questItemPosition = new Vector2((GameSettings.m_TilePerRow - m_Player.GetMaxNumOfQuestItem()) * GameSettings.m_TileWidthInPx, 
-                                                  (GameSettings.m_TilePerColumn - 2) * GameSettings.m_TileHeightInPx);
+            Vector2 questItemPosition = new Vector2(( GameSettings.m_TilePerRow - m_Player.GetMaxNumOfQuestItem() ) * GameSettings.m_TileWidthInPx,
+                                                  ( GameSettings.m_TilePerColumn - 2 ) * GameSettings.m_TileHeightInPx);
             m_QuestItemViewModel.SetWidgetPosition(questItemPosition);
 
             // Wizard
             m_Wizard = new Wizard();
-            m_Wizard.SetWorld(m_Level);
+            m_Wizard.SetLevel(m_Level);
             m_Wizard.SetTargetPosition(12, 4);
 
             // Minions array
@@ -189,7 +189,7 @@ namespace EscapeFromWizard
             {
                 m_Minions[i] = new Minion();
                 m_Minions[i].SetMinionId(i);
-                m_Minions[i].SetWorld(m_Level);
+                m_Minions[i].SetLevel(m_Level);
                 m_Minions[i].SetPatrolStartPos(GameSettings.MinionsInitialPatrolData[i]);
                 m_Minions[i].SetTargetPosition(GameSettings.MinionsInitialPatrolData[i][0], GameSettings.MinionsInitialPatrolData[i][1]);
             }
@@ -312,7 +312,7 @@ namespace EscapeFromWizard
                     m_Minions[i].UpdateMovement(gameTime, m_Player.GetPosition());
                 }
 
-                m_StaticObjectHandler.CheckLooted(gameTime, m_Player);
+                m_GameStates.CheckLooted(gameTime, m_Player);
                 m_Camera.UpdateMovement(m_Player.GetMovingDirection(), m_Player.GetPosition(), m_ScreenCenter);
 
                 if (m_PlayGameBGMOnlyOnce)
@@ -420,7 +420,7 @@ namespace EscapeFromWizard
             {
                 GraphicsDevice.Clear(Microsoft.Xna.Framework.Color.Black);
                 DrawBackground();
-                DrawMap();
+                DrawLevel();
                 DrawSpellItem();
                 DrawKey();
                 DrawLock();
@@ -513,18 +513,13 @@ namespace EscapeFromWizard
 
         private void DrawGameScore()
         {
-            if (m_CurrentScreen != GameScreen.VICTORY_SCREEN)
-            {
-                return;
-            }
-
-            string scoreInfo = "Your score is " + m_Score.ToString();
             m_SpriteBatch.Begin();
+            string scoreInfo = "Your score is " + m_Score.ToString();
             m_SpriteBatch.DrawString(m_FontArialBlack14, scoreInfo, new Vector2(m_ScreenCenter.X - m_FontArialBlack14.MeasureString(scoreInfo).Length() / 2, m_ScreenCenter.Y - 50), Microsoft.Xna.Framework.Color.Black);
             m_SpriteBatch.End();
         }
 
-        private void DrawMap()
+        private void DrawLevel()
         {
             m_SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, m_Camera.TransformMatrix());
             for (int row = 0; row < m_Level.GetTotalTileHeight(); ++row)
@@ -594,9 +589,9 @@ namespace EscapeFromWizard
 
             for (int i = 0; i < m_SpellItem.Length; i++)
             {
-                if (!m_SpellItem[i].isLooted())
+                if (!m_SpellItem[i].GetIsLooted())
                 {
-                    Rectangle spellItemRect = GameSettings.CreateTileRectangleAt((int) m_SpellItem[i].GetItemTilePositionX(), (int) m_SpellItem[i].GetItemTilePositionY());
+                    Rectangle spellItemRect = GameSettings.CreateTileRectangleAt(m_SpellItem[i].GetPosition());
                     m_SpriteBatch.Draw(m_ObjectSpriteSheet.m_Texture, spellItemRect, m_ObjectSpriteSheet.GetSourceRectangle(m_SpellItem[i].GetItemTypeIndex()), Microsoft.Xna.Framework.Color.White);
                 }
             }

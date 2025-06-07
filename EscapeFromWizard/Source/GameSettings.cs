@@ -54,7 +54,6 @@ namespace EscapeFromWizard
             );
         }
         
-        // Vector2 version : 
         public static Rectangle CreateTileRectangleAt(Vector2 tileIndex)
         {
             return CreateTileRectangleAt((int)tileIndex.X, (int)tileIndex.Y);

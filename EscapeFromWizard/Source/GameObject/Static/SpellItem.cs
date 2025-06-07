@@ -4,42 +4,34 @@ namespace EscapeFromWizard.Source.GameObject.Static
 {
     public class SpellItem
     {
-        int m_PositionX;
-        int m_PositionY;
+        Vector2 m_Position;
         SpellItems m_Type;
-        bool m_IsItemLooted;
+        bool m_IsLooted;
 
         public SpellItem()
         {
-            m_IsItemLooted = false;
+            m_IsLooted = false;
         }
 
         public SpellItem(int column, int row)
         {
-            m_IsItemLooted = false;
-            m_PositionX = column;
-            m_PositionY = row;
+            m_IsLooted = false;
+            m_Position = new Vector2(column, row);
         }
 
         public void SetPosition(int column, int row)
         {
-            m_PositionX = column;
-            m_PositionY = row;
+            m_Position = new Vector2(column, row);
         }
 
-        public int GetItemTilePositionX()
+        public Vector2 GetPosition()
         {
-            return m_PositionX;
-        }
-
-        public int GetItemTilePositionY()
-        {
-            return m_PositionY;
+            return m_Position;
         }
 
         public int GetItemTypeIndex()
         {
-            return (int)m_Type;
+            return (int) m_Type;
         }
 
         public SpellItems GetItemType()
@@ -52,14 +44,14 @@ namespace EscapeFromWizard.Source.GameObject.Static
             m_Type = itemType;
         }
 
-        public bool isLooted()
+        public bool GetIsLooted()
         {
-            return m_IsItemLooted;
+            return m_IsLooted;
         }
 
         public void SetLooted(bool itemLootFlag)
         {
-            m_IsItemLooted = itemLootFlag;
+            m_IsLooted = itemLootFlag;
         }
 
         public bool CheckPlayerPos(Vector2 playerPosVector)
@@ -67,15 +59,15 @@ namespace EscapeFromWizard.Source.GameObject.Static
             /* 
              Return True if item Position matched Player Position, else return false;
              */
-            if (m_PositionX == (int)playerPosVector.X && m_PositionY == (int)playerPosVector.Y)
+            if (m_Position.X == (int) playerPosVector.X && m_Position.Y == (int) playerPosVector.Y)
             {
-                if (!m_IsItemLooted)
+                if (!m_IsLooted)
                 {
-                    m_IsItemLooted = true;
+                    m_IsLooted = true;
                     return true;
                 }
             }
-                    
+
             return false;
         }
     }

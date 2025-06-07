@@ -4,10 +4,11 @@ using System.Linq;
 using Microsoft.Xna.Framework;
 using EscapeFromWizard.Map;
 using EscapeFromWizard.Source.GameObject.Dynamic;
+using EscapeFromWizard.Source.GameObject.Static;
 
-namespace EscapeFromWizard.Source.GameObject.Static
+namespace EscapeFromWizard.Source
 {
-    public class StaticObjectHandler
+    public class GameStates
     {
         private static int numOfTotalItems = 20; //SpellItem + Stars
         private static int numOfSpellItem = 5;
@@ -20,37 +21,25 @@ namespace EscapeFromWizard.Source.GameObject.Static
         private SpellItem[] m_Stars = new SpellItem[numOfStars];
 
         //MapData
-        private Level m_MapData;
-        private int m_LevelRow;
-        private int m_LevelColumn;
+        private Level m_LevelReference;
         private List<Vector2> m_StaticObjectPositions = new List<Vector2>();
         private List<Vector2> m_WalkablePositions = new List<Vector2>();
 
-        public StaticObjectHandler()
+        public GameStates()
         {
             InitializeKey();
             InitializeLock();
             InitializeSpellItem();
         }
 
-        public StaticObjectHandler(Level mapData)
+        public GameStates(Level level)
         {
-            this.m_MapData = mapData;
-            m_WalkablePositions = this.m_MapData.GetWalkablePaths();
-            m_LevelRow = this.m_MapData.GetTotalTileHeight();
-            m_LevelColumn = this.m_MapData.GetTotalTileWidth();
+            m_LevelReference = level;
+            m_WalkablePositions = m_LevelReference.m_WalkablePositions;
 
             InitializeKey();
             InitializeLock();
             InitializeSpellItem();
-        }
-
-        public void SetMapReference(Level mapData)
-        {
-            this.m_MapData = mapData;
-            m_WalkablePositions = this.m_MapData.GetWalkablePaths();
-            m_LevelRow = this.m_MapData.GetTotalTileHeight();
-            m_LevelColumn = this.m_MapData.GetTotalTileWidth();
         }
 
         private void InitializeKey()
