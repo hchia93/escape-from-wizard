@@ -8,11 +8,7 @@ It was initially using Microsoft XNA framework which tied to VS2015. It is now u
 </center>
 
 ## Coding Quality Disclaimer
-Originally coded in 2015 with Mrs Lim Wan Ping, this project was in a less desired coding standard after reproject. I am now cleaning up the code for future references. 
-
-By replicating how Ubisoft create their ViewModels in `Skull & Bone`, I've managed to make it more modular. 
-
-It is now a sourvenier I harvest from my times in Ubisoft.
+Originally coded in 2015, this project was in a less desired coding standard after reproject. I am now cleaning up the code for future references. 
 
 ## Setting Up
 Unfortunately, this is not the kind of project can be download and run directly. I have excluded most of the buildable binaries files from this project as best practices. One must setup the environment properly to run this project.
