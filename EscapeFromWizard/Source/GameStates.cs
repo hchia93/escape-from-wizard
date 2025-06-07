@@ -168,13 +168,13 @@ namespace EscapeFromWizard.Source
                 if (colorKey.IsOverlapped(m_Player.GetPosition()))
                 {
                     m_Player.SetPickUpFlag(true);
-                }
 
-                foreach (var colorLock in m_Locks)
-                {
-                    if (colorKey.GetColor() == colorLock.GetColor())
+                    foreach (var colorLock in m_Locks)
                     {
-                        colorLock.SetUnlocked(colorKey.IsLooted());
+                        if (colorKey.GetColor() == colorLock.GetColor())
+                        {
+                            colorLock.SetUnlocked(colorKey.IsLooted());
+                        }
                     }
                 }
             }

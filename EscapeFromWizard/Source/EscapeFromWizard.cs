@@ -70,6 +70,7 @@ namespace EscapeFromWizard
         public Level m_Level;
         public Camera2D m_Camera;
         public GameStates m_GameStates;
+        private GameInput m_InputProcessor;
 
         // Game Objects
         public Player m_Player;
@@ -145,9 +146,7 @@ namespace EscapeFromWizard
             m_SpellItem = m_GameStates.GetSpellItems();
 
             m_Player.SetUpLockInformation(m_DoorLock);
-
-         
-
+            
             // Sound
             m_SoundManager = new SoundManager(this.Content);
 
@@ -179,6 +178,16 @@ namespace EscapeFromWizard
             m_PlayUnlockDoorOnlyOnce = new bool[GameSettings.NumOfLocks] { true, true, true, true };
             m_PlayerPickUpSomething = false;
             m_FootStepTimer = 0.0f;
+
+            // Dispose previous GameInput instance if it exists
+            m_InputProcessor?.Dispose();
+
+            // Initialize GameInput with callback bindings
+            m_InputProcessor = new GameInput();
+            m_InputProcessor.OnF1Pressed = DebugToggleGuideLine;
+            m_InputProcessor.OnF2Pressed = DebugToggleGodMode;
+            m_InputProcessor.OnF3Pressed = DebugUnlockAllLocks;
+            m_InputProcessor.OnEscapePressed = () => this.Exit();
 
             // CreateViewModels has dependencies to player, hence create last. 
             CreateViewModels();
@@ -223,9 +232,11 @@ namespace EscapeFromWizard
             //if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
             // Exit();
             m_GameStates.Update(gameTime);
+            m_InputProcessor.Update(gameTime);
 
-            m_InputKey = Keyboard.GetState();
-            m_MouseState = Mouse.GetState();
+            // Get processed input for backward compatibility
+            m_InputKey = m_InputProcessor.GetCurrentKeyboardState();
+            m_MouseState = m_InputProcessor.GetCurrentMouseState();
 
             if (m_CurrentScreen == GameScreen.GAME_SCREEN)
             {
@@ -235,37 +246,20 @@ namespace EscapeFromWizard
                 //No longer listen user input if game is over
                 if (!m_GameIsOver)
                 {
-                    m_InputHandler.m_YDown = ( m_InputKey.IsKeyDown(Keys.S) || m_InputKey.IsKeyDown(Keys.Down) ) ? -1 : 0;
-                    m_InputHandler.m_YUp = ( m_InputKey.IsKeyDown(Keys.W) || m_InputKey.IsKeyDown(Keys.Up) ) ? 1 : 0;
-                    m_InputHandler.m_XLeft = ( m_InputKey.IsKeyDown(Keys.A) || m_InputKey.IsKeyDown(Keys.Left) ) ? -1 : 0;
-                    m_InputHandler.m_XRight = ( m_InputKey.IsKeyDown(Keys.D) || m_InputKey.IsKeyDown(Keys.Right) ) ? 1 : 0;
+                    // Get processed movement input from GameInput
+                    ProcessedInput processedInput = m_InputProcessor.GetProcessedInput();
+                    m_MovementOffset = processedInput.MovementOffset;
                 }
-
-                int finalVertical = m_InputHandler.m_YDown + m_InputHandler.m_YUp;
-                int finalHorizontal = m_InputHandler.m_XLeft + m_InputHandler.m_XRight;
-
-                if (m_InputKey.IsKeyDown(Keys.F1))
+                else
                 {
-                    DebugToggleGuideLine();
+                    m_MovementOffset = Vector2.Zero;
                 }
 
-                if (m_InputKey.IsKeyDown(Keys.F2))
-                {
-                    DebugToggleGodMode();
-                }
-
-                if (m_InputKey.IsKeyDown(Keys.Escape))
-                {
-                    this.Exit();
-                }
-
-                if (m_ShowErrorMsg && ( m_InputKey.IsKeyDown(Keys.Enter) || m_MouseState.LeftButton == ButtonState.Pressed ))
+                if (m_ShowErrorMsg && ( m_InputProcessor.IsKeyDown(Keys.Enter) || m_InputProcessor.GetCurrentMouseState().LeftButton == ButtonState.Pressed ))
                 {
                     m_ShowErrorMsg = false;
                 }
 
-                m_MovementOffset.X = finalHorizontal;
-                m_MovementOffset.Y = -finalVertical;
                 m_Player.ProcessMovement(m_MovementOffset);
                 m_Player.UpdateMovement(gameTime);
 
@@ -356,14 +350,14 @@ namespace EscapeFromWizard
             }
             else if (m_CurrentScreen == GameScreen.HOME_SCREEN)
             {
-                if (( m_InputKey.IsKeyDown(Keys.Enter) || m_MouseState.LeftButton == ButtonState.Pressed ) && !m_PreviousInputKey.IsKeyDown(Keys.Enter))
+                if (( m_InputProcessor.IsKeyDown(Keys.Enter) || m_InputProcessor.GetCurrentMouseState().LeftButton == ButtonState.Pressed ) && !m_InputProcessor.GetPreviousKeyboardState().IsKeyDown(Keys.Enter))
                 {
                     m_CurrentScreen = GameScreen.GAME_SCREEN;
                 }
             }
             else if (m_CurrentScreen == GameScreen.GAME_OVER_SCREEN)
             {
-                if (m_InputKey.IsKeyDown(Keys.Enter) || m_MouseState.LeftButton == ButtonState.Pressed)
+                if (m_InputProcessor.IsKeyDown(Keys.Enter) || m_InputProcessor.GetCurrentMouseState().LeftButton == ButtonState.Pressed)
                 {
                     m_SoundManager.StopGameOverSound();
                     Initialize();
@@ -372,14 +366,14 @@ namespace EscapeFromWizard
             }
             else if (m_CurrentScreen == GameScreen.VICTORY_SCREEN)
             {
-                if (m_InputKey.IsKeyDown(Keys.Enter) || m_MouseState.LeftButton == ButtonState.Pressed)
+                if (m_InputProcessor.IsKeyDown(Keys.Enter) || m_InputProcessor.GetCurrentMouseState().LeftButton == ButtonState.Pressed)
                 {
                     Initialize();
                     m_CurrentScreen = GameScreen.HOME_SCREEN;
                 }
             }
 
-            m_PreviousInputKey = m_InputKey;
+            m_PreviousInputKey = m_InputProcessor.GetPreviousKeyboardState();
         }
 
         protected override void Draw(GameTime gameTime)
@@ -634,17 +628,9 @@ namespace EscapeFromWizard
             m_SpriteBatch.End();
         }
 
-
-
         private void ShowLevelGrid()
         {
-            for (int i = 0; i < m_DoorLock.Length; i++)
-            {
-                m_DoorLock[i].SetDestroyed(true);
-                m_DoorLock[i].SetUnlocked(true);
-            }
             m_SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, m_Camera.TransformMatrix());
-
 
             for (int column = 0; column < m_Level.GetTotalTileWidth(); column++)
             {
@@ -687,6 +673,25 @@ namespace EscapeFromWizard
         private void DebugToggleGodMode()
         {
             m_IsGodMode = !m_IsGodMode;
+        }
+
+        private void DebugUnlockAllLocks()
+        {
+            for (int i = 0; i < m_DoorLock.Length; i++)
+            {
+                m_DoorLock[i].SetDestroyed(true);
+                m_DoorLock[i].SetUnlocked(true);
+            }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                // Dispose GameInput to clean up callbacks
+                m_InputProcessor?.Dispose();
+            }
+            base.Dispose(disposing);
         }
     }
 }
