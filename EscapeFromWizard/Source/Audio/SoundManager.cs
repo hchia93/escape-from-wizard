@@ -7,9 +7,9 @@ namespace EscapeFromWizard.Source.Audio
     public class SoundManager
     {
         // Sound effects
-        public SoundEffect m_ButtonSFX;
-        public SoundEffect m_FootStepSFX;
-        public SoundEffect m_OnItemLootedSFX;
+        public SoundEffect m_OnHidingSFX;
+        public SoundEffect m_OnMoveSFX;
+        public SoundEffect m_OnPickUpSFX;
         public SoundEffect m_OnUnlockDoorSFX;
         public SoundEffect m_OnMinorDamageSFX;
         public SoundEffect m_OnMajorDamageSFX;
@@ -25,19 +25,19 @@ namespace EscapeFromWizard.Source.Audio
         // Internal timing and "play once" flags
         private bool m_PlayGameBGMOnlyOnce = true;
         private bool m_PlayGameOverOnlyOnce = true;
-        private bool m_PlayButtonOnlyOnce = true;
+        private bool m_PlayHideSoundOnce = true;
         private bool[] m_PlayUnlockDoorOnlyOnce;
         private double m_FootStepTimer = 0.0f;
         private const double m_FootStepPlayInterval = 0.2;
 
         public SoundManager(ContentManager Content)
         {
-            m_ButtonSFX = Content.Load<SoundEffect>(@"Resource\Audio\ButtonSFX");
-            m_FootStepSFX = Content.Load<SoundEffect>(@"Resource\Audio\FootstepSFX");
+            m_OnHidingSFX = Content.Load<SoundEffect>(@"Resource\Audio\ButtonSFX");
+            m_OnMoveSFX = Content.Load<SoundEffect>(@"Resource\Audio\FootstepSFX");
             m_BGMSound = Content.Load<SoundEffect>(@"Resource\Audio\Tombi_Dwarf_Forest_BGM");
             m_GameOver = Content.Load<SoundEffect>(@"Resource\Audio\GameOverSFX");
             m_GameVictory = Content.Load<SoundEffect>(@"Resource\Audio\Winning");
-            m_OnItemLootedSFX = Content.Load<SoundEffect>(@"Resource\Audio\GetItemSFX");
+            m_OnPickUpSFX = Content.Load<SoundEffect>(@"Resource\Audio\GetItemSFX");
             m_OnUnlockDoorSFX = Content.Load<SoundEffect>(@"Resource\Audio\UnlockDoorSFX");
             m_OnMajorDamageSFX = Content.Load<SoundEffect>(@"Resource\Audio\HitByWizardSFX");
             m_OnMinorDamageSFX = Content.Load<SoundEffect>(@"Resource\Audio\HitByMinionSFX");
@@ -58,7 +58,7 @@ namespace EscapeFromWizard.Source.Audio
         {
             m_PlayGameBGMOnlyOnce = true;
             m_PlayGameOverOnlyOnce = true;
-            m_PlayButtonOnlyOnce = true;
+            m_PlayHideSoundOnce = true;
             m_FootStepTimer = 0.0f;
             
             for (int i = 0; i < m_PlayUnlockDoorOnlyOnce.Length; i++)
@@ -92,7 +92,7 @@ namespace EscapeFromWizard.Source.Audio
             {
                 PlayFootstepSound();
                 m_FootStepTimer = 0.0f;
-                m_PlayButtonOnlyOnce = true; // Reset button sound flag when moving
+                m_PlayHideSoundOnce = true; // Reset button sound flag when moving
             }
         }
         public void TryPlayUnlockDoorSound(int lockIndex)
@@ -105,10 +105,10 @@ namespace EscapeFromWizard.Source.Audio
         }
         public void TryPlayHidingSound()
         {
-            if (m_PlayButtonOnlyOnce)
+            if (m_PlayHideSoundOnce)
             {
                 PlayHidingSound();
-                m_PlayButtonOnlyOnce = false;
+                m_PlayHideSoundOnce = false;
             }
         }
 
@@ -136,7 +136,7 @@ namespace EscapeFromWizard.Source.Audio
 
         public void PlayFootstepSound()
         {
-            m_FootStepSFX.Play(0.15f, 0.0f, 0.0f);
+            m_OnMoveSFX.Play(0.15f, 0.0f, 0.0f);
         }
 
         public void PlayUnlockDoorSound()
@@ -146,12 +146,12 @@ namespace EscapeFromWizard.Source.Audio
 
         public void PlayHidingSound()
         {
-            m_ButtonSFX.Play(0.30f, 0.0f, 0.0f);
+            m_OnHidingSFX.Play(0.30f, 0.0f, 0.0f);
         }
 
         public void PlayPickUpSound()
         {
-            m_OnItemLootedSFX.Play();
+            m_OnPickUpSFX.Play();
         }
 
         public void PlayHitByMinionSound()

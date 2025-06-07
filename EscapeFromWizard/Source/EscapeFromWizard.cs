@@ -51,15 +51,6 @@ namespace EscapeFromWizard
         public SpriteSheet m_HUDSpriteSheet;
         public SpriteSheet m_MiscSpriteSheet;
 
-        // Sound State (moved to SoundManager)
-        public bool m_PlayerPickUpSomething = false;
-
-        // Inputs
-        public KeyboardState m_InputKey;
-        public KeyboardState m_PreviousInputKey;
-        public MouseState m_MouseState;
-        public InputAxisInfo m_InputHandler;
-
         // GameLevel & GameView & GameState
         public Level m_Level;
         public Camera2D m_Camera;
@@ -166,7 +157,9 @@ namespace EscapeFromWizard
             // Sound
             m_SoundManager = new SoundManager(this.Content);
             m_SoundManager.ResetPlayOnceFlags(); // Reset sound flags when restarting
-            m_PlayerPickUpSomething = false;
+            
+            // Bind pickup sound callbacks to all collectible items
+            m_GameStates.BindPickupSoundCallbacks(() => m_SoundManager.PlayPickUpSound());
 
             // Dispose previous GameInput instance if it exists
             m_InputProcessor?.Dispose();
@@ -218,15 +211,10 @@ namespace EscapeFromWizard
 
         protected override void Update(GameTime gameTime)
         {
-            //if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
-            // Exit();
+          
             m_GameStates.Update(gameTime);
             m_InputProcessor.Update(gameTime);
             m_SoundManager.Update(gameTime);
-
-            // Get processed input for backward compatibility
-            m_InputKey = m_InputProcessor.GetCurrentKeyboardState();
-            m_MouseState = m_InputProcessor.GetCurrentMouseState();
 
             if (m_CurrentScreen == GameScreen.GAME_SCREEN)
             {
@@ -283,12 +271,6 @@ namespace EscapeFromWizard
                     m_SoundManager.TryPlayHidingSound();
                 }
 
-                if (m_Player.IsLootedSomething())
-                {
-                    m_SoundManager.PlayPickUpSound();
-                    m_Player.SetPickUpFlag(false);
-                }
-
                 if (m_Player.IsOnExit() == true)
                 {
                     GameFinished(gameTime);
@@ -303,14 +285,14 @@ namespace EscapeFromWizard
                         {
                             if (m_Minions[i].GetPlayerWasHitFlag() == true)
                             {
-                                m_Player.TakeDamageFromMinion(GameSettings.MinionHitDamage);
+                                m_Player.TakeDamage(GameSettings.MinionHitDamage, DamageSource.Minion);
                                 m_Minions[i].SetPlayerWasHitFlag(false);
                             }
                         }
 
                         if (m_Wizard.GetPlayerWasHitFlag() == true)
                         {
-                            m_Player.TakeDamageFromWizard(3);
+                            m_Player.TakeDamage(GameSettings.WizartHitDamage, DamageSource.Wizard);
                             m_Wizard.SetPlayerWasHitFlag(false);
                         }
                     }
@@ -349,8 +331,6 @@ namespace EscapeFromWizard
                     m_CurrentScreen = GameScreen.HOME_SCREEN;
                 }
             }
-
-            m_PreviousInputKey = m_InputProcessor.GetPreviousKeyboardState();
         }
 
         protected override void Draw(GameTime gameTime)
@@ -370,12 +350,12 @@ namespace EscapeFromWizard
 
                 if (m_ShowGrid)
                 {
-                    ShowLevelGrid();
+                    DrawLevelGridInfo();
                 }
 
                 if (m_ShowTileRowCol)
                 {
-                    ShowRowColumnIndex();
+                    DrawTileIndex();
                 }
 
                 if (m_ShowErrorMsg)
@@ -472,7 +452,6 @@ namespace EscapeFromWizard
             m_SpriteBatch.Draw(screenBackground, new Vector2(0, 0), Microsoft.Xna.Framework.Color.White);
             m_SpriteBatch.End();
         }
-
         private void DrawGameScore()
         {
             m_SpriteBatch.Begin();
@@ -521,7 +500,6 @@ namespace EscapeFromWizard
             m_SpriteBatch.Draw(m_ObjectSpriteSheet.m_Texture, playerRect, m_ObjectSpriteSheet.GetSourceRectangle(4), Microsoft.Xna.Framework.Color.White);
 
             m_SpriteBatch.End();
-
         }
 
         private void DrawWizard()
@@ -601,7 +579,7 @@ namespace EscapeFromWizard
             m_SpriteBatch.End();
         }
 
-        private void ShowLevelGrid()
+        private void DrawLevelGridInfo()
         {
             m_SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, m_Camera.TransformMatrix());
 
@@ -619,7 +597,7 @@ namespace EscapeFromWizard
             m_SpriteBatch.End();
         }
 
-        private void ShowRowColumnIndex()
+        private void DrawTileIndex()
         {
             m_SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, m_Camera.TransformMatrix());
 

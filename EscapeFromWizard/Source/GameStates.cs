@@ -167,8 +167,6 @@ namespace EscapeFromWizard.Source
             {
                 if (colorKey.IsOverlapped(m_Player.GetPosition()))
                 {
-                    m_Player.SetPickUpFlag(true);
-
                     foreach (var colorLock in m_Locks)
                     {
                         if (colorKey.GetColor() == colorLock.GetColor())
@@ -183,8 +181,6 @@ namespace EscapeFromWizard.Source
             {
                 if (m_SpellItems[i].CheckPlayerPos(m_Player.GetPosition()))
                 {
-                    m_Player.SetPickUpFlag(true);
-
                     if (m_SpellItems[i].GetItemType() == SpellItems.HP_POTION)
                     {
                         m_Player.Heal(1);
@@ -220,6 +216,21 @@ namespace EscapeFromWizard.Source
         public string GetFormattedGameTime()
         {
             return m_MinutesPlaying.ToString("00") + ":" + m_SecondsPlaying.ToString("00");
+        }
+
+        public void BindPickupSoundCallbacks(System.Action pickupSoundCallback)
+        {
+            // Bind pickup sound callback to all keys
+            foreach (var key in m_Keys)
+            {
+                key.OnPickedUp = pickupSoundCallback;
+            }
+
+            // Bind pickup sound callback to all spell items
+            foreach (var spellItem in m_SpellItems)
+            {
+                spellItem.OnPickedUp = pickupSoundCallback;
+            }
         }
     }
 }

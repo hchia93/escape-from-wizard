@@ -16,6 +16,12 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
         STILL
     };
 
+    public enum DamageSource
+    {
+        Minion,
+        Wizard
+    };
+
     public class PlayerInventory : IReset
     {
         private int m_Stars;
@@ -124,7 +130,6 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
         //Player State
         private bool m_IsHiding;
         private bool m_IsOnExit;
-        private bool m_PickUpSomething;
 
         private Level m_ReferenceMapData;
         private Lock[] m_DoorLock;
@@ -228,23 +233,13 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
             SetPosition((int)m_PositionBeforeExit.X, (int)m_PositionBeforeExit.Y);
         }
 
-        public bool IsLootedSomething()
-        {
-            return m_PickUpSomething;
-        }
-
         public bool IsStanding()
         {
             //if player didn't move at all.
             return m_Position == m_PositionLastFrame;
         }
 
-        public void SetPickUpFlag(bool value)
-        {
-            m_PickUpSomething = value;
-        }
-
-        public void TakeDamage(int value)
+        public void TakeDamage(int value, DamageSource type)
         {
             int oldHP = m_HP;
             m_HP -= value;
@@ -256,18 +251,18 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
             {
                 OnHPChanged?.Invoke(this, m_HP);
             }
-        }
 
-        public void TakeDamageFromMinion(int value)
-        {
-            TakeDamage(value);
-            OnHitByMinion?.Invoke();
-        }
-
-        public void TakeDamageFromWizard(int value)
-        {
-            TakeDamage(value);
-            OnHitByWizard?.Invoke();
+            switch (type)
+            {
+                case DamageSource.Minion:
+                    OnHitByMinion?.Invoke();
+                    break;
+                case DamageSource.Wizard:
+                    OnHitByWizard?.Invoke();
+                    break;
+                default:
+                    break;
+            }
         }
 
         public void Heal(int value)

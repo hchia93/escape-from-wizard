@@ -13,6 +13,9 @@ namespace EscapeFromWizard.Source.GameObject.Static
 
         // Event that fires when the key's looted state changes
         public event EventHandler<bool> OnLootedStateChanged;
+        
+        // Callback for pickup sound
+        public Action OnPickedUp { get; set; }
 
         public Key()
         {
@@ -50,6 +53,12 @@ namespace EscapeFromWizard.Source.GameObject.Static
             {
                 m_IsLooted = value;
                 OnLootedStateChanged?.Invoke(this, m_IsLooted);
+                
+                // Trigger pickup sound when item is collected
+                if (m_IsLooted)
+                {
+                    OnPickedUp?.Invoke();
+                }
             }
         }
 

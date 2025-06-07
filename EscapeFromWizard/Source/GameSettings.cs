@@ -19,6 +19,7 @@ namespace EscapeFromWizard
         
         // Combat Settings
         public const int MinionHitDamage = 1;
+        public const int WizartHitDamage = 3;
         public const double HitDetectionTimerDefault = 5.0;
         
         // Viewport Dimensions

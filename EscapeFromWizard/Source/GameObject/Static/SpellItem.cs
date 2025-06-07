@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using System;
 
 namespace EscapeFromWizard.Source.GameObject.Static
 {
@@ -7,6 +8,9 @@ namespace EscapeFromWizard.Source.GameObject.Static
         Vector2 m_Position;
         SpellItems m_Type;
         bool m_IsLooted;
+        
+        // Callback for pickup sound
+        public Action OnPickedUp { get; set; }
 
         public SpellItem()
         {
@@ -51,7 +55,16 @@ namespace EscapeFromWizard.Source.GameObject.Static
 
         public void SetLooted(bool itemLootFlag)
         {
-            m_IsLooted = itemLootFlag;
+            if (m_IsLooted != itemLootFlag)
+            {
+                m_IsLooted = itemLootFlag;
+                
+                // Trigger pickup sound when item is collected
+                if (m_IsLooted)
+                {
+                    OnPickedUp?.Invoke();
+                }
+            }
         }
 
         public bool CheckPlayerPos(Vector2 playerPosVector)
@@ -63,7 +76,7 @@ namespace EscapeFromWizard.Source.GameObject.Static
             {
                 if (!m_IsLooted)
                 {
-                    m_IsLooted = true;
+                    SetLooted(true);
                     return true;
                 }
             }
