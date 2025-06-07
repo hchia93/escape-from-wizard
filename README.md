@@ -39,7 +39,7 @@ Once `\bin` and `\obj` should be generated in `...\EscapeFromWizard\Content`
 The project is now good to go.
 
 ## How to play
-`←` `→` `↑` `↓` to move around.
+`←` `→` `↑` `↓` or `w` `a` `s` `d` to move around.
 
 `!` are hiding tiles. Wizard will lose sight of you after you entering the location. Will pushes you back out after a short period of time.
 
@@ -55,9 +55,20 @@ Collect `Color Key` to unlock `Color Door`.
 
 `Esc` to quit the game.
 
-`F1` for debug index.
-
 Reach `Exit Sign` to win the game.
+
+## Debug Functions
+`F1` for Toggle God Mode
+
+`F2` for Full Heals
+
+`F3` For Collect All Keys
+
+`F4` For Collect All Quest Items
+
+`F5` for Unlock All Doors
+
+`F6` for Toggle Guide Lines
 
 ## Authors
 Author : [@hchia93](https://www.github.com/hchia93)
