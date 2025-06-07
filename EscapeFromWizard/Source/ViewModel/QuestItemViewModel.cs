@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using EscapeFromWizard.Source.GameObject.Dynamic;
+using EscapeFromWizard.Source.Interface;
 using TileEngine;
 using System;
 
@@ -12,7 +13,7 @@ namespace EscapeFromWizard.ViewModel
         EMPTY_QUEST_ITEM = 24,
     }
     
-    public class QuestItemViewModel
+    public class QuestItemViewModel : IWidget
     {
         private SpriteSheet m_SourceSpriteSheet;
         private Texture2D m_SpriteSheetTexture;

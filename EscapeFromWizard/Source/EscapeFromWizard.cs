@@ -66,10 +66,9 @@ namespace EscapeFromWizard
         public MouseState m_MouseState;
         public InputAxisInfo m_InputHandler;
 
-        // GameMap & GameView & Instances
+        // GameLevel & GameView & GameState
         public Level m_Level;
         public Camera2D m_Camera;
-
         public GameStates m_GameStates;
 
         // Game Objects
@@ -89,10 +88,6 @@ namespace EscapeFromWizard
         public GameScreen m_CurrentScreen;
         public bool m_GameIsOver;
         public bool m_ShowErrorMsg = false;
-        public float m_TotalGameTime;
-        public float m_SecondsPlaying;
-        public int m_MinutesPlaying;
-        public int m_Score;
 
         //Minion Hit
         public bool m_DecreaseHPOnlyOnce;
@@ -104,6 +99,7 @@ namespace EscapeFromWizard
         private KeyContainerViewModel m_KeyContainerViewModel;
         private PlayerHealthViewModel m_PlayerHealthViewModel;
         private QuestItemViewModel m_QuestItemViewModel;
+        private ElapsedTimerViewModel m_ElapsedTimerViewModel;
 
         public EscapeFromWizard()
         {
@@ -135,48 +131,26 @@ namespace EscapeFromWizard
             m_Camera = new Camera2D();
             m_Camera.SetBoundary(0, 0, (int) cameraBound.X, (int) cameraBound.Y);
 
-            // Key And Locks
-            m_GameStates = new GameStates(m_Level);
-            m_Key = m_GameStates.GetKeys();
-            m_DoorLock = m_GameStates.GetLocks();
-            m_SpellItem = m_GameStates.GetSpellItems();
-
-            // Initialize Key Container View Model
-            m_KeyContainerViewModel = new KeyContainerViewModel();
-            Rectangle keyViewRect = GameSettings.CreateTileRectangleAt(GameSettings.m_TilePerRow - 4, GameSettings.m_TilePerColumn - 1);
-            m_KeyContainerViewModel.SetBaseWidgetPosition(keyViewRect.Location.ToVector2());
-
-            // Initialize key view models with HUD textures
-            for (int i = 0; i < m_Key.Length; i++)
-            {
-                KeyViewModel keyViewModel = new KeyViewModel(m_Key[i]);
-                keyViewModel.SetSourceSpriteSheet(m_HUDSpriteSheet);
-                m_KeyContainerViewModel.AddKeyViewModel(keyViewModel);
-            }
-
-            // Sound
-            m_SoundManager = new SoundManager(this.Content);
-
             // Player
             m_Player = new Player();
             m_Player.SetLevel(m_Level);
             m_Player.SetPosition(1, 1);
-            m_Player.SetUpLockInformation(m_DoorLock);
             m_Player.OnHitByMinion = () => m_SoundManager.PlayHitByMinionSound();
             m_Player.OnHitByWizard = () => m_SoundManager.PlayHitByWizardSound();
 
-            // Initialize Player Health View Model
-            m_PlayerHealthViewModel = new PlayerHealthViewModel(m_Player);
-            m_PlayerHealthViewModel.SetSourceSpriteSheet(m_HUDSpriteSheet);
-            Vector2 healthPosition = new Vector2(0, ( GameSettings.m_TilePerColumn - 1 ) * GameSettings.m_TileHeightInPx); // Position at bottom row
-            m_PlayerHealthViewModel.SetWidgetPosition(healthPosition);
+            // Key And Locks
+            m_GameStates = new GameStates(m_Level, m_Player);
+            m_Key = m_GameStates.GetKeys();
+            m_DoorLock = m_GameStates.GetLocks();
+            m_SpellItem = m_GameStates.GetSpellItems();
 
-            // Initialize Quest Item View Model
-            m_QuestItemViewModel = new QuestItemViewModel(m_Player);
-            m_QuestItemViewModel.SetSourceSpriteSheet(m_ObjectSpriteSheet);
-            Vector2 questItemPosition = new Vector2(( GameSettings.m_TilePerRow - m_Player.GetMaxNumOfQuestItem() ) * GameSettings.m_TileWidthInPx,
-                                                  ( GameSettings.m_TilePerColumn - 2 ) * GameSettings.m_TileHeightInPx);
-            m_QuestItemViewModel.SetWidgetPosition(questItemPosition);
+            m_Player.SetUpLockInformation(m_DoorLock);
+
+         
+
+            // Sound
+            m_SoundManager = new SoundManager(this.Content);
+
 
             // Wizard
             m_Wizard = new Wizard();
@@ -195,8 +169,6 @@ namespace EscapeFromWizard
             }
 
             m_GameIsOver = false;
-            m_MinutesPlaying = 0;
-            m_SecondsPlaying = 0.0f;
 
             // Sound
             m_SoundManager = new SoundManager(this.Content);
@@ -207,6 +179,9 @@ namespace EscapeFromWizard
             m_PlayUnlockDoorOnlyOnce = new bool[GameSettings.NumOfLocks] { true, true, true, true };
             m_PlayerPickUpSomething = false;
             m_FootStepTimer = 0.0f;
+
+            // CreateViewModels has dependencies to player, hence create last. 
+            CreateViewModels();
         }
 
         protected override void LoadContent()
@@ -247,6 +222,7 @@ namespace EscapeFromWizard
         {
             //if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
             // Exit();
+            m_GameStates.Update(gameTime);
 
             m_InputKey = Keyboard.GetState();
             m_MouseState = Mouse.GetState();
@@ -255,14 +231,6 @@ namespace EscapeFromWizard
             {
                 m_FootStepTimer += gameTime.ElapsedGameTime.TotalSeconds;
                 m_HitDetectionTimer += gameTime.ElapsedGameTime.TotalSeconds;
-
-                //calculate total game time elapsed
-                m_SecondsPlaying += (float) gameTime.ElapsedGameTime.TotalSeconds;
-                if (m_SecondsPlaying >= 60)
-                {
-                    m_MinutesPlaying++;
-                    m_SecondsPlaying = 0;
-                }
 
                 //No longer listen user input if game is over
                 if (!m_GameIsOver)
@@ -312,7 +280,7 @@ namespace EscapeFromWizard
                     m_Minions[i].UpdateMovement(gameTime, m_Player.GetPosition());
                 }
 
-                m_GameStates.CheckLooted(gameTime, m_Player);
+                
                 m_Camera.UpdateMovement(m_Player.GetMovingDirection(), m_Player.GetPosition(), m_ScreenCenter);
 
                 if (m_PlayGameBGMOnlyOnce)
@@ -428,7 +396,6 @@ namespace EscapeFromWizard
                 DrawWizard();
                 DrawMinions();
                 DrawWidget();
-                DrawGameTime();
 
                 if (m_ShowGrid)
                 {
@@ -465,7 +432,7 @@ namespace EscapeFromWizard
         {
             if (m_Player.GetCurrentNumOfQuestItem() >= m_Player.GetMaxNumOfQuestItem())
             {
-                CalculateScore();
+                m_GameStates.CalculateScore();
                 m_CurrentScreen = GameScreen.VICTORY_SCREEN;
                 m_SoundManager.OnGameFinished();
             }
@@ -475,8 +442,40 @@ namespace EscapeFromWizard
                 m_Player.SetOnExit(false);
                 m_Player.RevertPositionOnIncompleteQuest();
             }
-
         }
+
+        void CreateViewModels()
+        {
+            // Initialize Key Container View Model
+            m_KeyContainerViewModel = new KeyContainerViewModel();
+
+            // Initialize key view models with HUD textures
+            for (int i = 0; i < m_Key.Length; i++)
+            {
+                KeyViewModel keyViewModel = new KeyViewModel(m_Key[i]);
+                keyViewModel.SetSourceSpriteSheet(m_HUDSpriteSheet);
+                m_KeyContainerViewModel.AddKeyViewModel(keyViewModel);
+            }
+
+            // Initialize Player Health View Model
+            m_PlayerHealthViewModel = new PlayerHealthViewModel(m_Player);
+            m_PlayerHealthViewModel.SetSourceSpriteSheet(m_HUDSpriteSheet);
+            Vector2 healthPosition = new Vector2(0, ( GameSettings.m_TilePerColumn - 1 ) * GameSettings.m_TileHeightInPx); // Position at bottom row
+            m_PlayerHealthViewModel.SetWidgetPosition(healthPosition);
+
+            // Initialize Quest Item View Model
+            m_QuestItemViewModel = new QuestItemViewModel(m_Player);
+            m_QuestItemViewModel.SetSourceSpriteSheet(m_ObjectSpriteSheet);
+            Vector2 questItemPosition = new Vector2(( GameSettings.m_TilePerRow - m_Player.GetMaxNumOfQuestItem() ) * GameSettings.m_TileWidthInPx,
+                                                  ( GameSettings.m_TilePerColumn - 2 ) * GameSettings.m_TileHeightInPx);
+            m_QuestItemViewModel.SetWidgetPosition(questItemPosition);
+
+            // Initialize Elapsed Timer View Model
+            m_ElapsedTimerViewModel = new ElapsedTimerViewModel(m_GameStates);
+            m_ElapsedTimerViewModel.SetFont(m_FontArialBlack14);
+            m_ElapsedTimerViewModel.SetWidgetPosition(new Vector2(m_ScreenCenter.X, 0));
+        }
+
         private void GameOver(GameTime gameTime)
         {
             m_CurrentScreen = GameScreen.GAME_OVER_SCREEN;
@@ -492,10 +491,6 @@ namespace EscapeFromWizard
                 m_SoundManager.OnGameOver();
                 m_PlayGameOverOnlyOnce = false;
             }
-        }
-        private void CalculateScore()
-        {
-            m_Score = 300 / ( ( m_MinutesPlaying * 60 ) + (int) m_SecondsPlaying ) * 100 + m_Player.GetCurrentNumOfStar() * 5;
         }
 
         private void DrawQuestIncompleteMessage()
@@ -514,7 +509,7 @@ namespace EscapeFromWizard
         private void DrawGameScore()
         {
             m_SpriteBatch.Begin();
-            string scoreInfo = "Your score is " + m_Score.ToString();
+            string scoreInfo = "Your score is " + m_GameStates.GetScore().ToString();
             m_SpriteBatch.DrawString(m_FontArialBlack14, scoreInfo, new Vector2(m_ScreenCenter.X - m_FontArialBlack14.MeasureString(scoreInfo).Length() / 2, m_ScreenCenter.Y - 50), Microsoft.Xna.Framework.Color.Black);
             m_SpriteBatch.End();
         }
@@ -635,16 +630,11 @@ namespace EscapeFromWizard
             m_KeyContainerViewModel.DrawWidget(m_SpriteBatch);
             m_PlayerHealthViewModel.DrawWidget(m_SpriteBatch);
             m_QuestItemViewModel.DrawWidget(m_SpriteBatch);
+            m_ElapsedTimerViewModel.DrawWidget(m_SpriteBatch);
             m_SpriteBatch.End();
         }
 
-        private void DrawGameTime()
-        {
-            String gameTimeStr = m_MinutesPlaying.ToString("00") + ":" + m_SecondsPlaying.ToString("00");
-            m_SpriteBatch.Begin();
-            m_SpriteBatch.DrawString(m_FontArialBlack14, gameTimeStr, new Vector2(( m_ScreenCenter.X ) - m_FontArialBlack14.MeasureString(gameTimeStr).Length() / 2, 0), Microsoft.Xna.Framework.Color.Black);
-            m_SpriteBatch.End();
-        }
+
 
         private void ShowLevelGrid()
         {

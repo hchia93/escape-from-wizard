@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using EscapeFromWizard.Source.GameObject.Dynamic;
+using EscapeFromWizard.Source.Interface;
 using TileEngine;
 using System;
 
@@ -12,7 +13,7 @@ namespace EscapeFromWizard.ViewModel
         FULL_HEART = 11,
         HALF_HEART = 12,
     }
-    public class PlayerHealthViewModel
+    public class PlayerHealthViewModel : IWidget
     {
         private SpriteSheet m_SourceSpriteSheet;
         private Texture2D m_SpriteSheetTexture;

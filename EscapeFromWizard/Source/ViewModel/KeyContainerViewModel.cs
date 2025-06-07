@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using EscapeFromWizard.Source.Interface;
 using System.Collections.Generic;
 
 namespace EscapeFromWizard.ViewModel
@@ -14,10 +15,10 @@ namespace EscapeFromWizard.ViewModel
             return m_KeyTextureIDs[i];
         }
     }
-    public class KeyContainerViewModel
+    public class KeyContainerViewModel : IWidget
     {
         private List<KeyViewModel> m_KeyViewModels;
-        private Vector2 m_BaseWidgetPosition;
+        private Vector2 m_WidgetPosition;
         private Vector2 m_PaddingInPX;
         private int m_WidgetCount = 0;
         private KeyTextureIDResolver m_TextureResolver = new KeyTextureIDResolver();
@@ -25,8 +26,15 @@ namespace EscapeFromWizard.ViewModel
         public KeyContainerViewModel()
         {
             m_KeyViewModels = new List<KeyViewModel>();
-            m_BaseWidgetPosition = Vector2.Zero;
             m_PaddingInPX = new Vector2(32, 0); // Default spacing of 32 pixels between keys
+            SetDefaultPosition();
+        }
+
+        private void SetDefaultPosition()
+        {
+            // Position the key container at 4 tiles from the right edge, on the bottom row
+            Rectangle keyViewRect = GameSettings.CreateTileRectangleAt(GameSettings.m_TilePerRow - 4, GameSettings.m_TilePerColumn - 1);
+            m_WidgetPosition = keyViewRect.Location.ToVector2();
         }
 
         public void AddKeyViewModel(KeyViewModel keyViewModel)
@@ -40,15 +48,15 @@ namespace EscapeFromWizard.ViewModel
             UpdateKeyPositions();
         }
 
-        public void SetBaseWidgetPosition(Vector2 position)
+        public void SetWidgetPosition(Vector2 position)
         {
-            m_BaseWidgetPosition = position;
+            m_WidgetPosition = position;
             UpdateKeyPositions();
         }
 
         private void UpdateKeyPositions()
         {
-            Vector2 currentPosition = m_BaseWidgetPosition;
+            Vector2 currentPosition = m_WidgetPosition;
             foreach (var keyViewModel in m_KeyViewModels)
             {
                 keyViewModel.SetWidgetPosition(currentPosition);

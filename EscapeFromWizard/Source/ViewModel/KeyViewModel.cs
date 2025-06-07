@@ -1,17 +1,18 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using EscapeFromWizard.Source.GameObject.Static;
+using EscapeFromWizard.Source.Interface;
 using System;
 using TileEngine;
 
 namespace EscapeFromWizard.ViewModel
 {
-    public class KeyViewModel
+    public class KeyViewModel : IWidget
     {
         private SpriteSheet m_SourceSpriteSheet;
         private Texture2D m_SpriteSheetTexture;
         private bool m_IsLooted;
-        private Vector2 m_Position;
+        private Vector2 m_WidgetPosition;
         private Rectangle m_PreLootedRectangle;
         private Rectangle m_PostLootedRectangle;
         private Key m_Key;
@@ -20,7 +21,7 @@ namespace EscapeFromWizard.ViewModel
         {
             m_Key = key;
             m_IsLooted = key.IsLooted();
-            m_Position = Vector2.Zero;
+            m_WidgetPosition = Vector2.Zero;
             m_PreLootedRectangle = Rectangle.Empty;
             m_PostLootedRectangle = Rectangle.Empty;
 
@@ -59,7 +60,7 @@ namespace EscapeFromWizard.ViewModel
 
         public void SetWidgetPosition(Vector2 position)
         {
-            m_Position = position;
+            m_WidgetPosition = position;
         }
 
         public void DrawWidget(SpriteBatch spriteBatch)
@@ -68,11 +69,11 @@ namespace EscapeFromWizard.ViewModel
             {
                 if (m_IsLooted)
                 {
-                    spriteBatch.Draw(m_SpriteSheetTexture, m_Position, m_PostLootedRectangle, Microsoft.Xna.Framework.Color.White);  
+                    spriteBatch.Draw(m_SpriteSheetTexture, m_WidgetPosition, m_PostLootedRectangle, Microsoft.Xna.Framework.Color.White);  
                 }
                 else
                 {
-                    spriteBatch.Draw(m_SpriteSheetTexture, m_Position, m_PreLootedRectangle, Microsoft.Xna.Framework.Color.White);
+                    spriteBatch.Draw(m_SpriteSheetTexture, m_WidgetPosition, m_PreLootedRectangle, Microsoft.Xna.Framework.Color.White);
                 }
             }
         }
