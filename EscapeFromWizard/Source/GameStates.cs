@@ -15,14 +15,13 @@ namespace EscapeFromWizard.Source
         private static int numOfStars = 15;
 
         //Instance of each item type
-        private Key[] m_Keys = new Key[GameSettings.NumOfKeys];
-        private Lock[] m_Locks = new Lock[GameSettings.NumOfLocks];
+        private Key[] m_Keys = new Key[GameSettings.m_MaxKeyCount];
+        private Lock[] m_Locks = new Lock[GameSettings.m_MaxLockCount];
         private SpellItem[] m_SpellItems = new SpellItem[numOfTotalItems];
-        private SpellItem[] m_Stars = new SpellItem[numOfStars];
 
         private Level m_LevelReference;
         private Player m_Player;
-        private List<Vector2> m_StaticObjectPositions = new List<Vector2>();
+        private List<Vector2> m_OccupiedPositions = new List<Vector2>();
         private List<Vector2> m_WalkablePositions = new List<Vector2>();
 
         // Game timing and score
@@ -65,14 +64,14 @@ namespace EscapeFromWizard.Source
             Color[] keyLockColors = { Color.RED, Color.YELLOW, Color.GREEN, Color.BLUE };
             Vector2[] keyTilePositions = { new Vector2(5, 3), new Vector2(23, 1), new Vector2(23, 23), new Vector2(1, 23) };
 
-            for (int i = 0; i < GameSettings.NumOfKeys; i++)
+            for (int i = 0; i < GameSettings.m_MaxKeyCount; i++)
             {
                 m_Keys[i] = new Key();
                 m_Keys[i].SetPosition((int) keyTilePositions[i].X, (int) keyTilePositions[i].Y);
                 m_Keys[i].SetColor(keyLockColors[i]);
 
                 //add keyTilePositions into the position list
-                m_StaticObjectPositions.Add(keyTilePositions[i]);
+                m_OccupiedPositions.Add(keyTilePositions[i]);
             }
         }
 
@@ -93,12 +92,12 @@ namespace EscapeFromWizard.Source
                 m_SpellItems[i].SetItemType(spellItemTypes[i]);
 
                 //add itemTilePositions into the position list
-                m_StaticObjectPositions.Add(itemTilePositions[i]);
+                m_OccupiedPositions.Add(itemTilePositions[i]);
             }
 
             //Randomly generate locations for stars
             Random rnd = new Random();
-            m_WalkablePositions = m_WalkablePositions.Except(m_StaticObjectPositions).ToList();
+            m_WalkablePositions = m_WalkablePositions.Except(m_OccupiedPositions).ToList();
             for (int i = 0; i < numOfStars; i++)
             {
                 //Random pick a vector2 position from the walkable paths list
@@ -117,17 +116,16 @@ namespace EscapeFromWizard.Source
             Vector2[] lockTilePositions = { new Vector2(8, 23), new Vector2(14, 6), new Vector2(15, 12), new Vector2(10, 14) };
             Color[] keyLockColors = { Color.RED, Color.YELLOW, Color.GREEN, Color.BLUE };
 
-            for (int i = 0; i < GameSettings.NumOfLocks; i++)
+            for (int i = 0; i < GameSettings.m_MaxLockCount; i++)
             {
                 m_Locks[i] = new Lock();
                 m_Locks[i].SetPosition((int) lockTilePositions[i].X, (int) lockTilePositions[i].Y);
                 m_Locks[i].SetColor(keyLockColors[i]);
 
                 //add lockTilePositions into the position list
-                m_StaticObjectPositions.Add(lockTilePositions[i]);
+                m_OccupiedPositions.Add(lockTilePositions[i]);
             }
         }
-
       
         public Key[] GetKeys()
         {
@@ -144,6 +142,11 @@ namespace EscapeFromWizard.Source
             return m_SpellItems;
         }
 
+        public void Update(GameTime gameTime)
+        {
+            UpdateOverlaps(gameTime);
+            UpdateElapsedTime(gameTime);
+        }
 
         public void UpdateElapsedTime(GameTime gameTime)
         {
@@ -156,11 +159,7 @@ namespace EscapeFromWizard.Source
                 m_SecondsPlaying = 0;
             }
         }
-        public void Update(GameTime gameTime)
-        {
-            UpdateOverlaps(gameTime);
-            UpdateElapsedTime(gameTime);
-        }
+      
         public void UpdateOverlaps(GameTime gameTime)
         {
             foreach (var colorKey in m_Keys)
@@ -207,7 +206,6 @@ namespace EscapeFromWizard.Source
             InitializeGameState();
         }
 
-
         public int GetScore()
         {
             return m_Score;
@@ -218,18 +216,27 @@ namespace EscapeFromWizard.Source
             return m_MinutesPlaying.ToString("00") + ":" + m_SecondsPlaying.ToString("00");
         }
 
-        public void BindPickupSoundCallbacks(System.Action pickupSoundCallback)
+        public void BindItemPickupSoundCallbacks(System.Action callback)
         {
             // Bind pickup sound callback to all keys
             foreach (var key in m_Keys)
             {
-                key.OnPickedUp = pickupSoundCallback;
+                key.OnPickedUp = callback;
             }
 
             // Bind pickup sound callback to all spell items
             foreach (var spellItem in m_SpellItems)
             {
-                spellItem.OnPickedUp = pickupSoundCallback;
+                spellItem.OnPickedUp = callback;
+            }
+        }
+
+        public void BindLockDestroyedSoundCallback(System.Action callback)
+        {
+            // Bind destroy sound callback to all locks
+            foreach (var lockObj in m_Locks)
+            {
+                lockObj.OnDestroyed = callback;
             }
         }
     }

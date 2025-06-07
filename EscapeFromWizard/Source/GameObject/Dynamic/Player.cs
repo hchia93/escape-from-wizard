@@ -142,6 +142,8 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
         // Sound callback functions
         public Action OnHitByMinion { get; set; }
         public Action OnHitByWizard { get; set; }
+        public Action OnEnterOrExitHideState { get; set; }
+        public Action OnHealed { get; set; }
         public event EventHandler<int> OnHPChanged;
 
         public Player()
@@ -173,6 +175,11 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
         public void SetPosition(int column, int row)
         {
             m_Position = new Vector2(column, row);
+        }
+
+        public void SetPosition(Vector2 position)
+        {
+            m_Position = position;
         }
 
         public Vector2 GetPosition()
@@ -213,7 +220,7 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
             }
         }
 
-        public bool IsHiding()
+        public bool GetIsHiding()
         {
             return m_IsHiding;
         }
@@ -276,6 +283,8 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
             if (oldHP != m_HP)
             {
                 OnHPChanged?.Invoke(this, m_HP);
+                // Trigger healing sound callback when player is actually healed
+                OnHealed?.Invoke();
             }
         }
 
@@ -347,17 +356,24 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
 
             if (tileIdCurrentTile == (int)TileType.HIDE_TILE)
             {
-                m_HideDelayTimer += (gameTime.ElapsedGameTime.TotalSeconds * 7);
-                if (m_HideDelayTimer <= 5.0f)
+                m_HideDelayTimer += (gameTime.ElapsedGameTime.TotalSeconds * 7); // ????
+                if (m_HideDelayTimer <= GameSettings.m_MaxHideTime)
                 {
+                    // Trigger hiding sound when player starts hiding
+                    if (!m_IsHiding)
+                    {
+                        OnEnterOrExitHideState?.Invoke();
+                    }
                     m_IsHiding = true;
                 }
                 else
                 {
                     m_HideDelayTimer = 0.0f;
                     m_IsHiding = false;
-                    SetPosition((int)m_PositionBeforeHideout.X, (int)m_PositionBeforeHideout.Y);
-
+                    SetPosition(m_PositionBeforeHideout);
+                    
+                    // Trigger hiding sound when player is reset from hideout
+                    OnEnterOrExitHideState?.Invoke();
                 }
             }
             

@@ -22,11 +22,7 @@ namespace EscapeFromWizard.Source.Audio
         public SoundEffectInstance m_BGMSoundInstance;
         public SoundEffectInstance m_GameOverSoundInstance;
 
-        // Internal timing and "play once" flags
-        private bool m_PlayGameBGMOnlyOnce = true;
-        private bool m_PlayGameOverOnlyOnce = true;
-        private bool m_PlayHideSoundOnce = true;
-        private bool[] m_PlayUnlockDoorOnlyOnce;
+        // Internal timing flags
         private double m_FootStepTimer = 0.0f;
         private const double m_FootStepPlayInterval = 0.2;
 
@@ -42,10 +38,6 @@ namespace EscapeFromWizard.Source.Audio
             m_OnMajorDamageSFX = Content.Load<SoundEffect>(@"Resource\Audio\HitByWizardSFX");
             m_OnMinorDamageSFX = Content.Load<SoundEffect>(@"Resource\Audio\HitByMinionSFX");
             m_OnHealSFX = Content.Load<SoundEffect>(@"Resource\Audio\HPRecoverySFX");
-
-            // Initialize unlock door flags based on number of locks
-            m_PlayUnlockDoorOnlyOnce = new bool[GameSettings.NumOfLocks];
-            ResetPlayOnceFlags();
         }
 
         public void Update(GameTime gameTime)
@@ -54,35 +46,28 @@ namespace EscapeFromWizard.Source.Audio
             m_FootStepTimer += gameTime.ElapsedGameTime.TotalSeconds;
         }
 
-        public void ResetPlayOnceFlags()
-        {
-            m_PlayGameBGMOnlyOnce = true;
-            m_PlayGameOverOnlyOnce = true;
-            m_PlayHideSoundOnce = true;
-            m_FootStepTimer = 0.0f;
-            
-            for (int i = 0; i < m_PlayUnlockDoorOnlyOnce.Length; i++)
-            {
-                m_PlayUnlockDoorOnlyOnce[i] = true;
-            }
-        }
-
         // Smart play methods that handle "play once" logic internally
-        public void TryPlayBGM()
+        public void PlayBGM()
         {
-            if (m_PlayGameBGMOnlyOnce)
+            // Only start BGM if it's not already playing
+            if (m_BGMSoundInstance == null || m_BGMSoundInstance.State != SoundState.Playing)
             {
-                PlayBGM();
-                m_PlayGameBGMOnlyOnce = false;
+                m_BGMSoundInstance = m_BGMSound.CreateInstance();
+                m_BGMSoundInstance.IsLooped = true;
+                m_BGMSoundInstance.Volume = 0.5f;
+                m_BGMSoundInstance.Play();
             }
         }
 
-        public void TryPlayGameOver()
+        public void PlayGameOver()
         {
-            if (m_PlayGameOverOnlyOnce)
+            // Only start game over sound if it's not already playing
+            if (m_GameOverSoundInstance == null || m_GameOverSoundInstance.State != SoundState.Playing)
             {
-                OnGameOver();
-                m_PlayGameOverOnlyOnce = false;
+                m_BGMSoundInstance?.Stop();
+                m_GameOverSoundInstance = m_GameOver.CreateInstance();
+                m_GameOverSoundInstance.IsLooped = true;
+                m_GameOverSoundInstance.Play();
             }
         }
 
@@ -92,23 +77,6 @@ namespace EscapeFromWizard.Source.Audio
             {
                 PlayFootstepSound();
                 m_FootStepTimer = 0.0f;
-                m_PlayHideSoundOnce = true; // Reset button sound flag when moving
-            }
-        }
-        public void TryPlayUnlockDoorSound(int lockIndex)
-        {
-            if (lockIndex >= 0 && lockIndex < m_PlayUnlockDoorOnlyOnce.Length && m_PlayUnlockDoorOnlyOnce[lockIndex])
-            {
-                PlayUnlockDoorSound();
-                m_PlayUnlockDoorOnlyOnce[lockIndex] = false;
-            }
-        }
-        public void TryPlayHidingSound()
-        {
-            if (m_PlayHideSoundOnce)
-            {
-                PlayHidingSound();
-                m_PlayHideSoundOnce = false;
             }
         }
 
@@ -119,54 +87,39 @@ namespace EscapeFromWizard.Source.Audio
             m_GameVictory.Play();
         }
 
-        public void OnGameOver()
-        {
-            m_BGMSoundInstance?.Stop();
-            m_GameOverSoundInstance = m_GameOver.CreateInstance();
-            m_GameOverSoundInstance.IsLooped = true;
-            m_GameOverSoundInstance.Play();
-        }
-
-        public void PlayBGM()
-        {
-            m_BGMSoundInstance = m_BGMSound.CreateInstance();
-            m_BGMSoundInstance.IsLooped = true;
-            m_BGMSoundInstance.Play();
-        }
-
         public void PlayFootstepSound()
         {
-            m_OnMoveSFX.Play(0.15f, 0.0f, 0.0f);
+            m_OnMoveSFX.Play(0.10f, 0.0f, 0.0f);
         }
 
         public void PlayUnlockDoorSound()
         {
-            m_OnUnlockDoorSFX.Play(0.15f, 0.0f, 0.0f);
+            m_OnUnlockDoorSFX.Play(0.5f, 0.0f, 0.0f);
         }
 
-        public void PlayHidingSound()
+        public void PlayHideSound()
         {
-            m_OnHidingSFX.Play(0.30f, 0.0f, 0.0f);
+            m_OnHidingSFX.Play(0.5f, 0.0f, 0.0f);
         }
 
         public void PlayPickUpSound()
         {
-            m_OnPickUpSFX.Play();
+            m_OnPickUpSFX.Play(0.3f, 0.0f, 0.0f);
         }
 
         public void PlayHitByMinionSound()
         {
-            m_OnMinorDamageSFX.Play();
+            m_OnMinorDamageSFX.Play(0.8f, 0.0f, 0.0f);
         }
 
         public void PlayHitByWizardSound()
         {
-            m_OnMajorDamageSFX.Play();
+            m_OnMajorDamageSFX.Play(0.8f, 0.0f, 0.0f);
         }
 
-        public void PlayRecoverHPSound()
+        public void PlayHealSound()
         {
-            m_OnHealSFX.Play();
+            m_OnHealSFX.Play(0.5f, 0.0f, 0.0f);
         }
 
         public void StopGameOverSound()

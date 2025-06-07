@@ -23,6 +23,9 @@ namespace EscapeFromWizard.Source
         public Action OnF1Pressed { get; set; }
         public Action OnF2Pressed { get; set; }
         public Action OnF3Pressed { get; set; }
+        public Action OnF4Pressed { get; set; }
+        public Action OnF5Pressed { get; set; }
+        public Action OnF6Pressed { get; set; }
         public Action OnEscapePressed { get; set; }
         public Action OnEnterPressed { get; set; }
         public Action OnMouseClicked { get; set; }
@@ -59,6 +62,21 @@ namespace EscapeFromWizard.Source
             if (m_CurrentKeyboardState.IsKeyDown(Keys.F3) && !m_PreviousKeyboardState.IsKeyDown(Keys.F3))
             {
                 OnF3Pressed?.Invoke();
+            }
+
+            if (m_CurrentKeyboardState.IsKeyDown(Keys.F4) && !m_PreviousKeyboardState.IsKeyDown(Keys.F4))
+            {
+                OnF4Pressed?.Invoke();
+            }
+
+            if (m_CurrentKeyboardState.IsKeyDown(Keys.F5) && !m_PreviousKeyboardState.IsKeyDown(Keys.F5))
+            {
+                OnF5Pressed?.Invoke();
+            }
+
+            if (m_CurrentKeyboardState.IsKeyDown(Keys.F6) && !m_PreviousKeyboardState.IsKeyDown(Keys.F6))
+            {
+                OnF6Pressed?.Invoke();
             }
 
             if (m_CurrentKeyboardState.IsKeyDown(Keys.Escape) && !m_PreviousKeyboardState.IsKeyDown(Keys.Escape))
@@ -140,6 +158,9 @@ namespace EscapeFromWizard.Source
             OnF1Pressed = null;
             OnF2Pressed = null;
             OnF3Pressed = null;
+            OnF4Pressed = null;
+            OnF5Pressed = null;
+            OnF6Pressed = null;
             OnEscapePressed = null;
             OnEnterPressed = null;
             OnMouseClicked = null;

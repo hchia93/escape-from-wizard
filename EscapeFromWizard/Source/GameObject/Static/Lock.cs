@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using System;
 
 namespace EscapeFromWizard.Source.GameObject.Static
 {
@@ -6,8 +7,11 @@ namespace EscapeFromWizard.Source.GameObject.Static
     {
         Vector2 m_Position;
         private Color m_Color;
-        private bool m_IsUnlocked;
-        private bool m_IsDestroyed;
+        private bool m_IsUnlocked; // After collecting key, door is set to unlocked
+        private bool m_IsDestroyed; // On step thru the unlocked door, the door is destroyed.
+
+        // Sound callback function
+        public Action OnDestroyed { get; set; }
 
         public Lock()
         {
@@ -48,6 +52,11 @@ namespace EscapeFromWizard.Source.GameObject.Static
         //When destroyedFlag is true, the lock will not be drawn in main loop
         public void SetDestroyed(bool isDestroyed)
         {
+            // Trigger destroy sound callback when lock is being destroyed
+            if (isDestroyed && !m_IsDestroyed)
+            {
+                OnDestroyed?.Invoke();
+            }
             m_IsDestroyed = isDestroyed;
         }
 

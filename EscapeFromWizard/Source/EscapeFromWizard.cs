@@ -20,14 +20,6 @@ namespace EscapeFromWizard
         VICTORY_SCREEN
     }
 
-    public struct InputAxisInfo
-    {
-        public int m_YDown;
-        public int m_YUp;
-        public int m_XLeft;
-        public int m_XRight;
-    };
-
     public class EscapeFromWizard : Game
     {
         public GraphicsDeviceManager m_Graphics;
@@ -55,28 +47,22 @@ namespace EscapeFromWizard
         public Level m_Level;
         public Camera2D m_Camera;
         public GameStates m_GameStates;
-        private GameInput m_InputProcessor;
+        private GameInput m_GameInput;
 
         // Game Objects
         public Player m_Player;
         public Wizard m_Wizard;
         public Minion[] m_Minions;
-        public Key[] m_Key;
-        public Lock[] m_DoorLock;
         public SpellItem[] m_SpellItem;
-
-        //Other buffer values
-        public Vector2 m_ScreenCenter;
 
         public Vector2 m_MovementOffset;
 
         //Game State
-        public GameScreen m_CurrentScreen;
-        public bool m_GameIsOver;
+        public GameScreen m_CurrentScreen = GameScreen.HOME_SCREEN;
+        public bool m_GameIsOver = false;
         public bool m_ShowErrorMsg = false;
 
         //Minion Hit
-        public bool m_DecreaseHPOnlyOnce;
         public double m_HitDetectionTimer = GameSettings.HitDetectionTimerDefault;
 
         public SoundManager m_SoundManager;
@@ -96,8 +82,6 @@ namespace EscapeFromWizard
             m_Graphics.ApplyChanges();
 
             m_SpriteBatch = new SpriteBatch(GraphicsDevice);
-
-            m_ScreenCenter = GameSettings.m_ViewportCenter;
 
             m_CurrentScreen = GameScreen.HOME_SCREEN;
 
@@ -123,15 +107,15 @@ namespace EscapeFromWizard
             m_Player.SetPosition(1, 1);
             m_Player.OnHitByMinion = () => m_SoundManager.PlayHitByMinionSound();
             m_Player.OnHitByWizard = () => m_SoundManager.PlayHitByWizardSound();
+            m_Player.OnEnterOrExitHideState = () => m_SoundManager.PlayHideSound();
+            m_Player.OnHealed = () => m_SoundManager.PlayHealSound();
 
             // Key And Locks
             m_GameStates = new GameStates(m_Level, m_Player);
-            m_Key = m_GameStates.GetKeys();
-            m_DoorLock = m_GameStates.GetLocks();
             m_SpellItem = m_GameStates.GetSpellItems();
 
-            m_Player.SetUpLockInformation(m_DoorLock);
-            
+            m_Player.SetUpLockInformation(m_GameStates.GetLocks());
+
             // Sound
             m_SoundManager = new SoundManager(this.Content);
 
@@ -142,7 +126,7 @@ namespace EscapeFromWizard
             m_Wizard.SetTargetPosition(12, 4);
 
             // Minions array
-            m_Minions = new Minion[GameSettings.NumOfMinions];
+            m_Minions = new Minion[GameSettings.m_MaxMinionCount];
             for (int i = 0; i < m_Minions.Length; i++)
             {
                 m_Minions[i] = new Minion();
@@ -156,20 +140,22 @@ namespace EscapeFromWizard
 
             // Sound
             m_SoundManager = new SoundManager(this.Content);
-            m_SoundManager.ResetPlayOnceFlags(); // Reset sound flags when restarting
-            
-            // Bind pickup sound callbacks to all collectible items
-            m_GameStates.BindPickupSoundCallbacks(() => m_SoundManager.PlayPickUpSound());
+
+            m_GameStates.BindItemPickupSoundCallbacks(() => m_SoundManager.PlayPickUpSound());
+            m_GameStates.BindLockDestroyedSoundCallback(() => m_SoundManager.PlayUnlockDoorSound());
 
             // Dispose previous GameInput instance if it exists
-            m_InputProcessor?.Dispose();
+            m_GameInput?.Dispose();
 
             // Initialize GameInput with callback bindings
-            m_InputProcessor = new GameInput();
-            m_InputProcessor.OnF1Pressed = DebugToggleGuideLine;
-            m_InputProcessor.OnF2Pressed = DebugToggleGodMode;
-            m_InputProcessor.OnF3Pressed = DebugUnlockAllLocks;
-            m_InputProcessor.OnEscapePressed = () => this.Exit();
+            m_GameInput = new GameInput();
+            m_GameInput.OnF1Pressed = DebugToggleGodMode;
+            m_GameInput.OnF2Pressed = DebugFullyHealPlayer;
+            m_GameInput.OnF3Pressed = DebugCollectAllKeys;
+            m_GameInput.OnF4Pressed = DebugCollectAllQuestItems;
+            m_GameInput.OnF5Pressed = DebugUnlockAllLocks;
+            m_GameInput.OnF6Pressed = DebugToggleGuideLine;
+            m_GameInput.OnEscapePressed = () => this.Exit();
 
             // CreateViewModels has dependencies to player, hence create last. 
             CreateViewModels();
@@ -211,9 +197,8 @@ namespace EscapeFromWizard
 
         protected override void Update(GameTime gameTime)
         {
-          
             m_GameStates.Update(gameTime);
-            m_InputProcessor.Update(gameTime);
+            m_GameInput.Update(gameTime);
             m_SoundManager.Update(gameTime);
 
             if (m_CurrentScreen == GameScreen.GAME_SCREEN)
@@ -224,7 +209,7 @@ namespace EscapeFromWizard
                 if (!m_GameIsOver)
                 {
                     // Get processed movement input from GameInput
-                    ProcessedInput processedInput = m_InputProcessor.GetProcessedInput();
+                    ProcessedInput processedInput = m_GameInput.GetProcessedInput();
                     m_MovementOffset = processedInput.MovementOffset;
                 }
                 else
@@ -232,7 +217,7 @@ namespace EscapeFromWizard
                     m_MovementOffset = Vector2.Zero;
                 }
 
-                if (m_ShowErrorMsg && ( m_InputProcessor.IsKeyDown(Keys.Enter) || m_InputProcessor.GetCurrentMouseState().LeftButton == ButtonState.Pressed ))
+                if (m_ShowErrorMsg && ( m_GameInput.IsKeyDown(Keys.Enter) || m_GameInput.GetCurrentMouseState().LeftButton == ButtonState.Pressed ))
                 {
                     m_ShowErrorMsg = false;
                 }
@@ -241,7 +226,7 @@ namespace EscapeFromWizard
                 m_Player.UpdateMovement(gameTime);
 
                 m_Wizard.SetPlayerExitFlag(m_Player.IsOnExit());
-                m_Wizard.SetPlayerHideFlag(m_Player.IsHiding());
+                m_Wizard.SetPlayerHideFlag(m_Player.GetIsHiding());
                 m_Wizard.UpdateMovement(gameTime, m_Player.GetPosition());
 
                 for (int i = 0; i < m_Minions.Length; i++)
@@ -251,25 +236,11 @@ namespace EscapeFromWizard
                     m_Minions[i].UpdateMovement(gameTime, m_Player.GetPosition());
                 }
 
-                
-                m_Camera.UpdateMovement(m_Player.GetMovingDirection(), m_Player.GetPosition(), m_ScreenCenter);
+                m_Camera.UpdateMovement(m_Player.GetMovingDirection(), m_Player.GetPosition(), GameSettings.m_ViewportCenter);
 
                 // Smart sound playing with encapsulated timing logic
-                m_SoundManager.TryPlayBGM();
+                m_SoundManager.PlayBGM();
                 m_SoundManager.TryPlayFootstepSound(!m_Player.IsStanding());
-
-                for (int i = 0; i < m_DoorLock.Length; i++)
-                {
-                    if (m_DoorLock[i].IsDestroyed())
-                    {
-                        m_SoundManager.TryPlayUnlockDoorSound(i);
-                    }
-                }
-
-                if (m_Player.IsHiding())
-                {
-                    m_SoundManager.TryPlayHidingSound();
-                }
 
                 if (m_Player.IsOnExit() == true)
                 {
@@ -285,14 +256,14 @@ namespace EscapeFromWizard
                         {
                             if (m_Minions[i].GetPlayerWasHitFlag() == true)
                             {
-                                m_Player.TakeDamage(GameSettings.MinionHitDamage, DamageSource.Minion);
+                                m_Player.TakeDamage(GameSettings.m_MinionHitDamage, DamageSource.Minion);
                                 m_Minions[i].SetPlayerWasHitFlag(false);
                             }
                         }
 
                         if (m_Wizard.GetPlayerWasHitFlag() == true)
                         {
-                            m_Player.TakeDamage(GameSettings.WizartHitDamage, DamageSource.Wizard);
+                            m_Player.TakeDamage(GameSettings.m_WizardHitDamage, DamageSource.Wizard);
                             m_Wizard.SetPlayerWasHitFlag(false);
                         }
                     }
@@ -309,14 +280,14 @@ namespace EscapeFromWizard
             }
             else if (m_CurrentScreen == GameScreen.HOME_SCREEN)
             {
-                if (( m_InputProcessor.IsKeyDown(Keys.Enter) || m_InputProcessor.GetCurrentMouseState().LeftButton == ButtonState.Pressed ) && !m_InputProcessor.GetPreviousKeyboardState().IsKeyDown(Keys.Enter))
+                if (( m_GameInput.IsKeyDown(Keys.Enter) || m_GameInput.GetCurrentMouseState().LeftButton == ButtonState.Pressed ) && !m_GameInput.GetPreviousKeyboardState().IsKeyDown(Keys.Enter))
                 {
                     m_CurrentScreen = GameScreen.GAME_SCREEN;
                 }
             }
             else if (m_CurrentScreen == GameScreen.GAME_OVER_SCREEN)
             {
-                if (m_InputProcessor.IsKeyDown(Keys.Enter) || m_InputProcessor.GetCurrentMouseState().LeftButton == ButtonState.Pressed)
+                if (m_GameInput.IsKeyDown(Keys.Enter) || m_GameInput.GetCurrentMouseState().LeftButton == ButtonState.Pressed)
                 {
                     m_SoundManager.StopGameOverSound();
                     Initialize();
@@ -325,7 +296,7 @@ namespace EscapeFromWizard
             }
             else if (m_CurrentScreen == GameScreen.VICTORY_SCREEN)
             {
-                if (m_InputProcessor.IsKeyDown(Keys.Enter) || m_InputProcessor.GetCurrentMouseState().LeftButton == ButtonState.Pressed)
+                if (m_GameInput.IsKeyDown(Keys.Enter) || m_GameInput.GetCurrentMouseState().LeftButton == ButtonState.Pressed)
                 {
                     Initialize();
                     m_CurrentScreen = GameScreen.HOME_SCREEN;
@@ -401,9 +372,9 @@ namespace EscapeFromWizard
             m_KeyContainerViewModel = new KeyContainerViewModel();
 
             // Initialize key view models with HUD textures
-            for (int i = 0; i < m_Key.Length; i++)
+            foreach (var key in m_GameStates.GetKeys())
             {
-                KeyViewModel keyViewModel = new KeyViewModel(m_Key[i]);
+                KeyViewModel keyViewModel = new KeyViewModel(key);
                 keyViewModel.SetSourceSpriteSheet(m_HUDSpriteSheet);
                 m_KeyContainerViewModel.AddKeyViewModel(keyViewModel);
             }
@@ -424,7 +395,7 @@ namespace EscapeFromWizard
             // Initialize Elapsed Timer View Model
             m_ElapsedTimerViewModel = new ElapsedTimerViewModel(m_GameStates);
             m_ElapsedTimerViewModel.SetFont(m_FontArialBlack14);
-            m_ElapsedTimerViewModel.SetWidgetPosition(new Vector2(m_ScreenCenter.X, 0));
+            m_ElapsedTimerViewModel.SetWidgetPosition(new Vector2(GameSettings.m_ViewportCenter.X, 0));
         }
 
         private void GameOver(GameTime gameTime)
@@ -437,13 +408,13 @@ namespace EscapeFromWizard
                 minion.SetBehavior(EBehaviorState.STOP);
             }
 
-            m_SoundManager.TryPlayGameOver();
+            m_SoundManager.PlayGameOver();
         }
 
         private void DrawQuestIncompleteMessage()
         {
             m_SpriteBatch.Begin();
-            m_SpriteBatch.Draw(m_QuestIncompleteMessage, new Vector2(50, m_ScreenCenter.Y), Microsoft.Xna.Framework.Color.White);
+            m_SpriteBatch.Draw(m_QuestIncompleteMessage, new Vector2(50, GameSettings.m_ViewportCenter.Y), Microsoft.Xna.Framework.Color.White);
             m_SpriteBatch.End();
         }
         private void DrawScreenOverlay(Texture2D screenBackground)
@@ -456,10 +427,9 @@ namespace EscapeFromWizard
         {
             m_SpriteBatch.Begin();
             string scoreInfo = "Your score is " + m_GameStates.GetScore().ToString();
-            m_SpriteBatch.DrawString(m_FontArialBlack14, scoreInfo, new Vector2(m_ScreenCenter.X - m_FontArialBlack14.MeasureString(scoreInfo).Length() / 2, m_ScreenCenter.Y - 50), Microsoft.Xna.Framework.Color.Black);
+            m_SpriteBatch.DrawString(m_FontArialBlack14, scoreInfo, new Vector2(GameSettings.m_ViewportCenter.X - m_FontArialBlack14.MeasureString(scoreInfo).Length() / 2, GameSettings.m_ViewportCenter.Y - 50), Microsoft.Xna.Framework.Color.Black);
             m_SpriteBatch.End();
         }
-
         private void DrawLevel()
         {
             m_SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, m_Camera.TransformMatrix());
@@ -510,7 +480,6 @@ namespace EscapeFromWizard
             m_SpriteBatch.Draw(m_ObjectSpriteSheet.m_Texture, wizardRect, m_ObjectSpriteSheet.GetSourceRectangle(14), Microsoft.Xna.Framework.Color.White);
             m_SpriteBatch.End();
         }
-
         private void DrawMinions()
         {
             for (int i = 0; i < m_Minions.Length; i++)
@@ -522,7 +491,6 @@ namespace EscapeFromWizard
                 m_SpriteBatch.End();
             }
         }
-
         private void DrawSpellItem()
         {
             m_SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, m_Camera.TransformMatrix());
@@ -543,32 +511,30 @@ namespace EscapeFromWizard
         {
             m_SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, m_Camera.TransformMatrix());
 
-            for (int i = 0; i < m_Key.Length; i++)
+            foreach (var key in m_GameStates.GetKeys())
             {
-                if (!m_Key[i].IsLooted())
+                if (!key.IsLooted())
                 {
-                    Rectangle keyRect = GameSettings.CreateTileRectangleAt(m_Key[i].GetPosition());
-                    m_SpriteBatch.Draw(m_ObjectSpriteSheet.m_Texture, keyRect, m_ObjectSpriteSheet.GetSourceRectangle((int) m_Key[i].GetColor()), Microsoft.Xna.Framework.Color.White);
+                    Rectangle keyRect = GameSettings.CreateTileRectangleAt(key.GetPosition());
+                    m_SpriteBatch.Draw(m_ObjectSpriteSheet.m_Texture, keyRect, m_ObjectSpriteSheet.GetSourceRectangle((int) key.GetColor()), Microsoft.Xna.Framework.Color.White);
                 }
             }
             m_SpriteBatch.End();
         }
-
         private void DrawLock()
         {
             m_SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, m_Camera.TransformMatrix());
-            for (int i = 0; i < m_DoorLock.Length; i++)
+            foreach (var doorlock in m_GameStates.GetLocks())
             {
-                if (!m_DoorLock[i].IsDestroyed())
+                if (!doorlock.IsDestroyed())
                 {
-                    Rectangle lockRect = GameSettings.CreateTileRectangleAt(m_DoorLock[i].GetPosition());
-                    m_SpriteBatch.Draw(m_ObjectSpriteSheet.m_Texture, lockRect, m_ObjectSpriteSheet.GetSourceRectangle((int) ( m_DoorLock[i].GetColor() ) + 15), Microsoft.Xna.Framework.Color.White);
+                    Rectangle lockRect = GameSettings.CreateTileRectangleAt(doorlock.GetPosition());
+                    m_SpriteBatch.Draw(m_ObjectSpriteSheet.m_Texture, lockRect, m_ObjectSpriteSheet.GetSourceRectangle((int) ( doorlock.GetColor() ) + 15), Microsoft.Xna.Framework.Color.White);
                 }
             }
 
             m_SpriteBatch.End();
         }
-
         private void DrawWidget()
         {
             m_SpriteBatch.Begin();
@@ -578,7 +544,6 @@ namespace EscapeFromWizard
             m_ElapsedTimerViewModel.DrawWidget(m_SpriteBatch);
             m_SpriteBatch.End();
         }
-
         private void DrawLevelGridInfo()
         {
             m_SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, m_Camera.TransformMatrix());
@@ -628,10 +593,50 @@ namespace EscapeFromWizard
 
         private void DebugUnlockAllLocks()
         {
-            for (int i = 0; i < m_DoorLock.Length; i++)
+            foreach (var doorlock in m_GameStates.GetLocks()) 
             {
-                m_DoorLock[i].SetDestroyed(true);
-                m_DoorLock[i].SetUnlocked(true);
+                doorlock.SetDestroyed(true);
+                doorlock.SetUnlocked(true);
+            }
+        }
+        private void DebugCollectAllKeys()
+        {
+            foreach (var key in m_GameStates.GetKeys())
+            {
+                if (!key.IsLooted())
+                {
+                    m_Player.CollectKey(key);
+                    key.SetLooted(true);
+
+                    foreach (var doorLock in m_GameStates.GetLocks())
+                    {
+                        if (doorLock.GetColor() == key.GetColor())
+                        {
+                            doorLock.SetUnlocked(true);
+                        }
+                    }
+                }
+            }
+        }
+
+        private void DebugFullyHealPlayer()
+        {
+            int healAmount = m_Player.GetMaxHP() - m_Player.GetHP();
+            if (healAmount > 0)
+            {
+                m_Player.Heal(healAmount);
+            }
+        }
+
+        private void DebugCollectAllQuestItems()
+        {
+            foreach (var spellItem in m_GameStates.GetSpellItems())
+            {
+                if (spellItem.GetItemType() == SpellItems.QUEST_POTION && !spellItem.GetIsLooted())
+                {
+                    m_Player.LootQuestItem();
+                    spellItem.SetLooted(true);
+                }
             }
         }
 
@@ -640,7 +645,7 @@ namespace EscapeFromWizard
             if (disposing)
             {
                 // Dispose GameInput to clean up callbacks
-                m_InputProcessor?.Dispose();
+                m_GameInput?.Dispose();
             }
             base.Dispose(disposing);
         }

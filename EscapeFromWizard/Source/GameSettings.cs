@@ -13,13 +13,16 @@ namespace EscapeFromWizard
         public const int m_TilePerColumn = 18; 
         
         // Game Object Counts
-        public const int NumOfKeys = 4;
-        public const int NumOfLocks = 4;
-        public const int NumOfMinions = 5;
-        
+        public const int m_MaxKeyCount = 4;
+        public const int m_MaxLockCount = 4;
+        public const int m_MaxMinionCount = 5;
+
+        public const int m_MaxHideTime = 5;
+
         // Combat Settings
-        public const int MinionHitDamage = 1;
-        public const int WizartHitDamage = 3;
+        public const int m_MinionHitDamage = 1;
+        public const int m_WizardHitDamage = 3;
+       
         public const double HitDetectionTimerDefault = 5.0;
         
         // Viewport Dimensions
@@ -28,7 +31,7 @@ namespace EscapeFromWizard
         public static Vector2 m_ViewportCenter => new Vector2(m_ViewportSize.X / 2, m_ViewportSize.Y / 2);
         
         // Minion Initial Patrol Data
-        public static readonly int[][] MinionsInitialPatrolData = new int[NumOfMinions][]
+        public static readonly int[][] MinionsInitialPatrolData = new int[m_MaxMinionCount][]
         {
             new int[] {4, 1, 5, 6},
             new int[] {4, 15, 5, 6},
@@ -69,7 +72,6 @@ namespace EscapeFromWizard
         {
             return TileToPixelPosition((int)tilePosition.X, (int)tilePosition.Y);
         }
-        
         public static Vector2 PixelToTilePosition(Vector2 pixelPosition)
         {
             return new Vector2(
