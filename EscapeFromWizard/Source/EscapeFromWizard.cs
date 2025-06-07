@@ -51,14 +51,8 @@ namespace EscapeFromWizard
         public SpriteSheet m_HUDSpriteSheet;
         public SpriteSheet m_MiscSpriteSheet;
 
-        // Sound State
-        public bool m_PlayGameBGMOnlyOnce = true;
-        public bool m_PlayGameOverOnlyOnce = true;
-        public bool m_PlayButtonOnlyOnce = true;
-        public bool m_PlayPickUpOnlyOnce = true;
-        public bool[] m_PlayUnlockDoorOnlyOnce = new bool[] { true, true, true, true };
+        // Sound State (moved to SoundManager)
         public bool m_PlayerPickUpSomething = false;
-        public double m_FootStepTimer = 0.0f;
 
         // Inputs
         public KeyboardState m_InputKey;
@@ -171,13 +165,8 @@ namespace EscapeFromWizard
 
             // Sound
             m_SoundManager = new SoundManager(this.Content);
-            m_PlayGameBGMOnlyOnce = true;
-            m_PlayGameOverOnlyOnce = true;
-            m_PlayButtonOnlyOnce = true;
-            m_PlayPickUpOnlyOnce = true;
-            m_PlayUnlockDoorOnlyOnce = new bool[GameSettings.NumOfLocks] { true, true, true, true };
+            m_SoundManager.ResetPlayOnceFlags(); // Reset sound flags when restarting
             m_PlayerPickUpSomething = false;
-            m_FootStepTimer = 0.0f;
 
             // Dispose previous GameInput instance if it exists
             m_InputProcessor?.Dispose();
@@ -233,6 +222,7 @@ namespace EscapeFromWizard
             // Exit();
             m_GameStates.Update(gameTime);
             m_InputProcessor.Update(gameTime);
+            m_SoundManager.Update(gameTime);
 
             // Get processed input for backward compatibility
             m_InputKey = m_InputProcessor.GetCurrentKeyboardState();
@@ -240,7 +230,6 @@ namespace EscapeFromWizard
 
             if (m_CurrentScreen == GameScreen.GAME_SCREEN)
             {
-                m_FootStepTimer += gameTime.ElapsedGameTime.TotalSeconds;
                 m_HitDetectionTimer += gameTime.ElapsedGameTime.TotalSeconds;
 
                 //No longer listen user input if game is over
@@ -277,33 +266,21 @@ namespace EscapeFromWizard
                 
                 m_Camera.UpdateMovement(m_Player.GetMovingDirection(), m_Player.GetPosition(), m_ScreenCenter);
 
-                if (m_PlayGameBGMOnlyOnce)
-                {
-                    m_SoundManager.PlayBGM();
-                    m_PlayGameBGMOnlyOnce = false;
-                }
-
-                //Delay Playing Interval, 0.2 secons
-                if (!m_Player.IsStanding() && m_FootStepTimer > 0.2f)
-                {
-                    m_SoundManager.PlayFootstepSound();
-                    m_FootStepTimer = 0.0f;
-                    m_PlayButtonOnlyOnce = true;
-                }
+                // Smart sound playing with encapsulated timing logic
+                m_SoundManager.TryPlayBGM();
+                m_SoundManager.TryPlayFootstepSound(!m_Player.IsStanding());
 
                 for (int i = 0; i < m_DoorLock.Length; i++)
                 {
-                    if (m_DoorLock[i].IsDestroyed() && m_PlayUnlockDoorOnlyOnce[i])
+                    if (m_DoorLock[i].IsDestroyed())
                     {
-                        m_SoundManager.PlayUnlockDoorSound();
-                        m_PlayUnlockDoorOnlyOnce[i] = false;
+                        m_SoundManager.TryPlayUnlockDoorSound(i);
                     }
                 }
 
-                if (m_Player.IsHiding() == true && m_PlayButtonOnlyOnce)
+                if (m_Player.IsHiding())
                 {
-                    m_SoundManager.PlayHidingSound();
-                    m_PlayButtonOnlyOnce = false;
+                    m_SoundManager.TryPlayHidingSound();
                 }
 
                 if (m_Player.IsLootedSomething())
@@ -480,11 +457,7 @@ namespace EscapeFromWizard
                 minion.SetBehavior(EBehaviorState.STOP);
             }
 
-            if (m_PlayGameOverOnlyOnce)
-            {
-                m_SoundManager.OnGameOver();
-                m_PlayGameOverOnlyOnce = false;
-            }
+            m_SoundManager.TryPlayGameOver();
         }
 
         private void DrawQuestIncompleteMessage()
