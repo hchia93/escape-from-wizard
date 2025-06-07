@@ -24,6 +24,7 @@ namespace EscapeFromWizard
         public const int m_WizardHitDamage = 3;
        
         public const double HitDetectionTimerDefault = 5.0;
+        public const double HitDetectionInterval = 1.0;
         
         // Viewport Dimensions
         public static Vector2 m_ViewportSize => new Vector2(m_TileWidthInPx * m_TilePerRow, m_TileHeightInPx * m_TilePerColumn);

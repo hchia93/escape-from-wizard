@@ -128,7 +128,7 @@ namespace EscapeFromWizard
                 m_Minions[i] = new Minion();
                 m_Minions[i].SetMinionId(i);
                 m_Minions[i].SetLevel(m_Level);
-                m_Minions[i].SetPatrolStartPos(GameSettings.MinionsInitialPatrolData[i]);
+                m_Minions[i].SetPatrolConfig(PatrolConfig.FromArray(GameSettings.MinionsInitialPatrolData[i]));
                 m_Minions[i].SetTargetPosition(GameSettings.MinionsInitialPatrolData[i][0], GameSettings.MinionsInitialPatrolData[i][1]);
             }
 
@@ -178,24 +178,24 @@ namespace EscapeFromWizard
         protected override void LoadContent()
         {
             m_TileSpriteSheet = new SpriteSheet();
-            m_TileSpriteSheet.m_Texture = Content.Load<Texture2D>(@"Resource\Image\32PixelTiles\32Pixel_SpriteSheet_Tiles");
+            m_TileSpriteSheet.m_Texture = Content.Load<Texture2D>(ResourcePaths.Images.TileSpriteSheet);
 
             m_ObjectSpriteSheet = new SpriteSheet();
-            m_ObjectSpriteSheet.m_Texture = Content.Load<Texture2D>(@"Resource\Image\32PixelObjects\32Pixel_SpriteSheet_Object2");
+            m_ObjectSpriteSheet.m_Texture = Content.Load<Texture2D>(ResourcePaths.Images.ObjectSpriteSheet);
 
             m_HUDSpriteSheet = new SpriteSheet();
-            m_HUDSpriteSheet.m_Texture = Content.Load<Texture2D>(@"Resource\Image\32PixelHUD\32Pixel_SpriteSheet_HUD");
+            m_HUDSpriteSheet.m_Texture = Content.Load<Texture2D>(ResourcePaths.Images.HUDSpriteSheet);
 
             m_Texture1px = new Texture2D(GraphicsDevice, 1, 1);
             m_Texture1px.SetData(new Microsoft.Xna.Framework.Color[] { Microsoft.Xna.Framework.Color.White });
 
-            m_Background = Content.Load<Texture2D>(@"Resource\Image\floor_256px");
-            m_HomeScreenOverlay = Content.Load<Texture2D>(@"Resource\Image\home_fit");
-            m_GameOverScreenOverlay = Content.Load<Texture2D>(@"Resource\Image\gameover_fit");
-            m_VictoryScreenOverlay = Content.Load<Texture2D>(@"Resource\Image\youwon_fit");
-            m_QuestIncompleteMessage = Content.Load<Texture2D>(@"Resource\Image\questnotcompleted");
+            m_Background = Content.Load<Texture2D>(ResourcePaths.Images.Background);
+            m_HomeScreenOverlay = Content.Load<Texture2D>(ResourcePaths.Images.HomeScreen);
+            m_GameOverScreenOverlay = Content.Load<Texture2D>(ResourcePaths.Images.GameOverScreen);
+            m_VictoryScreenOverlay = Content.Load<Texture2D>(ResourcePaths.Images.VictoryScreen);
+            m_QuestIncompleteMessage = Content.Load<Texture2D>(ResourcePaths.Images.QuestIncompleteMessage);
 
-            m_FontArialBlack14 = Content.Load<SpriteFont>(@"Resource\Font\Arial_Black_14pxl");
+            m_FontArialBlack14 = Content.Load<SpriteFont>(ResourcePaths.Fonts.ArialBlack14);
         }
 
         protected override void Update(GameTime gameTime)
@@ -220,7 +220,7 @@ namespace EscapeFromWizard
                     m_MovementOffset = Vector2.Zero;
                 }
 
-                if (m_ShowErrorMsg && ( m_GameInput.IsKeyDown(Keys.Enter) || m_GameInput.GetCurrentMouseState().LeftButton == ButtonState.Pressed ))
+                if (m_ShowErrorMsg && IsConfirmInputPressed())
                 {
                     m_ShowErrorMsg = false;
                 }
@@ -246,29 +246,7 @@ namespace EscapeFromWizard
                     GameFinished(gameTime);
                 }
 
-                //If Player hit Minions
-                if (m_HitDetectionTimer > 1.0f)
-                {
-                    if (!m_IsGodMode)
-                    {
-                        for (int i = 0; i < m_Minions.Length; i++)
-                        {
-                            if (m_Minions[i].GetPlayerWasHitFlag() == true)
-                            {
-                                m_Player.TakeDamage(GameSettings.m_MinionHitDamage, DamageSource.Minion);
-                                m_Minions[i].SetPlayerWasHitFlag(false);
-                            }
-                        }
-
-                        if (m_Wizard.GetPlayerWasHitFlag() == true)
-                        {
-                            m_Player.TakeDamage(GameSettings.m_WizardHitDamage, DamageSource.Wizard);
-                            m_Wizard.SetPlayerWasHitFlag(false);
-                        }
-                    }
-
-                    m_HitDetectionTimer = 0.0f;
-                }
+                ProcessHitDetection();
 
                 if (m_Player.GetHP() <= 0)
                 {
@@ -279,14 +257,14 @@ namespace EscapeFromWizard
             }
             else if (m_CurrentScreen == GameScreen.HOME_SCREEN)
             {
-                if (( m_GameInput.IsKeyDown(Keys.Enter) || m_GameInput.GetCurrentMouseState().LeftButton == ButtonState.Pressed ) && !m_GameInput.GetPreviousKeyboardState().IsKeyDown(Keys.Enter))
+                if (IsConfirmInputJustPressed())
                 {
                     m_CurrentScreen = GameScreen.GAME_SCREEN;
                 }
             }
             else if (m_CurrentScreen == GameScreen.GAME_OVER_SCREEN)
             {
-                if (m_GameInput.IsKeyDown(Keys.Enter) || m_GameInput.GetCurrentMouseState().LeftButton == ButtonState.Pressed)
+                if (IsConfirmInputPressed())
                 {
                     m_SoundManager.StopGameOverSound();
                     Initialize();
@@ -295,7 +273,7 @@ namespace EscapeFromWizard
             }
             else if (m_CurrentScreen == GameScreen.VICTORY_SCREEN)
             {
-                if (m_GameInput.IsKeyDown(Keys.Enter) || m_GameInput.GetCurrentMouseState().LeftButton == ButtonState.Pressed)
+                if (IsConfirmInputPressed())
                 {
                     Initialize();
                     m_CurrentScreen = GameScreen.HOME_SCREEN;
@@ -396,6 +374,44 @@ namespace EscapeFromWizard
             m_ElapsedTimerViewModel = new ElapsedTimerViewModel(m_GameStates);
             m_ElapsedTimerViewModel.SetFont(m_FontArialBlack14);
             m_ElapsedTimerViewModel.SetWidgetPosition(new Vector2(GameSettings.m_ViewportCenter.X, 0));
+        }
+
+        private void ProcessHitDetection()
+        {
+            if (m_HitDetectionTimer > GameSettings.HitDetectionInterval)
+            {
+                if (!m_IsGodMode)
+                {
+                    // Check minion hits
+                    for (int i = 0; i < m_Minions.Length; i++)
+                    {
+                        if (m_Minions[i].GetPlayerWasHitFlag() == true)
+                        {
+                            m_Player.TakeDamage(GameSettings.m_MinionHitDamage, DamageSource.Minion);
+                            m_Minions[i].SetPlayerWasHitFlag(false);
+                        }
+                    }
+
+                    // Check wizard hit
+                    if (m_Wizard.GetPlayerWasHitFlag() == true)
+                    {
+                        m_Player.TakeDamage(GameSettings.m_WizardHitDamage, DamageSource.Wizard);
+                        m_Wizard.SetPlayerWasHitFlag(false);
+                    }
+                }
+
+                m_HitDetectionTimer = 0.0f;
+            }
+        }
+
+        private bool IsConfirmInputPressed()
+        {
+            return m_GameInput.IsKeyDown(Keys.Enter) || m_GameInput.GetCurrentMouseState().LeftButton == ButtonState.Pressed;
+        }
+
+        private bool IsConfirmInputJustPressed()
+        {
+            return IsConfirmInputPressed() && !m_GameInput.GetPreviousKeyboardState().IsKeyDown(Keys.Enter);
         }
 
         private void GameOver(GameTime gameTime)

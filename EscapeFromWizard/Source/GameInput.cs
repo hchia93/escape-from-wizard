@@ -49,45 +49,14 @@ namespace EscapeFromWizard.Source
             m_CurrentMouseState = Mouse.GetState();
 
             // Process callback bindings (only trigger on key press, not hold)
-            if (m_CurrentKeyboardState.IsKeyDown(Keys.F1) && !m_PreviousKeyboardState.IsKeyDown(Keys.F1))
-            {
-                OnF1Pressed?.Invoke();
-            }
-
-            if (m_CurrentKeyboardState.IsKeyDown(Keys.F2) && !m_PreviousKeyboardState.IsKeyDown(Keys.F2))
-            {
-                OnF2Pressed?.Invoke();
-            }
-
-            if (m_CurrentKeyboardState.IsKeyDown(Keys.F3) && !m_PreviousKeyboardState.IsKeyDown(Keys.F3))
-            {
-                OnF3Pressed?.Invoke();
-            }
-
-            if (m_CurrentKeyboardState.IsKeyDown(Keys.F4) && !m_PreviousKeyboardState.IsKeyDown(Keys.F4))
-            {
-                OnF4Pressed?.Invoke();
-            }
-
-            if (m_CurrentKeyboardState.IsKeyDown(Keys.F5) && !m_PreviousKeyboardState.IsKeyDown(Keys.F5))
-            {
-                OnF5Pressed?.Invoke();
-            }
-
-            if (m_CurrentKeyboardState.IsKeyDown(Keys.F6) && !m_PreviousKeyboardState.IsKeyDown(Keys.F6))
-            {
-                OnF6Pressed?.Invoke();
-            }
-
-            if (m_CurrentKeyboardState.IsKeyDown(Keys.Escape) && !m_PreviousKeyboardState.IsKeyDown(Keys.Escape))
-            {
-                OnEscapePressed?.Invoke();
-            }
-
-            if (m_CurrentKeyboardState.IsKeyDown(Keys.Enter) && !m_PreviousKeyboardState.IsKeyDown(Keys.Enter))
-            {
-                OnEnterPressed?.Invoke();
-            }
+            if (IsKeyPressed(Keys.F1)) OnF1Pressed?.Invoke();
+            if (IsKeyPressed(Keys.F2)) OnF2Pressed?.Invoke();
+            if (IsKeyPressed(Keys.F3)) OnF3Pressed?.Invoke();
+            if (IsKeyPressed(Keys.F4)) OnF4Pressed?.Invoke();
+            if (IsKeyPressed(Keys.F5)) OnF5Pressed?.Invoke();
+            if (IsKeyPressed(Keys.F6)) OnF6Pressed?.Invoke();
+            if (IsKeyPressed(Keys.Escape)) OnEscapePressed?.Invoke();
+            if (IsKeyPressed(Keys.Enter)) OnEnterPressed?.Invoke();
 
             if (m_CurrentMouseState.LeftButton == ButtonState.Pressed && m_PreviousMouseState.LeftButton == ButtonState.Released)
             {

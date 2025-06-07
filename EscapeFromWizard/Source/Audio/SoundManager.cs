@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Content;
+using EscapeFromWizard.Source;
 
 namespace EscapeFromWizard.Source.Audio
 {
@@ -28,16 +29,16 @@ namespace EscapeFromWizard.Source.Audio
 
         public SoundManager(ContentManager Content)
         {
-            m_OnHidingSFX = Content.Load<SoundEffect>(@"Resource\Audio\ButtonSFX");
-            m_OnMoveSFX = Content.Load<SoundEffect>(@"Resource\Audio\FootstepSFX");
-            m_BGMSound = Content.Load<SoundEffect>(@"Resource\Audio\Tombi_Dwarf_Forest_BGM");
-            m_GameOver = Content.Load<SoundEffect>(@"Resource\Audio\GameOverSFX");
-            m_GameVictory = Content.Load<SoundEffect>(@"Resource\Audio\Winning");
-            m_OnPickUpSFX = Content.Load<SoundEffect>(@"Resource\Audio\GetItemSFX");
-            m_OnUnlockDoorSFX = Content.Load<SoundEffect>(@"Resource\Audio\UnlockDoorSFX");
-            m_OnMajorDamageSFX = Content.Load<SoundEffect>(@"Resource\Audio\HitByWizardSFX");
-            m_OnMinorDamageSFX = Content.Load<SoundEffect>(@"Resource\Audio\HitByMinionSFX");
-            m_OnHealSFX = Content.Load<SoundEffect>(@"Resource\Audio\HPRecoverySFX");
+            m_OnHidingSFX = Content.Load<SoundEffect>(ResourcePaths.Audio.ButtonSFX);
+            m_OnMoveSFX = Content.Load<SoundEffect>(ResourcePaths.Audio.FootstepSFX);
+            m_BGMSound = Content.Load<SoundEffect>(ResourcePaths.Audio.BGM);
+            m_GameOver = Content.Load<SoundEffect>(ResourcePaths.Audio.GameOverSFX);
+            m_GameVictory = Content.Load<SoundEffect>(ResourcePaths.Audio.VictorySFX);
+            m_OnPickUpSFX = Content.Load<SoundEffect>(ResourcePaths.Audio.PickUpSFX);
+            m_OnUnlockDoorSFX = Content.Load<SoundEffect>(ResourcePaths.Audio.UnlockDoorSFX);
+            m_OnMajorDamageSFX = Content.Load<SoundEffect>(ResourcePaths.Audio.HitByWizardSFX);
+            m_OnMinorDamageSFX = Content.Load<SoundEffect>(ResourcePaths.Audio.HitByMinionSFX);
+            m_OnHealSFX = Content.Load<SoundEffect>(ResourcePaths.Audio.HealSFX);
         }
 
         public void Update(GameTime gameTime)

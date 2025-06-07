@@ -38,19 +38,11 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
 
         }
 
-        public void SetPatrolStartPos(int startPosX, int startPosY, int coverageX, int coverageY)
+        public void SetPatrolConfig(PatrolConfig config)
         {
-            m_PatrolStartPos = new Vector2(startPosX, startPosY);
-            m_CoverageX = coverageX;
-            m_CoverageY = coverageY;
-        }
-
-        public void SetPatrolStartPos(int[] patrolData)
-        {
-            m_PatrolStartPos = new Vector2(patrolData[0], patrolData[1]);
-            m_CoverageX = patrolData[2];
-            m_CoverageY = patrolData[3];
-
+            m_PatrolStartPos = config.m_StartPosition;
+            m_CoverageX = config.m_CoverageX;
+            m_CoverageY = config.m_CoverageY;
         }
 
         public void SetMinionId(int minionId)
