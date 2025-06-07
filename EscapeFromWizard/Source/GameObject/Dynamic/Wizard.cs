@@ -75,85 +75,115 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
             m_PathListIterator = 0;
         }
 
+        /* 
+         *  Return True if the Path was found, False if there is no path.
+         *  This function manipulates the m_PathList information and its value.
+         */
         private bool AStarAlgorithm(Vector2 startPosition, Vector2 endPosition)
         {
-            /* 
-             *  Return True as if the Path was found, False as if there is a dead end.
-             *  This function Manipulate the m_path information and its value.
-             */
-
-            //Reject Noob Request that request wrong location.
+            // Validate destination
             if (!IsDestinationValid(endPosition))
             {
                 return false;
             }
-             
 
-            //Node Pos, Parent Pos, f_cost
-            List<Tuple<Vector2,Vector2, int>> openList = new List<Tuple<Vector2,Vector2,int>>();
-            List<Tuple<Vector2, Vector2, int>> closeList = new List<Tuple<Vector2, Vector2, int>>();
+            // If already at destination, no pathfinding needed
+            if (startPosition == endPosition)
+            {
+                return true;
+            }
 
-            //Cost Set Up
+            // Node structure: Position, Parent Position, F-Cost
+            List<Tuple<Vector2, Vector2, int>> openList = new List<Tuple<Vector2, Vector2, int>>();
+            List<Tuple<Vector2, Vector2, int>> closedList = new List<Tuple<Vector2, Vector2, int>>();
+
+            // Initialize starting node
             int hCost = ComputeDistance(startPosition, endPosition);
             int gCost = 0;
-            int fScore = 0;
-            fScore = gCost + hCost;
+            int fScore = gCost + hCost;
 
-            //SetUp Current Pos and Parent Pos
-            Vector2 currentPos = startPosition;
-            Vector2 parentPos = startPosition;
-            Vector2 nextPos = startPosition;
+            // Add start node to open list
+            openList.Add(new Tuple<Vector2, Vector2, int>(startPosition, startPosition, fScore));
 
-            //Index SetUp
-            int minima = 999;
-            int mindex = 0;
-            
-            //Add Start To OpenList
-            openList.Add(new Tuple<Vector2, Vector2, int>(currentPos, parentPos, fScore));
+            // Safety counter to prevent infinite loops
+            int maxIterations = 1000;
+            int iterations = 0;
 
-            //While Not Empty
-            while(openList.Count != 0) 
+            // Main A* loop
+            while (openList.Count > 0 && iterations < maxIterations)
             {
-                
-                //Find the Minimum Index
-                GetMinFScoreObject(ref openList, ref minima, ref mindex);
-               
-                //Update CurrentPos
-                currentPos = openList[mindex].Item1;
+                iterations++;
 
-                //Add Min Into Close List
-                closeList.Add(openList[mindex]);
-                
-                //Remove Current Node From OpenList
-                openList.Remove(openList[mindex]);
-                
-                //Pick Next Node that is Movable, ReCompute f_cost, Add Into OpenList
+                // Find node with lowest F-cost
+                int minima = int.MaxValue;
+                int minIndex = 0;
+                GetMinFScoreObject(ref openList, ref minima, ref minIndex);
+
+                // Current node becomes the one with lowest F-cost
+                var currentNode = openList[minIndex];
+                Vector2 currentPos = currentNode.Item1;
+                Vector2 currentParent = currentNode.Item2;
+
+                // Move current node from open to closed list
+                closedList.Add(currentNode);
+                openList.RemoveAt(minIndex);
+
+                // Check if we reached the goal
+                if (currentPos == endPosition)
+                {
+                    // Reconstruct path by adding all nodes from closed list
+                    m_PathList.AddRange(closedList);
+                    return true;
+                }
+
+                // Explore all adjacent tiles
                 foreach (EDirection direction in System.Enum.GetValues(typeof(EDirection)))
                 {
                     if (IsAdjacentTileMovable(currentPos, direction))
                     {
-                        nextPos = GetNextTileVector(currentPos, direction);
-                        if (!closeList.Any(pos => pos.Item1 == nextPos))
+                        Vector2 neighborPos = GetNextTileVector(currentPos, direction);
+
+                        // Skip if neighbor is in closed list
+                        if (closedList.Any(node => node.Item1 == neighborPos))
                         {
-                            hCost = ComputeDistance(nextPos, endPosition);
-                            gCost = ComputeDistance(nextPos, startPosition);
-                            fScore = gCost + hCost;
-                            openList.Add(new Tuple<Vector2, Vector2, int>(nextPos, currentPos, fScore));
+                            continue;
                         }
 
-                        //If current node is the target node
-                        if (nextPos == endPosition)
+                        // Calculate costs for neighbor
+                        int neighborGCost = ComputeDistance(neighborPos, startPosition);
+                        int neighborHCost = ComputeDistance(neighborPos, endPosition);
+                        int neighborFCost = neighborGCost + neighborHCost;
+
+                        // Check if neighbor is already in open list
+                        int existingNodeIndex = -1;
+                        for (int i = 0; i < openList.Count; i++)
                         {
-                            closeList.Add(new Tuple<Vector2, Vector2, int>(endPosition, currentPos, 0));
-                            closeList.Add(new Tuple<Vector2, Vector2, int>(endPosition, endPosition, 0));
-                            m_PathList.AddRange(closeList);
-                            return true;
+                            if (openList[i].Item1 == neighborPos)
+                            {
+                                existingNodeIndex = i;
+                                break;
+                            }
+                        }
+
+                        if (existingNodeIndex >= 0) // Found existing node
+                        {
+                            // If new path to neighbor is better, update it
+                            if (neighborFCost < openList[existingNodeIndex].Item3)
+                            {
+                                openList[existingNodeIndex] = new Tuple<Vector2, Vector2, int>(neighborPos, currentPos, neighborFCost);
+                            }
+                        }
+                        else
+                        {
+                            // Add neighbor to open list
+                            openList.Add(new Tuple<Vector2, Vector2, int>(neighborPos, currentPos, neighborFCost));
                         }
                     }
                 }
             }
 
-            return !(openList.Count == 0);
+            // No path found
+            return false;
         }
 
         //=======================================================

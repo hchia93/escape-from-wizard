@@ -309,19 +309,19 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
 
         protected void GetMinFScoreObject(ref List<Tuple<Vector2, Vector2, int>> refList, ref int minima, ref int mindex)
         {
-            for (int i = 0; i < refList.Count; ++i)
-                if (refList[i].Item3 <= minima)
+            if (refList.Count == 0) return;
+            
+            minima = refList[0].Item3;
+            mindex = 0;
+            
+            for (int i = 1; i < refList.Count; ++i)
+            {
+                if (refList[i].Item3 < minima)
                 {
                     minima = refList[i].Item3;
                     mindex = i;
                 }
-                else
-                {
-                    //Reset if not match.
-                    minima = 999;
-                    mindex = 0;
-                }
-
+            }
         }
 
         //=======================================================
