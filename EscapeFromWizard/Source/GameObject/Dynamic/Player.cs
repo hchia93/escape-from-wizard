@@ -144,6 +144,10 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
         public Action OnHitByWizard { get; set; }
         public Action OnEnterOrExitHideState { get; set; }
         public Action OnHealed { get; set; }
+        
+        // State change events for minions and wizard
+        public event EventHandler<bool> OnHideStateChanged;
+        public event EventHandler<bool> OnExitStateChanged;
         public event EventHandler<int> OnHPChanged;
 
         public Player()
@@ -156,10 +160,6 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
             m_HideDelayTimer = 0.0f;
             m_HP = m_MaxHP;
             m_Inventory = new PlayerInventory();
-        }
-        void Reset()
-        {
-            m_Direction = PlayerDirection.STILL;
         }
 
         public void SetLevel(Level level)
@@ -232,7 +232,11 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
 
         public void SetOnExit(bool value)
         {
-            m_IsOnExit = value;
+            if (m_IsOnExit != value) // Only trigger event if state is changing
+            {
+                m_IsOnExit = value;
+                OnExitStateChanged?.Invoke(this, m_IsOnExit);
+            }
         }
 
         public void RevertPositionOnIncompleteQuest()
@@ -297,6 +301,7 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
         {
             return m_MaxHP;
         }
+
         public void LootQuestItem()
         {
             m_Inventory.AddQuestItem();
@@ -337,21 +342,27 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
             return m_Inventory.HasKey(key);
         }
 
-        private void CheckCurrentTile(GameTime gameTime)
+        private void UpdateState(GameTime gameTime)
         {
-            int maxRow = m_ReferenceMapData.GetTotalTileHeight();
-            int maxColumn = m_ReferenceMapData.GetTotalTileWidth();
-            int tileIdCurrentTile = m_ReferenceMapData.GetTileData(m_ReferenceMapData.ToTileIndex((int)m_Position.Y, (int)m_Position.X, maxRow, maxColumn));
+            int tileIdCurrentTile = m_ReferenceMapData.GetTileData(m_ReferenceMapData.ToTileIndex(m_Position, m_ReferenceMapData.GetTotalTileHeight(), m_ReferenceMapData.GetTotalTileWidth()));
 
             if (tileIdCurrentTile == (int)TileType.PATH)
             {
-                m_IsHiding = false;
+                if (m_IsHiding) // Only trigger event if state is changing
+                {
+                    m_IsHiding = false;
+                    OnHideStateChanged?.Invoke(this, m_IsHiding);
+                }
                 m_HideDelayTimer = 0.0f;
             }
 
             if (tileIdCurrentTile == (int)TileType.EXIT_SIGN)
             {
-                m_IsOnExit = true;
+                if (!m_IsOnExit) // Only trigger event if state is changing
+                {
+                    m_IsOnExit = true;
+                    OnExitStateChanged?.Invoke(this, m_IsOnExit);
+                }
             }
 
             if (tileIdCurrentTile == (int)TileType.HIDE_TILE)
@@ -363,13 +374,18 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
                     if (!m_IsHiding)
                     {
                         OnEnterOrExitHideState?.Invoke();
+                        m_IsHiding = true;
+                        OnHideStateChanged?.Invoke(this, m_IsHiding);
                     }
-                    m_IsHiding = true;
                 }
                 else
                 {
                     m_HideDelayTimer = 0.0f;
-                    m_IsHiding = false;
+                    if (m_IsHiding) // Only trigger event if state is changing
+                    {
+                        m_IsHiding = false;
+                        OnHideStateChanged?.Invoke(this, m_IsHiding);
+                    }
                     SetPosition(m_PositionBeforeHideout);
                     
                     // Trigger hiding sound when player is reset from hideout
@@ -481,7 +497,7 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
                 }
                 //ResetTimer
                 m_MoveDelayTimer = 0;
-                CheckCurrentTile(gameTime);
+                UpdateState(gameTime);
             }
         }
 

@@ -46,23 +46,26 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
         private void GetMoveablePathFromList()
         {
             List<Tuple<Vector2, Vector2, int>> processedPathList = new List<Tuple<Vector2, Vector2, int>>();
-            Vector2 currentTilePos = m_PathList[m_PathList.Count - 1].Item1;
-            Vector2 parentTilePos = m_PathList[m_PathList.Count - 1].Item2;
-            processedPathList.Add(m_PathList[m_PathList.Count - 1]); //Always add this Tile. 
-
-            for (int i = m_PathList.Count - 1; i > 0; --i)
+            if (m_PathList.Count > 0)
             {
-                if (parentTilePos == m_PathList[i - 1].Item1)
+                Vector2 currentTilePos = m_PathList[m_PathList.Count - 1].Item1;
+                Vector2 parentTilePos = m_PathList[m_PathList.Count - 1].Item2;
+                processedPathList.Add(m_PathList[m_PathList.Count - 1]); //Always add this Tile. 
+
+                for (int i = m_PathList.Count - 1; i > 0; --i)
                 {
-                    processedPathList.Add(m_PathList[i - 1]);
-                    currentTilePos = m_PathList[i - 1].Item1;
-                    parentTilePos = m_PathList[i - 1].Item2;
+                    if (parentTilePos == m_PathList[i - 1].Item1)
+                    {
+                        processedPathList.Add(m_PathList[i - 1]);
+                        currentTilePos = m_PathList[i - 1].Item1;
+                        parentTilePos = m_PathList[i - 1].Item2;
+                    }
                 }
+                     
+                ClearPathList();
+                m_PathList.AddRange(processedPathList);
+                m_PathList.Reverse();
             }
-                 
-            ClearPathList();
-            m_PathList.AddRange(processedPathList);
-            m_PathList.Reverse();
         }
 
         private void ClearPathList()

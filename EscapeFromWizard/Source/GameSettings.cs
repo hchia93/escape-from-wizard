@@ -72,6 +72,7 @@ namespace EscapeFromWizard
         {
             return TileToPixelPosition((int)tilePosition.X, (int)tilePosition.Y);
         }
+
         public static Vector2 PixelToTilePosition(Vector2 pixelPosition)
         {
             return new Vector2(

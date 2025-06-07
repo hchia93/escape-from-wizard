@@ -23,6 +23,11 @@ namespace EscapeFromWizard.Map
             return m_Data[index];
         }
 
+        public int ToTileIndex(Vector2 position, int totalRow, int totalColumn)
+        {
+            return (int) position.Y * 25 + (int) position.X;
+        }
+
         public int ToTileIndex(int row, int column, int totalRow, int totalColumn)
         {
             return row * 25 + column;
@@ -60,6 +65,7 @@ namespace EscapeFromWizard.Map
             };
             GenerateWalkablePaths();
         }
+
         private void GenerateWalkablePaths()
         {
             for (int i = 0; i < GetTotalTileWidth(); i++)

@@ -25,7 +25,6 @@ namespace EscapeFromWizard.Source
         private List<Vector2> m_WalkablePositions = new List<Vector2>();
 
         // Game timing and score
-        private float m_TotalGameTime;
         private float m_SecondsPlaying;
         private int m_MinutesPlaying;
         private int m_Score;
@@ -52,10 +51,8 @@ namespace EscapeFromWizard.Source
 
         private void InitializeGameState()
         {
-            m_TotalGameTime = 0.0f;
             m_SecondsPlaying = 0.0f;
             m_MinutesPlaying = 0;
-
             m_Score = 0;
         }
 
@@ -126,7 +123,7 @@ namespace EscapeFromWizard.Source
                 m_OccupiedPositions.Add(lockTilePositions[i]);
             }
         }
-      
+
         public Key[] GetKeys()
         {
             return m_Keys;
@@ -150,7 +147,6 @@ namespace EscapeFromWizard.Source
 
         public void UpdateElapsedTime(GameTime gameTime)
         {
-            m_TotalGameTime += (float) gameTime.ElapsedGameTime.TotalSeconds;
             m_SecondsPlaying += (float) gameTime.ElapsedGameTime.TotalSeconds;
 
             if (m_SecondsPlaying >= 60)
@@ -159,7 +155,7 @@ namespace EscapeFromWizard.Source
                 m_SecondsPlaying = 0;
             }
         }
-      
+
         public void UpdateOverlaps(GameTime gameTime)
         {
             foreach (var colorKey in m_Keys)

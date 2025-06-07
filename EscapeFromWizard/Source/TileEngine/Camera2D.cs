@@ -31,6 +31,7 @@ namespace TileEngine
             return Matrix.CreateTranslation(new Vector3(-m_Position.X, -m_Position.Y, 0)) * Matrix.CreateRotationZ(0) * Matrix.CreateScale(1);// *
             //Matrix.CreateTranslation(new Vector3(Bounds.Width * 0.5f, Bounds.Height * 0.5f, 0));
         }
+
         public void SetBoundary(float xMin, float yMin, float xMax, float yMax)
         {
             m_Boundary.X = xMin;

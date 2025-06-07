@@ -41,7 +41,6 @@ namespace EscapeFromWizard
         public SpriteSheet m_TileSpriteSheet;
         public SpriteSheet m_ObjectSpriteSheet;
         public SpriteSheet m_HUDSpriteSheet;
-        public SpriteSheet m_MiscSpriteSheet;
 
         // GameLevel & GameView & GameState
         public Level m_Level;
@@ -53,7 +52,6 @@ namespace EscapeFromWizard
         public Player m_Player;
         public Wizard m_Wizard;
         public Minion[] m_Minions;
-        public SpellItem[] m_SpellItem;
 
         public Vector2 m_MovementOffset;
 
@@ -100,6 +98,9 @@ namespace EscapeFromWizard
             Vector2 cameraBound = GameSettings.CalculateCameraBound(m_Level.GetTotalTileWidth(), m_Level.GetTotalTileHeight());
             m_Camera = new Camera2D();
             m_Camera.SetBoundary(0, 0, (int) cameraBound.X, (int) cameraBound.Y);
+            
+            // Sound
+            m_SoundManager = new SoundManager(this.Content);
 
             // Player
             m_Player = new Player();
@@ -109,16 +110,11 @@ namespace EscapeFromWizard
             m_Player.OnHitByWizard = () => m_SoundManager.PlayHitByWizardSound();
             m_Player.OnEnterOrExitHideState = () => m_SoundManager.PlayHideSound();
             m_Player.OnHealed = () => m_SoundManager.PlayHealSound();
-
+            
             // Key And Locks
             m_GameStates = new GameStates(m_Level, m_Player);
-            m_SpellItem = m_GameStates.GetSpellItems();
 
             m_Player.SetUpLockInformation(m_GameStates.GetLocks());
-
-            // Sound
-            m_SoundManager = new SoundManager(this.Content);
-
 
             // Wizard
             m_Wizard = new Wizard();
@@ -136,10 +132,28 @@ namespace EscapeFromWizard
                 m_Minions[i].SetTargetPosition(GameSettings.MinionsInitialPatrolData[i][0], GameSettings.MinionsInitialPatrolData[i][1]);
             }
 
+            // Bind player state change events to update minions and wizard
+            m_Player.OnHideStateChanged += (sender, isHiding) =>
+            {
+                m_Wizard.SetPlayerHideFlag(isHiding);
+                foreach (var minion in m_Minions)
+                {
+                    minion.SetPlayerHideFlag(isHiding);
+                }
+            };
+            
+            m_Player.OnExitStateChanged += (sender, isOnExit) =>
+            {
+                m_Wizard.SetPlayerExitFlag(isOnExit);
+                foreach (var minion in m_Minions)
+                {
+                    minion.SetPlayerExitFlag(isOnExit);
+                }
+            };
+
             m_GameIsOver = false;
 
-            // Sound
-            m_SoundManager = new SoundManager(this.Content);
+           
 
             m_GameStates.BindItemPickupSoundCallbacks(() => m_SoundManager.PlayPickUpSound());
             m_GameStates.BindLockDestroyedSoundCallback(() => m_SoundManager.PlayUnlockDoorSound());
@@ -172,24 +186,13 @@ namespace EscapeFromWizard
             m_HUDSpriteSheet = new SpriteSheet();
             m_HUDSpriteSheet.m_Texture = Content.Load<Texture2D>(@"Resource\Image\32PixelHUD\32Pixel_SpriteSheet_HUD");
 
-            m_MiscSpriteSheet = new SpriteSheet();
-
             m_Texture1px = new Texture2D(GraphicsDevice, 1, 1);
             m_Texture1px.SetData(new Microsoft.Xna.Framework.Color[] { Microsoft.Xna.Framework.Color.White });
 
-            m_Background = new Texture2D(GraphicsDevice, 256, 256);
             m_Background = Content.Load<Texture2D>(@"Resource\Image\floor_256px");
-
-            m_HomeScreenOverlay = new Texture2D(GraphicsDevice, 576, 576);
             m_HomeScreenOverlay = Content.Load<Texture2D>(@"Resource\Image\home_fit");
-
-            m_GameOverScreenOverlay = new Texture2D(GraphicsDevice, 576, 576);
             m_GameOverScreenOverlay = Content.Load<Texture2D>(@"Resource\Image\gameover_fit");
-
-            m_VictoryScreenOverlay = new Texture2D(GraphicsDevice, 576, 576);
             m_VictoryScreenOverlay = Content.Load<Texture2D>(@"Resource\Image\youwon_fit");
-
-            m_QuestIncompleteMessage = new Texture2D(GraphicsDevice, 576, 576);
             m_QuestIncompleteMessage = Content.Load<Texture2D>(@"Resource\Image\questnotcompleted");
 
             m_FontArialBlack14 = Content.Load<SpriteFont>(@"Resource\Font\Arial_Black_14pxl");
@@ -225,14 +228,10 @@ namespace EscapeFromWizard
                 m_Player.ProcessMovement(m_MovementOffset);
                 m_Player.UpdateMovement(gameTime);
 
-                m_Wizard.SetPlayerExitFlag(m_Player.IsOnExit());
-                m_Wizard.SetPlayerHideFlag(m_Player.GetIsHiding());
                 m_Wizard.UpdateMovement(gameTime, m_Player.GetPosition());
 
                 for (int i = 0; i < m_Minions.Length; i++)
                 {
-                    m_Minions[i].SetPlayerExitFlag(m_Player.IsOnExit());
-                    m_Minions[i].SetPlayerHideFlag(m_Player.IsOnExit());
                     m_Minions[i].UpdateMovement(gameTime, m_Player.GetPosition());
                 }
 
@@ -350,6 +349,7 @@ namespace EscapeFromWizard
                 DrawGameScore();
             }
         }
+
         private void GameFinished(GameTime gameTime)
         {
             if (m_Player.GetCurrentNumOfQuestItem() >= m_Player.GetMaxNumOfQuestItem())
@@ -417,12 +417,14 @@ namespace EscapeFromWizard
             m_SpriteBatch.Draw(m_QuestIncompleteMessage, new Vector2(50, GameSettings.m_ViewportCenter.Y), Microsoft.Xna.Framework.Color.White);
             m_SpriteBatch.End();
         }
+
         private void DrawScreenOverlay(Texture2D screenBackground)
         {
             m_SpriteBatch.Begin();
             m_SpriteBatch.Draw(screenBackground, new Vector2(0, 0), Microsoft.Xna.Framework.Color.White);
             m_SpriteBatch.End();
         }
+
         private void DrawGameScore()
         {
             m_SpriteBatch.Begin();
@@ -430,6 +432,7 @@ namespace EscapeFromWizard
             m_SpriteBatch.DrawString(m_FontArialBlack14, scoreInfo, new Vector2(GameSettings.m_ViewportCenter.X - m_FontArialBlack14.MeasureString(scoreInfo).Length() / 2, GameSettings.m_ViewportCenter.Y - 50), Microsoft.Xna.Framework.Color.Black);
             m_SpriteBatch.End();
         }
+
         private void DrawLevel()
         {
             m_SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, m_Camera.TransformMatrix());
@@ -480,6 +483,7 @@ namespace EscapeFromWizard
             m_SpriteBatch.Draw(m_ObjectSpriteSheet.m_Texture, wizardRect, m_ObjectSpriteSheet.GetSourceRectangle(14), Microsoft.Xna.Framework.Color.White);
             m_SpriteBatch.End();
         }
+
         private void DrawMinions()
         {
             for (int i = 0; i < m_Minions.Length; i++)
@@ -491,16 +495,17 @@ namespace EscapeFromWizard
                 m_SpriteBatch.End();
             }
         }
+
         private void DrawSpellItem()
         {
             m_SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, m_Camera.TransformMatrix());
 
-            for (int i = 0; i < m_SpellItem.Length; i++)
+            foreach (var spellItem in m_GameStates.GetSpellItems()) 
             {
-                if (!m_SpellItem[i].GetIsLooted())
+                if (!spellItem.GetIsLooted())
                 {
-                    Rectangle spellItemRect = GameSettings.CreateTileRectangleAt(m_SpellItem[i].GetPosition());
-                    m_SpriteBatch.Draw(m_ObjectSpriteSheet.m_Texture, spellItemRect, m_ObjectSpriteSheet.GetSourceRectangle(m_SpellItem[i].GetItemTypeIndex()), Microsoft.Xna.Framework.Color.White);
+                    Rectangle spellItemRect = GameSettings.CreateTileRectangleAt(spellItem.GetPosition());
+                    m_SpriteBatch.Draw(m_ObjectSpriteSheet.m_Texture, spellItemRect, m_ObjectSpriteSheet.GetSourceRectangle(spellItem.GetItemTypeIndex()), Microsoft.Xna.Framework.Color.White);
                 }
             }
 
@@ -521,6 +526,7 @@ namespace EscapeFromWizard
             }
             m_SpriteBatch.End();
         }
+
         private void DrawLock()
         {
             m_SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, m_Camera.TransformMatrix());
@@ -535,6 +541,7 @@ namespace EscapeFromWizard
 
             m_SpriteBatch.End();
         }
+
         private void DrawWidget()
         {
             m_SpriteBatch.Begin();
@@ -544,6 +551,7 @@ namespace EscapeFromWizard
             m_ElapsedTimerViewModel.DrawWidget(m_SpriteBatch);
             m_SpriteBatch.End();
         }
+
         private void DrawLevelGridInfo()
         {
             m_SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, m_Camera.TransformMatrix());
@@ -599,6 +607,7 @@ namespace EscapeFromWizard
                 doorlock.SetUnlocked(true);
             }
         }
+
         private void DebugCollectAllKeys()
         {
             foreach (var key in m_GameStates.GetKeys())

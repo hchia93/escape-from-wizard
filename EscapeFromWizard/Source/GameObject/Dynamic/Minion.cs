@@ -37,6 +37,7 @@ namespace EscapeFromWizard.Source.GameObject.Dynamic
             SetBehavior(EBehaviorState.STOP);
 
         }
+
         public void SetPatrolStartPos(int startPosX, int startPosY, int coverageX, int coverageY)
         {
             m_PatrolStartPos = new Vector2(startPosX, startPosY);
