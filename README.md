@@ -69,6 +69,3 @@ Reach `Exit Sign` to win the game.
 `F5` for Unlock All Doors
 
 `F6` for Toggle Guide Lines
-
-## Authors
-Author : [@hchia93](https://www.github.com/hchia93)
