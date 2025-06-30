@@ -7,9 +7,6 @@ It was initially using Microsoft XNA framework which tied to VS2015. It is now u
     <img src="escape-from-wizard.png" width="600">
 </center>
 
-## Coding Quality Disclaimer
-Originally coded in 2015, this project was in a less desired coding standard after reproject. I am now cleaning up the code for future references. 
-
 ## Setting Up
 Unfortunately, this is not the kind of project can be download and run directly. I have excluded most of the buildable binaries files from this project as best practices. One must setup the environment properly to run this project.
 
