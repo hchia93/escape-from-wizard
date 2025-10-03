@@ -48,7 +48,7 @@ jobs:
       - name: Copy Content
         run: |
           mkdir -p src/bin/Release/net8.0/linux-x64/publish/Content
-          cp -r src/bin/Content/DesktopGL/Resource src/bin/Release/net8.0/linux-x64/publish/Content/
+          cp -r src/bin/Content/DesktopGL/* src/bin/Release/net8.0/linux-x64/publish/Content/
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
