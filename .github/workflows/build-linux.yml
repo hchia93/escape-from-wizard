@@ -24,16 +24,16 @@ jobs:
           dotnet-version: '8.0.x'
       - run: dotnet restore src/escape-from-wizard.csproj
 
+      - name: Install fonts
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ttf-mscorefonts-installer
+
       - name: Restore tools
         run: dotnet tool restore
         working-directory: src
 
       - run: dotnet build src/escape-from-wizard.csproj --configuration Release --no-restore
-
-      - name: Install fonts
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ttf-mscorefonts-installer
 
       - name: Build content
         run: dotnet mgcb /@:"Game/Content/Content.mgcb" /platform:DesktopGL
