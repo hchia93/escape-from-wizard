@@ -40,10 +40,15 @@ jobs:
       - name: Publish
         run: dotnet publish src/escape-from-wizard.csproj -c Release -r linux-x64 --self-contained true /p:PublishSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=true
 
+      - name: Copy native dependencies
+        run: |
+          cp src/bin/Debug/net8.0/runtimes/linux-x64/native/libSDL2-2.0.so src/bin/Release/net8.0/linux-x64/publish/ || true
+          cp src/bin/Debug/net8.0/runtimes/linux-x64/native/libopenal.so.1 src/bin/Release/net8.0/linux-x64/publish/ || true
+
       - name: Copy Content
         run: |
           mkdir -p src/bin/Release/net8.0/linux-x64/publish/Content
-          cp -r src/bin/Content/DesktopGL/* src/bin/Release/net8.0/linux-x64/publish/Content/
+          cp -r src/bin/Content/DesktopGL/Resource src/bin/Release/net8.0/linux-x64/publish/Content/
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
