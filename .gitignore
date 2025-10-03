@@ -1,43 +1,10 @@
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
-
-# Log files
-*.txt
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
-
-# Executables
-*.exe
-*.out
-*.app
-
 # Projects settings
+.vs
+.vscode
 /src/.vs
-/src/.vscode
 
 # Binaries
 /src/bin
 /src/obj
 
-# Build XNB files
-/src/Game/Content/bin
-/src/Game/Content/obj
-
-*.xnb
-*.mgcontent
+*.sln 

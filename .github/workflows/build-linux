@@ -1,0 +1,45 @@
+name: Build-Linux
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/**'
+      - 'script/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'src/**'
+      - 'script/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - run: dotnet restore src/escape-from-wizard.csproj
+      - run: dotnet tool restore
+      - run: dotnet build src/escape-from-wizard.csproj --configuration Release --no-restore
+      - run: dotnet mgcb /@:"src/Content/Content.mgcb" /platform:DesktopGL
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-build
+          path: |
+            src/bin/Release/
+            src/bin/DesktopGL/
+      - run: |
+          mkdir -p package
+          cp -r src/bin/Release/* package/
+          cp -r src/bin/DesktopGL/* package/ || true
+          zip -j EscapeFromWizard_Linux_Release.zip src/bin/Release/* src/bin/DesktopGL/* || true
+      - uses: softprops/action-gh-release@v2
+        with:
+          name: Latest Linux Build
+          tag_name: latest-linux
+          files: EscapeFromWizard_Linux_Release.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true

@@ -1,68 +1,126 @@
-# Escape From Wizard
-Escape from Wizard is a C# project I've made during University Course `Game Algorithm Design and Analysis` using [Microsoft XNA 4.0](https://en.wikipedia.org/wiki/Microsoft_XNA_Game_Studio#:~:text=Microsoft%20XNA%20Game%20Studio%20is,on%20the%20Microsoft%20XNA%20platform.) framework. It is featuring A* algorithm implementation for the path searching.
+# escape-from-wizard
 
-It was initially using Microsoft XNA framework which tied to VS2015. It is now upgraded to VS2022 with [MonoGame](https://monogame.net/) and now it is runnable.
+![Build Windows Status](https://github.com/hchia93/escape-from-wizard/actions/workflows/build-windows.yml/badge.svg)
+![Build Linux Status](https://github.com/hchia93/escape-from-wizard/actions/workflows/build-linux.yml/badge.svg)
 
-<center>
-    <img src="escape-from-wizard.png" width="600">
-</center>
+Escape from Wizard is a classic dungeon-escape style game where the player must:
 
-## Setting Up
-Unfortunately, this is not the kind of project can be download and run directly. I have excluded most of the buildable binaries files from this project as best practices. One must setup the environment properly to run this project.
+- Navigate through a maze-like map.
 
-Please go thru the following setup documentation:
+- Collect key items scattered around.
 
-[Setting up your OS for development](https://docs.monogame.net/articles/getting_started/1_setting_up_your_os_for_development_windows.html?tabs=android)
+- Avoid being caught by roaming Hat Ghosts and the pursuing Wizard.
 
-[Setting up Visual Studio on Windows](https://docs.monogame.net/articles/getting_started/2_choosing_your_ide_visual_studio.html)
+- Once all key items are collected, quickly locate the exit to achieve victory.
 
-## Compiling Content 
-After upgrade from Microsoft XNA 4.0, the old method of loading resources is no longer working. Hence, you must link the resources using MGCB and build them on your machine. 
+This was originally a university project for `Game Algorithm Design and Analysis` using `C#`, [Microsoft XNA 4.0](https://en.wikipedia.org/wiki/Microsoft_XNA_Game_Studio#:~:text=Microsoft%20XNA%20Game%20Studio%20is,on%20the%20Microsoft%20XNA%20platform.), managed with `TFS`, now migrated to `GitHub` and modernized with **CI/CD**.
 
-Refer to: 
-[Generating XNB files](https://www.trccompsci.online/mediawiki/index.php/Generating_and_using_XNB_files)
 
-<div class="row">
-    <div class="column">
-        <img src="open-with-mgcb.png" width="400">
-        <img src="build-with-mgcb.png" width="600">
-    </div>
-</div>
+<p align="center">
+  <img src="img/escape-from-wizard.png" width="600">
+</p>
 
-Once `\bin` and `\obj` should be generated in `...\EscapeFromWizard\Content`
+## ✨ Features
 
-<img src="generated-dir-mgcb.png" width="200">
+- Classic dungeon escape gameplay with collectibles and enemy chasers.
 
-The project is now good to go.
+- Implementation of `A*` algorithm for intelligent pathfinding.
 
-## How to play
+- Key upgrades:
+  - Ported from Microsoft XNA 4.0 (VS2015) to MonoGame (VS2022).
+  - Modernized with solution generation with scripts
+  - Migrated and automated content generation pipeline with MGCB.
+  - Added debug functions for testing and level exploration.
+  - Added CI/CD workflows with GitHub Actions to build, test, and publish artifacts for `Windows` and `Linux`.
+
+## Project Structure
+
+```
+escape-from-wizard/
+├── .github/workflows/                  # GitHub Actions CI/CD pipelines
+├── img/                                # Project screenshots & documentation images
+├── script/                             # Helper scripts
+├── src/                                # Main source code and content  (C#, MonoGame)
+│ ├── Game/Content/                     # Game content pipeline (MGCB, assets)
+│ ├── Game/Source/                      # Game logic, entities, algorithms
+│ └── escape-from-wizard.csproj
+└── README.md                           # Project documentation
+```
+
+## Project Setup
+
+### Step 1: Generate Solution
+
+Execute the `generate-sln` script depending on the operating system.
+
+**Windows**:
+
+```bash
+./script/generate-sln.ps1
+```
+
+**Linux**:
+
+```bash
+./script/generate-sln.sh
+```
+
+### Step 2: Generate Content
+
+Execute the `generate-content` script depending on the operating system.
+
+#### Windows
+
+```bash
+./script/generate-data.ps1
+```
+
+#### Linux
+
+```bash
+./script/generate-sln.sh
+```
+
+#### Manual Generation
+
+Open `Content.mgcb` with MGCB Editor with the generated solution, and build for the desired platform.
+The binaries will be generated at `src/bin/$(Platform)` and `src/obj/$(Platform)`. 
+
+<p align="center">
+    <img src="img/open-with-mgcb.png" width="500">
+    <img src="img/build-with-mgcb.png" width="500">
+</p>
+
+For more information, refer to [Generating .xnb files](https://www.trccompsci.online/mediawiki/index.php/Generating_and_using_XNB_files).
+
+## Running Project
+
+### Game Control
+
 `←` `→` `↑` `↓` or `w` `a` `s` `d` to move around.
 
-`!` are hiding tiles. Wizard will lose sight of you after you entering the location. Will pushes you back out after a short period of time.
+### Game Objects
 
-`Star` are related to scores.
+| Feature | Description |
+|--|--|
+| Hiding Tiles (!) | Entering makes the wizard lose sight; pushes the character out after a delay |
+| Star | Increases score |
+| Wizard | Deal major contact damage |
+| Ghost | Deal minor contact damage |
+| Purple Potion | Mantatory Quest item (Collect 3) |
+| Red Potion | Restores health |
+| Colored Door | Blocks player path. Destroy on passing through with its key.|
+| Colored Key | Unlocks corresponding color door |
+| Exit Sign | Reach it to win |
+| Esc | Quit game |
 
-`Wizard` and `Ghost` do damage on contact. When you lose all health, you lose.
+### Debug Functions
 
-`Purple Potion` are quest items. You must collect all 3 quest item before reaching the `Exit Sign`.
-
-`Red Potion` are health potions.
-
-Collect `Color Key` to unlock `Color Door`.
-
-`Esc` to quit the game.
-
-Reach `Exit Sign` to win the game.
-
-## Debug Functions
-`F1` for Toggle God Mode
-
-`F2` for Full Heals
-
-`F3` For Collect All Keys
-
-`F4` For Collect All Quest Items
-
-`F5` for Unlock All Doors
-
-`F6` for Toggle Guide Lines
+| Key | Desciption |
+|--|--|
+|`F1` | Toggle God Mode|
+|`F2` | Full Heals|
+|`F3` | Obtained All Keys|
+|`F4` | Obtained All Quest Items|
+|`F5` | Unlock All Doors|
+|`F6` | Toggle Guide Lines|
