@@ -6,13 +6,13 @@ on:
     paths:
       - 'src/**'
       - 'script/**'
-      - '.github/workflows/**'
+      - '.github/workflows/build-linux.yml'
   pull_request:
     branches: [ main ]
     paths:
       - 'src/**'
       - 'script/**'
-      - '.github/workflows/**'
+      - '.github/workflows/build-linux.yml'
 
 permissions:
   contents: write
@@ -25,34 +25,42 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
-      - run: dotnet restore src/escape-from-wizard.csproj
+
+      - name: Restore dependencies
+        run: dotnet restore src/escape-from-wizard.csproj
 
       - name: Restore tools
         run: dotnet tool restore
         working-directory: src
 
-      - run: dotnet build src/escape-from-wizard.csproj --configuration Release --no-restore
-
       - name: Build content
         run: dotnet mgcb /@:"Game/Content/Content.mgcb" /platform:DesktopGL
         working-directory: src
 
-      - uses: actions/upload-artifact@v4
+      - name: Publish
+        run: dotnet publish src/escape-from-wizard.csproj -c Release -r linux-x64 --self-contained true /p:PublishSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=true
+
+      - name: Copy Content
+        run: |
+          mkdir -p src/bin/Release/net8.0/linux-x64/publish/Content
+          cp -r src/bin/Content/DesktopGL/* src/bin/Release/net8.0/linux-x64/publish/Content/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
         with:
-          name: linux-build
-          path: |
-            src/bin/Release/
-            src/bin/DesktopGL/
-      - run: |
-          mkdir -p package
-          cp -r src/bin/Release/* package/
-          cp -r src/bin/DesktopGL/* package/ || true
-          zip -j EscapeFromWizard_Linux_Release.zip src/bin/Release/* src/bin/DesktopGL/* || true
+          name: linux-publish
+          path: src/bin/Release/net8.0/linux-x64/publish/
+
+      - name: Zip build output
+        run: |
+          cd src/bin/Release/net8.0/linux-x64/publish
+          zip -r ../../../EscapeFromWizard_Linux_Release.zip .
+
       - uses: softprops/action-gh-release@v2
         with:
           name: Latest Linux Build
           tag_name: latest-linux
-          files: EscapeFromWizard_Linux_Release.zip
+          files: src/bin/Release/EscapeFromWizard_Linux_Release.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         continue-on-error: true

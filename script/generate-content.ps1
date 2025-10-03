@@ -1,3 +1,3 @@
-Set-Location $PSScriptRoot\..\src
+Set-Location $PSScriptRoot\..\src\Game\Content
 dotnet tool restore
-dotnet mgcb /@:"Game/Content/Content.mgcb" /platform:Windows
+dotnet mgcb /@:"Content.mgcb" /platform:Windows

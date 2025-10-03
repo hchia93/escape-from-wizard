@@ -1,4 +1,3 @@
-#!/bin/bash
-cd "$(dirname "$0")/../src"
+cd "$(dirname "$0")/../src/Game/Content"
 dotnet tool restore
-dotnet mgcb /@:"Game/Content/Content.mgcb" /platform:DesktopGL
+dotnet mgcb /@:"Content.mgcb" /platform:DesktopGL

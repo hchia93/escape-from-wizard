@@ -6,13 +6,13 @@ on:
     paths:
       - 'src/**'
       - 'script/**'
-      - '.github/workflows/**'
+      - '.github/workflows/build-windows.yml'
   pull_request:
     branches: [ main ]
     paths:
       - 'src/**'
       - 'script/**'
-      - '.github/workflows/**'
+      - '.github/workflows/build-windows.yml'
 
 permissions:
   contents: write
@@ -25,34 +25,42 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
-      - run: dotnet restore src/escape-from-wizard.csproj
+
+      - name: Restore dependencies
+        run: dotnet restore src/escape-from-wizard.csproj
 
       - name: Restore tools
         run: dotnet tool restore
         working-directory: src
 
-      - run: dotnet build src/escape-from-wizard.csproj --configuration Release --no-restore
-
       - name: Build content
         run: dotnet mgcb /@:"Game/Content/Content.mgcb" /platform:Windows
         working-directory: src
 
-      - uses: actions/upload-artifact@v4
+      - name: Publish
+        run: dotnet publish src/escape-from-wizard.csproj -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=true
+
+      - name: Copy Content
+        run: |
+          New-Item -ItemType Directory -Force -Path src/bin/Release/net8.0/win-x64/publish/Content | Out-Null
+          Copy-Item -Recurse -Force src/bin/Content/Windows/* src/bin/Release/net8.0/win-x64/publish/Content/
+
+       - name: Upload artifact
+        uses: actions/upload-artifact@v4
         with:
-          name: windows-build
-          path: |
-            src/bin/Release/
-            src/bin/Windows/
-      - run: |
-          mkdir package
-          cp -r src/bin/Release/* package/
-          cp -r src/bin/Windows/* package/ || true
-          powershell Compress-Archive -Path src/bin/Release/*,src/bin/Windows/* -DestinationPath EscapeFromWizard_Windows_Release.zip
+          name: windows-publish
+          path: src/bin/Release/net8.0/win-x64/publish/
+
+      - name: Zip build output
+        run: |
+          cd src/bin/Release/net8.0/win-x64/publish
+          powershell Compress-Archive -Path * -DestinationPath ../../../EscapeFromWizard_Windows_Release.zip
+
       - uses: softprops/action-gh-release@v2
         with:
           name: Latest Windows Build
           tag_name: latest-windows
-          files: EscapeFromWizard_Windows_Release.zip
+          files: src/bin/Release/EscapeFromWizard_Windows_Release.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         continue-on-error: true
