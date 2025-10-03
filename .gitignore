@@ -28,13 +28,16 @@
 *.app
 
 # Projects settings
-/EscapeFromWizard/.vs
-/EscapeFromWizard/.vscode
+/src/.vs
+/src/.vscode
 
 # Binaries
-/EscapeFromWizard/bin
-/EscapeFromWizard/obj
+/src/bin
+/src/obj
 
 # Build XNB files
-/EscapeFromWizard/Content/bin
-/EscapeFromWizard/Content/obj
+/src/Game/Content/bin
+/src/Game/Content/obj
+
+*.xnb
+*.mgcontent
