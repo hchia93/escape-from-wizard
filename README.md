@@ -27,9 +27,9 @@ This was originally a university project for `Game Algorithm Design and Analysis
 - Implementation of `A*` algorithm for intelligent pathfinding.
 
 - Key upgrades:
-  - Ported from Microsoft XNA 4.0 (VS2015) to MonoGame (VS2022).
+  - Ported from `Microsoft XNA 4.0` (VS2015) to `MonoGame` (VS2022).
   - Modernized with solution generation with scripts
-  - Migrated and automated content generation pipeline with MGCB.
+  - Migrated and automated content generation pipeline with `MGCB`.
   - Added debug functions for testing and level exploration.
   - Added CI/CD workflows with GitHub Actions to build, test, and publish artifacts for `Windows` and `Linux`.
 
@@ -72,13 +72,13 @@ Execute the `generate-content` script depending on the operating system.
 #### Windows
 
 ```bash
-./script/generate-data.ps1
+./script/generate-content.ps1
 ```
 
 #### Linux
 
 ```bash
-./script/generate-sln.sh
+./script/generate-content.sh
 ```
 
 #### Manual Generation
@@ -91,7 +91,7 @@ The binaries will be generated at `src/bin/$(Platform)` and `src/obj/$(Platform)
     <img src="img/build-with-mgcb.png" width="500">
 </p>
 
-For more information, refer to [Generating .xnb files](https://www.trccompsci.online/mediawiki/index.php/Generating_and_using_XNB_files).
+For more information, kindly refer to [Generating .xnb files](https://www.trccompsci.online/mediawiki/index.php/Generating_and_using_XNB_files).
 
 ## Running Project
 
