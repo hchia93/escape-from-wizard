@@ -6,11 +6,13 @@ on:
     paths:
       - 'src/**'
       - 'script/**'
+      - '.github/workflows/**'
   pull_request:
     branches: [ main ]
     paths:
       - 'src/**'
       - 'script/**'
+      - '.github/workflows/**'
 
 jobs:
   build:
