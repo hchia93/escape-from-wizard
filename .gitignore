@@ -6,5 +6,7 @@
 # Binaries
 /src/bin
 /src/obj
+/src/Game/Content/bin
+/src/Game/Content/obj
 
 *.sln 
