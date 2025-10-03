@@ -35,7 +35,7 @@ This was originally a university project for `Game Algorithm Design and Analysis
 
 ## Project Structure
 
-```
+```bash
 escape-from-wizard/
 ├── .github/workflows/                  # GitHub Actions CI/CD pipelines
 ├── img/                                # Project screenshots & documentation images

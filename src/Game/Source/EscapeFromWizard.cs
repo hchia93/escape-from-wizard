@@ -192,7 +192,7 @@ namespace Game.Source
             m_VictoryScreenOverlay = Content.Load<Texture2D>(ResourcePaths.Images.VictoryScreen);
             m_QuestIncompleteMessage = Content.Load<Texture2D>(ResourcePaths.Images.QuestIncompleteMessage);
 
-            m_FontArialBlack14 = Content.Load<SpriteFont>(ResourcePaths.Fonts.ArialBlack14);
+            m_FontArialBlack14 = Content.Load<SpriteFont>(ResourcePaths.Fonts.Arial14px);
         }
 
         protected override void Update(GameTime gameTime)

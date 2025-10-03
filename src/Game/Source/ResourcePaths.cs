@@ -33,7 +33,7 @@ namespace Game.Source
         // Font Resources
         public static class Fonts
         {
-            public const string ArialBlack14 = @"Resource\Font\Arial_Black_14pxl";
+            public const string Arial14px = @"Resource\Font\Arial_14pxl";
         }
     }
 } 

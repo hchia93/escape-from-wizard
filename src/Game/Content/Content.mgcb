@@ -79,12 +79,12 @@
 /processorParam:Quality=Best
 /build:Resource/Audio/Winning.wav
 
-#begin Resource/Font/Arial_Black_14pxl.spritefont
+#begin Resource/Font/Arial_14pxl.spritefont
 /importer:FontDescriptionImporter
 /processor:FontDescriptionProcessor
 /processorParam:PremultiplyAlpha=True
 /processorParam:TextureFormat=Compressed
-/build:Resource/Font/Arial_Black_14pxl.spritefont
+/build:Resource/Font/Arial_14pxl.spritefont
 
 #begin Resource/Image/32PixelHUD/32Pixel_SpriteSheet_HUD.png
 /importer:TextureImporter
