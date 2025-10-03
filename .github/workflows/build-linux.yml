@@ -23,7 +23,7 @@ jobs:
       - run: dotnet restore src/escape-from-wizard.csproj
       - run: dotnet tool restore
       - run: dotnet build src/escape-from-wizard.csproj --configuration Release --no-restore
-      - run: dotnet mgcb /@:"src/Content/Content.mgcb" /platform:DesktopGL
+      - run: dotnet mgcb /@:"src/Game/Content/Content.mgcb" /platform:DesktopGL
       - uses: actions/upload-artifact@v4
         with:
           name: linux-build
