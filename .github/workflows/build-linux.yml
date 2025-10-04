@@ -1,4 +1,4 @@
-name: Build-Windows
+name: Build-Linux
 
 on:
   push:
@@ -6,20 +6,20 @@ on:
     paths:
       - 'src/**'
       - 'script/**'
-      - '.github/workflows/build-windows.yml'
+      - '.github/workflows/build-linux.yml'
   pull_request:
     branches: [ main ]
     paths:
       - 'src/**'
       - 'script/**'
-      - '.github/workflows/build-windows.yml'
+      - '.github/workflows/build-linux.yml'
 
 permissions:
   contents: write
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       
@@ -35,87 +35,82 @@ jobs:
         working-directory: src
 
       - name: Build content
-        run: dotnet mgcb /@:"Game/Content/Content.mgcb" /platform:Windows
+        run: dotnet mgcb /@:"Game/Content/Content.mgcb" /platform:DesktopGL
         working-directory: src
 
       - name: Publish
-        run: dotnet publish src/escape-from-wizard.csproj -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=true
+        run: dotnet publish src/escape-from-wizard.csproj -c Release -r linux-x64 --self-contained true /p:PublishSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=true
 
       - name: Copy native dependencies and runtimes
         run: |
-          $publishDir = "src/bin/Release/net8.0/win-x64/publish"
-          $releaseDir = "src/bin/Release/net8.0/win-x64"
+          PUBLISH_DIR="src/bin/Release/net8.0/linux-x64/publish"
+          RELEASE_DIR="src/bin/Release/net8.0/linux-x64"
           
-          # Copy DLLs from Release directory only
-          if (Test-Path "$releaseDir/SDL2.dll") {
-            Copy-Item "$releaseDir/SDL2.dll" $publishDir -Force
-            Write-Host "Copied SDL2.dll"
-          }
+          # Copy native libraries from Release directory only
+          if [ -f "$RELEASE_DIR/libSDL2-2.0.so" ]; then
+            cp "$RELEASE_DIR/libSDL2-2.0.so" "$PUBLISH_DIR/"
+            echo "Copied libSDL2-2.0.so"
+          fi
           
-          if (Test-Path "$releaseDir/soft_oal.dll") {
-            Copy-Item "$releaseDir/soft_oal.dll" $publishDir -Force
-            Write-Host "Copied soft_oal.dll"
-          }
-          
-          if (Test-Path "$releaseDir/NVorbis.dll") {
-            Copy-Item "$releaseDir/NVorbis.dll" $publishDir -Force
-            Write-Host "Copied NVorbis.dll"
-          }
+          if [ -f "$RELEASE_DIR/libopenal.so.1" ]; then
+            cp "$RELEASE_DIR/libopenal.so.1" "$PUBLISH_DIR/"
+            echo "Copied libopenal.so.1"
+          fi
           
           # Copy runtimes folder if exists
-          if (Test-Path "$releaseDir/runtimes") {
-            Write-Host "Copying runtimes folder"
-            Copy-Item -Recurse -Force "$releaseDir/runtimes" $publishDir
-          }
+          if [ -d "$RELEASE_DIR/runtimes" ]; then
+            echo "Copying runtimes folder"
+            cp -r "$RELEASE_DIR/runtimes" "$PUBLISH_DIR/"
+          fi
 
       - name: Copy Content (remove Game/Content hierarchy)
         run: |
-          $publishDir = "src/bin/Release/net8.0/win-x64/publish"
-          $contentSource = "src/bin/Content/Windows"
+          PUBLISH_DIR="src/bin/Release/net8.0/linux-x64/publish"
+          CONTENT_SOURCE="src/bin/Content/DesktopGL"
           
-          New-Item -ItemType Directory -Force -Path "$publishDir/Content" | Out-Null
+          mkdir -p "$PUBLISH_DIR/Content"
           
           # Check for Game/Content nested directory
-          if (Test-Path "$contentSource/Game/Content") {
-            Write-Host "Copying from: $contentSource/Game/Content/"
-            Copy-Item -Recurse -Force "$contentSource/Game/Content/*" "$publishDir/Content/"
-          } else {
-            Write-Host "Copying from: $contentSource/"
-            Copy-Item -Recurse -Force "$contentSource/*" "$publishDir/Content/"
-          }
+          if [ -d "$CONTENT_SOURCE/Game/Content" ]; then
+            echo "Copying from: $CONTENT_SOURCE/Game/Content/"
+            cp -r "$CONTENT_SOURCE/Game/Content/"* "$PUBLISH_DIR/Content/"
+          else
+            echo "Copying from: $CONTENT_SOURCE/"
+            cp -r "$CONTENT_SOURCE/"* "$PUBLISH_DIR/Content/"
+          fi
           
           # List copied content
-          Write-Host "`nContent structure:"
-          Get-ChildItem -Recurse "$publishDir/Content/" | Select-Object FullName
+          echo -e "\nContent structure:"
+          ls -R "$PUBLISH_DIR/Content/"
 
       - name: Verify package structure
         run: |
-          $publishDir = "src/bin/Release/net8.0/win-x64/publish"
-          Write-Host "`n=== Package Structure ==="
-          Get-ChildItem $publishDir | Select-Object Name, @{Name="Type";Expression={if($_.PSIsContainer){"Directory"}else{"File"}}}
-          Write-Host "`n=== Content Directory ==="
-          if (Test-Path "$publishDir/Content") {
-            Get-ChildItem "$publishDir/Content" -Recurse | Select-Object FullName
-          } else {
-            Write-Host "ERROR: Content directory not found!"
-          }
+          PUBLISH_DIR="src/bin/Release/net8.0/linux-x64/publish"
+          echo -e "\n=== Package Structure ==="
+          ls -lh "$PUBLISH_DIR"
+          echo -e "\n=== Content Directory ==="
+          if [ -d "$PUBLISH_DIR/Content" ]; then
+            ls -R "$PUBLISH_DIR/Content/"
+          else
+            echo "ERROR: Content directory not found!"
+          fi
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: windows-publish
-          path: src/bin/Release/net8.0/win-x64/publish/
+          name: linux-publish
+          path: src/bin/Release/net8.0/linux-x64/publish/
 
       - name: Zip build output
         run: |
-          cd src/bin/Release/net8.0/win-x64/publish
-          Compress-Archive -Path * -DestinationPath ../../../EscapeFromWizard_Windows_Release.zip -Force
+          cd src/bin/Release/net8.0/linux-x64/publish
+          zip -r ../../../EscapeFromWizard_Linux_Release.zip .
 
       - uses: softprops/action-gh-release@v2
         with:
-          name: Latest Windows Build
-          tag_name: latest-windows
-          files: src/bin/Release/EscapeFromWizard_Windows_Release.zip
+          name: Latest Linux Build
+          tag_name: latest-linux
+          files: src/bin/Release/EscapeFromWizard_Linux_Release.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         continue-on-error: true

@@ -41,60 +41,64 @@ jobs:
       - name: Publish
         run: dotnet publish src/escape-from-wizard.csproj -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=true
 
-      - name: Copy native dependencies
+      - name: Copy native dependencies and runtimes
         run: |
           $publishDir = "src/bin/Release/net8.0/win-x64/publish"
-          
           $releaseDir = "src/bin/Release/net8.0/win-x64"
+          
+          # Copy DLLs from Release directory only
           if (Test-Path "$releaseDir/SDL2.dll") {
             Copy-Item "$releaseDir/SDL2.dll" $publishDir -Force
+            Write-Host "Copied SDL2.dll"
           }
+          
           if (Test-Path "$releaseDir/soft_oal.dll") {
             Copy-Item "$releaseDir/soft_oal.dll" $publishDir -Force
+            Write-Host "Copied soft_oal.dll"
           }
+          
           if (Test-Path "$releaseDir/NVorbis.dll") {
             Copy-Item "$releaseDir/NVorbis.dll" $publishDir -Force
+            Write-Host "Copied NVorbis.dll"
           }
           
-          if (-not (Test-Path "$publishDir/SDL2.dll")) {
-            $debugDir = "src/bin/Debug/net8.0"
-            if (Test-Path "$debugDir/SDL2.dll") {
-              Copy-Item "$debugDir/SDL2.dll" $publishDir -Force
-            }
-          }
-          if (-not (Test-Path "$publishDir/soft_oal.dll")) {
-            $debugDir = "src/bin/Debug/net8.0"
-            if (Test-Path "$debugDir/soft_oal.dll") {
-              Copy-Item "$debugDir/soft_oal.dll" $publishDir -Force
-            }
-          }
-          if (-not (Test-Path "$publishDir/NVorbis.dll")) {
-            $debugDir = "src/bin/Debug/net8.0"
-            if (Test-Path "$debugDir/NVorbis.dll") {
-              Copy-Item "$debugDir/NVorbis.dll" $publishDir -Force
-            }
+          # Copy runtimes folder if exists
+          if (Test-Path "$releaseDir/runtimes") {
+            Write-Host "Copying runtimes folder"
+            Copy-Item -Recurse -Force "$releaseDir/runtimes" $publishDir
           }
 
-      - name: Copy Content
+      - name: Copy Content (remove Game/Content hierarchy)
         run: |
           $publishDir = "src/bin/Release/net8.0/win-x64/publish"
+          $contentSource = "src/bin/Content/Windows"
+          
           New-Item -ItemType Directory -Force -Path "$publishDir/Content" | Out-Null
           
-          if (Test-Path "src/bin/Content/Windows") {
-            Write-Host "Copying from src/bin/Content/Windows"
-            Copy-Item -Recurse -Force "src/bin/Content/Windows/*" "$publishDir/Content/"
-          }
-          elseif (Test-Path "src/obj/Content/Windows") {
-            Write-Host "Copying from src/obj/Content/Windows"
-            Copy-Item -Recurse -Force "src/obj/Content/Windows/*" "$publishDir/Content/"
-          }
-          else {
-            Write-Error "Error: Content directory not found!"
-            exit 1
+          # Check for Game/Content nested directory
+          if (Test-Path "$contentSource/Game/Content") {
+            Write-Host "Copying from: $contentSource/Game/Content/"
+            Copy-Item -Recurse -Force "$contentSource/Game/Content/*" "$publishDir/Content/"
+          } else {
+            Write-Host "Copying from: $contentSource/"
+            Copy-Item -Recurse -Force "$contentSource/*" "$publishDir/Content/"
           }
           
-          Write-Host "Content copied:"
-          Get-ChildItem -Recurse "$publishDir/Content/"
+          # List copied content
+          Write-Host "`nContent structure:"
+          Get-ChildItem -Recurse "$publishDir/Content/" | Select-Object FullName
+
+      - name: Verify package structure
+        run: |
+          $publishDir = "src/bin/Release/net8.0/win-x64/publish"
+          Write-Host "`n=== Package Structure ==="
+          Get-ChildItem $publishDir | Select-Object Name, @{Name="Type";Expression={if($_.PSIsContainer){"Directory"}else{"File"}}}
+          Write-Host "`n=== Content Directory ==="
+          if (Test-Path "$publishDir/Content") {
+            Get-ChildItem "$publishDir/Content" -Recurse | Select-Object FullName
+          } else {
+            Write-Host "ERROR: Content directory not found!"
+          }
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
