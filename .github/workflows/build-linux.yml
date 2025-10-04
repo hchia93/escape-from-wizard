@@ -22,6 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
@@ -42,13 +43,34 @@ jobs:
 
       - name: Copy native dependencies
         run: |
-          cp src/bin/Debug/net8.0/runtimes/linux-x64/native/libSDL2-2.0.so src/bin/Release/net8.0/linux-x64/publish/ || true
-          cp src/bin/Debug/net8.0/runtimes/linux-x64/native/libopenal.so.1 src/bin/Release/net8.0/linux-x64/publish/ || true
+          PUBLISH_DIR="src/bin/Release/net8.0/linux-x64/publish"
+          
+          if [ -f "src/bin/Release/net8.0/linux-x64/runtimes/linux-x64/native/libSDL2-2.0.so" ]; then
+            cp src/bin/Release/net8.0/linux-x64/runtimes/linux-x64/native/libSDL2-2.0.so $PUBLISH_DIR/
+          fi
+          
+          if [ -f "src/bin/Release/net8.0/linux-x64/runtimes/linux-x64/native/libopenal.so.1" ]; then
+            cp src/bin/Release/net8.0/linux-x64/runtimes/linux-x64/native/libopenal.so.1 $PUBLISH_DIR/
+          fi
 
       - name: Copy Content
         run: |
-          mkdir -p src/bin/Release/net8.0/linux-x64/publish/Content
-          cp -r src/bin/Content/DesktopGL/* src/bin/Release/net8.0/linux-x64/publish/Content/
+          PUBLISH_DIR="src/bin/Release/net8.0/linux-x64/publish"
+          mkdir -p $PUBLISH_DIR/Content
+          
+          if [ -d "src/bin/Content/DesktopGL" ]; then
+            echo "Copying from src/bin/Content/DesktopGL"
+            cp -r src/bin/Content/DesktopGL/* $PUBLISH_DIR/Content/
+          elif [ -d "src/obj/Content/DesktopGL" ]; then
+            echo "Copying from src/obj/Content/DesktopGL"
+            cp -r src/obj/Content/DesktopGL/* $PUBLISH_DIR/Content/
+          else
+            echo "Error: Content directory not found!"
+            exit 1
+          fi
+          
+          echo "Content copied:"
+          ls -R $PUBLISH_DIR/Content/
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
