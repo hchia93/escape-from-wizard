@@ -26,12 +26,14 @@ This was originally a university project for `Game Algorithm Design and Analysis
 
 - Implementation of `A*` algorithm for intelligent pathfinding.
 
-- Key upgrades:
-  - Ported from `Microsoft XNA 4.0` (VS2015) to `MonoGame` (VS2022).
-  - Modernized with solution generation with scripts
-  - Migrated and automated content generation pipeline with `MGCB`.
+### Highlight
+- Key upgrades (2025)
+  - Update dependencies: `Microsoft XNA 4.0` (VS2015) to `MonoGame` (VS2022).
+  - Explored data generation with 'MGCB'
+  - Modernized with solution generation using scripts, showcasing toolchain mentality.
+  - Added CI/CD workflow with GitHub Action to build, and upload artifacts, and package release for `Windows` and `Linux`
   - Added debug functions for testing and level exploration.
-  - Added CI/CD workflows with GitHub Actions to build, test, and publish artifacts for `Windows` and `Linux`.
+  - Basic code refactoring.
 
 ## Project Structure
 
